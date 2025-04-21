@@ -1,64 +1,83 @@
 <main class="p-4 md:p-6">
-  <div class="flex items-center mb-6">
+  <div class="flex items-center mb-2">
     <h2 class="text-xl font-poppins font-bold">Welcome, Admin User</h2>
     <!-- <span class="ml-2 text-gray-600">Administrator</span> -->
   </div>
 
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-    <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-      <h3 class="text-amber-700 font-bold mb-2">Total Loans Active</h3>
-      <div class="text-xl md:text-2xl font-bold">148</div>
-      <div class="text-green-500 text-sm">+12.5% from last month</div>
+
+
+  <!-- Tables and Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-2">
+    <div class="lg:col-span-2 order-last lg:order-first md:p-6 rounded-lg">
+      <h3 class="text-lg font-semibold mb-4">Recent Loans</h3>
+      
+      <mat-accordion>
+        <mat-expansion-panel *ngFor="let loan of recentLoans" class="mb-2">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="flex items-center justify-between w-full">
+              <div class="flex items-center gap-3">
+                <span class="font-medium">{{loan.id}}</span>
+                <span>{{loan.customer}}</span>
+              </div>
+              <span [class]="'text-sm ' + (loan.status === 'active' ? 'text-green-500' : 'text-amber-600')">
+                {{loan.status}}
+              </span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+    
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <div>
+              <p class="text-gray-600">Amount</p>
+              <p class="font-medium">{{loan.amount}}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Gold Weight</p>
+              <p class="font-medium">{{loan.goldWeight}}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Date</p>
+              <p class="font-medium">{{loan.date}}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Status</p>
+              <p [class]="'font-medium ' + (loan.status === 'active' ? 'text-green-500' : 'text-amber-600')">
+                {{loan.status}}
+              </p>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
     </div>
-    <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-      <h3 class="text-amber-700 font-bold mb-2">Gold Assets (kg)</h3>
-      <div class="text-xl md:text-2xl font-bold">24.5</div>
-      <div class="text-green-500 text-sm">+7.2% from last month</div>
-    </div>
-    <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-      <h3 class="text-amber-700 font-bold mb-2">Total Customers</h3>
-      <div class="text-xl md:text-2xl font-bold">1,248</div>
-      <div class="text-green-500 text-sm">+4.9% from last month</div>
-    </div>
-    <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-      <h3 class="text-amber-700 font-bold mb-2">Total Loan Value</h3>
-      <div class="text-xl md:text-2xl font-bold">$782,500</div>
-      <div class="text-green-500 text-sm">+18.2% from last month</div>
+    
+    <div class="lg:col-span-1 order-first lg:order-last bg-white p-4 md:p-6 rounded-lg shadow-md">
+      <h3 class="text-lg font-semibold mb-4">Gold Distribution</h3>
+      <canvas id="goldDistributionChart"></canvas>
     </div>
   </div>
 
-  <!-- Tables and Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-    <div class="lg:col-span-2 bg-white p-4 md:p-6 rounded-lg shadow-md overflow-x-auto">
-      <h3 class="text-lg font-semibold mb-4">Recent Loans</h3>
-      <table class="w-full min-w-[600px]">
-        <thead>
-          <tr class="text-left text-gray-600">
-            <th class="pb-3 px-2">ID</th>
-            <th class="pb-3 px-2">Customer</th>
-            <th class="pb-3 px-2">Amount</th>
-            <th class="pb-3 px-2">Gold Weight</th>
-            <th class="pb-3 px-2">Date</th>
-            <th class="pb-3 px-2">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="border-t">
-            <td class="py-3 px-2">L1001</td>
-            <td class="py-3 px-2">John Smith</td>
-            <td class="py-3 px-2">$5,200</td>
-            <td class="py-3 px-2">15g</td>
-            <td class="py-3 px-2">2025-04-15</td>
-            <td class="py-3 px-2"><span class="text-green-500">active</span></td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+      <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+        <h3 class="text-amber-700 font-bold mb-2">Total Loans Active</h3>
+        <div class="text-xl md:text-2xl font-bold">148</div>
+        <div class="text-green-500 text-sm">+12.5% from last month</div>
+      </div>
+      <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+        <h3 class="text-amber-700 font-bold mb-2">Gold Assets (kg)</h3>
+        <div class="text-xl md:text-2xl font-bold">24.5</div>
+        <div class="text-green-500 text-sm">+7.2% from last month</div>
+      </div>
+      <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+        <h3 class="text-amber-700 font-bold mb-2">Total Customers</h3>
+        <div class="text-xl md:text-2xl font-bold">1,248</div>
+        <div class="text-green-500 text-sm">+4.9% from last month</div>
+      </div>
+      <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+        <h3 class="text-amber-700 font-bold mb-2">Total Loan Value</h3>
+        <div class="text-xl md:text-2xl font-bold">$782,500</div>
+        <div class="text-green-500 text-sm">+18.2% from last month</div>
+      </div>
     </div>
-    
-    <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-      <h3 class="text-lg font-semibold mb-4">Gold Distribution</h3>
-      <!-- Chart content -->
-    </div>
-  </div>
+
+
 </main>

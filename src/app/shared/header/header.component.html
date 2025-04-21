@@ -1,4 +1,4 @@
-<div class="bg-gradient-to-r from-amber-200 to-amber-300 shadow-md p-3 relative z-10">
+<div class="bg-gradient-to-r from-amber-100 to-amber-100 shadow-md p-3 relative z-10">
   <div class="flex justify-between items-center">
     <button mat-icon-button class="lg:hidden mr-2" (click)="toggleSidebar.emit()">
       <mat-icon>menu</mat-icon>
@@ -13,14 +13,64 @@
         </span>
       </h1>
     </div>
+    
     <div class="flex items-center space-x-4">
-      <button mat-icon-button class="relative">
+      <!-- Notifications Menu -->
+      <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="relative">
         <mat-icon>notifications</mat-icon>
         <span class="absolute top-0 right-0 h-2 w-2 bg-amber-500 rounded-full"></span>
       </button>
-      <button mat-icon-button>
+      <mat-menu #notificationMenu="matMenu" class="w-80">
+        <div class="p-4">
+          <h3 class="text-lg font-semibold mb-2">Notifications</h3>
+          <mat-divider></mat-divider>
+        </div>
+        <div class="max-h-80 overflow-y-auto">
+          <div *ngFor="let notification of notifications" class="p-4 hover:bg-gray-50 cursor-pointer">
+            <div class="flex items-start gap-3">
+              <mat-icon [class]="notification.type === 'New Loan' ? 'text-green-500' : 'text-amber-500'">
+                {{notification.type === 'New Loan' ? 'add_circle' : 'access_time'}}
+              </mat-icon>
+              <div>
+                <p class="font-medium">{{notification.type}}</p>
+                <p class="text-sm text-gray-600">{{notification.message}}</p>
+                <p class="text-xs text-gray-500 mt-1">{{notification.time}}</p>
+              </div>
+            </div>
+            <mat-divider class="mt-2"></mat-divider>
+          </div>
+        </div>
+      </mat-menu>
+
+      <!-- Profile Menu -->
+      <button mat-icon-button [matMenuTriggerFor]="profileMenu">
         <mat-icon>account_circle</mat-icon>
       </button>
+      <mat-menu #profileMenu="matMenu" class="w-64">
+        <div class="p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <mat-icon class="text-amber-600">account_circle</mat-icon>
+            <div>
+              <h3 class="font-medium">{{adminUser.name}}</h3>
+              <p class="text-sm text-gray-600">{{adminUser.email}}</p>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+        </div>
+        <div class="px-4 py-2">
+          <p class="text-sm text-gray-600">Role: {{adminUser.role}}</p>
+          <p class="text-sm text-gray-600">Branch: {{adminUser.branch}}</p>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/layout/settings">
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
     </div>
   </div>
 </div>

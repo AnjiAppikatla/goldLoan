@@ -1,0 +1,18 @@
+::ng-deep .mat-mdc-tab-group {
+  .mat-mdc-tab-header {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .mat-mdc-tab {
+    &.mdc-tab--active {
+      .mdc-tab__text-label {
+        color: #d97706;
+      }
+    }
+  }
+}
+
+.mat-mdc-slide-toggle {
+  display: block;
+  margin-bottom: 1rem;
+}

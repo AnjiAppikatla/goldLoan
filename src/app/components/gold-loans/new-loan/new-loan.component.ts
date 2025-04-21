@@ -16,6 +16,8 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { HttpClientModule } from '@angular/common/http';
 import { CustomerService } from '../../../services/customer.service';
 import { GoldLoanService } from '../../../services/gold-loan.service';
+import { DatePipe } from '@angular/common';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-new-loan',
@@ -31,7 +33,8 @@ import { GoldLoanService } from '../../../services/gold-loan.service';
     MatAutocompleteModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule
+    HttpClientModule,
+    MatDatepickerModule
   ],
   providers: [AddressService],
   templateUrl: './new-loan.component.html'
@@ -63,7 +66,9 @@ export class NewLoanComponent implements OnInit {
       panCard: ['', [Validators.required]],
       currentAddress: ['', Validators.required],
       sameAddress: [false],
-      permanentAddress: ['']
+      permanentAddress: [''],
+      issuedDate: ['', Validators.required],
+    maturityDate: ['', Validators.required]
     });
   }
 
@@ -105,5 +110,17 @@ export class NewLoanComponent implements OnInit {
       this.goldLoanService.loans.push(this.loanForm.value);
     }
   }
+
+  calculateMaturityDate(event: any) {
+    const issuedDate = new Date(this.loanForm.get('issuedDate')?.value);
+    const maturityDate = new Date(issuedDate);
+    maturityDate.setMonth(maturityDate.getMonth() + 12); // 12 months tenure
+    this.loanForm.patchValue({
+      maturityDate: maturityDate.toISOString().split('T')[0]
+    });
+  }
+
+
+
 }
 

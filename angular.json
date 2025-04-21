@@ -17,7 +17,6 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "baseHref": "/goldLoan/",
             "outputPath": "dist/goldloan",
             "index": "src/index.html",
             "browser": "src/main.ts",
@@ -41,8 +40,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumWarning": "5mb",
+                  "maximumError": "5mb"
                 },
                 {
                   "type": "anyComponentStyle",

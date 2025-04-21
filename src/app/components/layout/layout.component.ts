@@ -59,7 +59,7 @@ export class LayoutComponent {
       case 'settings':
         this.isSettings = true;
         break;
-      case 'personalloans':
+      case 'personalLoans':
         this.personalloans = !this.personalloans;
         break;
     }

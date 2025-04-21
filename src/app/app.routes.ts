@@ -9,21 +9,19 @@ import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { PersonalloansComponent } from './components/personalloans/personalloans.component';
 
 export const routes: Routes = [
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   {
-    path: '',
+    path: 'layout',
     component: LayoutComponent,
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'customers', component: CustomersComponent },
       { path: 'gold-loans', component: GoldLoansComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'sidenav', component: SidenavComponent },
-      { path: 'layout', component: LayoutComponent },
-      { path: 'personalloans', component: PersonalloansComponent },
-      
-
+      { path: 'personalloans', component: PersonalloansComponent }
     ]
-  }
+  },
+  { path: '**', redirectTo: 'login' }
 ];

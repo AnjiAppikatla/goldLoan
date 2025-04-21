@@ -25,10 +25,23 @@
         </div>
 
         <div class="bg-gray-50 p-4 rounded">
-          <h3 class="font-medium mb-2">Loan Details</h3>
-          <p><strong>Amount:</strong> ₹{{loan.loanAmount}}</p>
-          <p><strong>Gold Weight:</strong> {{loan.goldWeight}}g</p>
-          <p><strong>Agent:</strong> {{loan.agentName}}</p>
+          <div class="bg-gray-50 p-4 rounded">
+            <h3 class="font-medium mb-2">Loan Details</h3>
+            <p><strong>Amount:</strong> ₹{{loan.loanAmount}}</p>
+            <p><strong>Gold Weight:</strong> {{loan.goldWeight}}g</p>
+            <p><strong>Agent:</strong> {{loan.agentName}}</p>
+            <p><strong>Issue Date:</strong> {{loan.issuedDate | date}}</p>
+            <p><strong>Maturity Date:</strong> {{loan.maturityDate | date}}</p>
+            
+            <div class="loan-progress">
+              <p class="text-sm mb-1">Loan Progress</p>
+              <div class="progress-bar">
+                <div [class]="'progress ' + loan.progress.status"
+                     [style.width.%]="loan.progress.progress">
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="bg-gray-50 p-4 rounded">
