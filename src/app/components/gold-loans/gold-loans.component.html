@@ -1,0 +1,42 @@
+<div class="p-4 md:p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-poppins font-semibold text-gray-800 mb-0">Gold Loans</h2>
+    <button mat-raised-button color="primary" (click)="openNewLoanDialog()" class="bg-amber-600">
+      <mat-icon class="mr-2">add</mat-icon>
+      New Loan
+    </button>
+  </div>
+
+  <mat-accordion class="grid grid-cols-1 gap-4">
+    <mat-expansion-panel *ngFor="let loan of loans">
+      <mat-expansion-panel-header>
+        <mat-panel-title class="flex items-center gap-4">
+          <span class="font-medium">{{loan.customerName}}</span>
+          <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <div class="bg-gray-50 p-4 rounded">
+          <h3 class="font-medium mb-2">Personal Details</h3>
+          <p><strong>Phone:</strong> {{loan.phoneNumber}}</p>
+          <p><strong>Aadhar:</strong> {{loan.aadharNumber}}</p>
+          <p><strong>PAN:</strong> {{loan.panCard}}</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded">
+          <h3 class="font-medium mb-2">Loan Details</h3>
+          <p><strong>Amount:</strong> ₹{{loan.loanAmount}}</p>
+          <p><strong>Gold Weight:</strong> {{loan.goldWeight}}g</p>
+          <p><strong>Agent:</strong> {{loan.agentName}}</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded">
+          <h3 class="font-medium mb-2">Address</h3>
+          <p><strong>Current:</strong> {{loan.currentAddress}}</p>
+          <p *ngIf="loan.permanentAddress"><strong>Permanent:</strong> {{loan.permanentAddress}}</p>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

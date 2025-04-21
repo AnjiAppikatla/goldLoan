@@ -1,0 +1,37 @@
+<div class="p-4 md:p-6">
+  <div class="mb-6">
+    <h2 class="text-2xl font-poppins font-semibold text-gray-800">Customers</h2>
+  </div>
+
+  <mat-accordion class="space-y-2">
+    <mat-expansion-panel *ngFor="let customer of customers">
+      <mat-expansion-panel-header>
+        <mat-panel-title class="flex items-center">
+          <span class="font-medium">{{customer.name}}</span>
+          <span class="ml-4 text-sm text-gray-500">(ID: {{customer.leadId}})</span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-500">Contact Details</p>
+          <p class="mt-1"><strong>Mobile:</strong> {{customer.mobile}}</p>
+          <p><strong>City:</strong> {{customer.city}}</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-500">Loan Details</p>
+          <p class="mt-1"><strong>Amount:</strong> ₹{{customer.amount | number:'1.2-2'}}</p>
+          <p><strong>Branch ID:</strong> {{customer.branchId}}</p>
+          <p><strong>Merchant ID:</strong> {{customer.merchantId}}</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-500">Payout Information</p>
+          <p class="mt-1"><strong>70% Payout:</strong> ₹{{customer.payout70 | number:'1.2-2'}}</p>
+          <p><strong>30% Payout:</strong> ₹{{customer.payout30 | number:'1.2-2'}}</p>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

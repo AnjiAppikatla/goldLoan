@@ -1,0 +1,13 @@
+.gold-loan{
+    a{
+        padding: 10px;
+        &:hover{
+            cursor: pointer;
+            background: #e0c5a1;
+        }
+        &.active {
+            background: #c8aa83;
+          }
+    }
+    
+}

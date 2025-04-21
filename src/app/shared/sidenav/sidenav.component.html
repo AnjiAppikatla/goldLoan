@@ -1,0 +1,33 @@
+<div class="h-full bg-gradient-to-r from-amber-100 to-amber-200">
+
+  
+  <nav class="gold-loan">
+    <a class="text-left flex items-center mt-0" [class.active]="activepage === 'dashboard'"  (click)="changeScreen('dashboard')">
+      <mat-icon class="mr-2">dashboard</mat-icon> 
+      <span>Dashboard</span>
+    </a>
+    <!-- <a class="text-left flex items-center mt-0" [class.active]="activepage === 'customers'" (click)="changeScreen('customers')">
+      <mat-icon class="mr-2">people</mat-icon> 
+      <span>Customers</span>
+    </a> -->
+    <a class="text-left flex items-center mt-0" [class.active]="activepage === 'goldLoans'" (click)="changeScreen('goldLoans')">
+      <mat-icon class="mr-2">account_balance</mat-icon> 
+      <span>Gold Loans</span>
+    </a>
+    <a class="text-left flex items-center mt-0" [class.active]="activepage === 'personalLoans'" (click)="changeScreen('personalloans')">
+      <mat-icon class="mr-2">person</mat-icon> 
+      <span>Personal Loans</span>
+    </a>
+    <a class="text-left flex items-center mt-0" [class.active]="activepage === 'settings'" (click)="changeScreen('settings')">
+      <mat-icon class="mr-2">settings</mat-icon> 
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <!-- <div class="absolute bottom-4">
+    <div class="text-sm text-gray-600">
+      <span class="block font-medium">Admin User</span>
+      <span class="text-xs">Administrator</span>
+    </div>
+  </div> -->
+</div>

@@ -1,0 +1,26 @@
+<div class="bg-gradient-to-r from-amber-200 to-amber-300 shadow-md p-3 relative z-10">
+  <div class="flex justify-between items-center">
+    <button mat-icon-button class="lg:hidden mr-2" (click)="toggleSidebar.emit()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <div>
+      <h1 class="text-xxl font-bold mb-0 text-amber-800 font-poppins">
+        <span class="lg:hidden text-2xl">TGL</span>
+        <span class="hidden lg:inline">
+          <span class="text-3xl">T</span>omasri 
+          <span class="text-3xl">G</span>old 
+          <span class="text-3xl">L</span>oans
+        </span>
+      </h1>
+    </div>
+    <div class="flex items-center space-x-4">
+      <button mat-icon-button class="relative">
+        <mat-icon>notifications</mat-icon>
+        <span class="absolute top-0 right-0 h-2 w-2 bg-amber-500 rounded-full"></span>
+      </button>
+      <button mat-icon-button>
+        <mat-icon>account_circle</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
