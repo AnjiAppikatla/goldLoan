@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { RouterModule } from '@angular/router';
 import { Chart } from 'chart.js/auto';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { GoldLoanService } from '../../services/gold-loan.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,19 +27,21 @@ import { MatExpansionModule } from '@angular/material/expansion';
 })
 export class DashboardComponent {
 
-  recentLoans = [
-    {
-      id: 'L1001',
-      customer: 'John Smith',
-      amount: '$5,200',
-      goldWeight: '15g',
-      date: '2025-04-15',
-      status: 'active'
-    }
-  ]
+  recentLoans:any = [];
+
+  constructor(
+    private goldLoanService: GoldLoanService  
+  ) { }
 
   ngOnInit() {
     this.createPieChart();
+
+    this.recentLoans = this.goldLoanService.loans;
+
+    this.recentLoans = this.recentLoans.map((loan:any) => ({
+      ...loan,
+      progress: this.goldLoanService.calculateProgress(loan)
+    }))
   }
 
 

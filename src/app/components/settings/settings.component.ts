@@ -9,6 +9,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
   selector: 'app-settings',
@@ -24,7 +25,8 @@ import { MatIconModule } from '@angular/material/icon';
     MatSlideToggleModule,
     FormsModule,
     ReactiveFormsModule,
-    MatIconModule
+    MatIconModule,
+    MatExpansionModule
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'

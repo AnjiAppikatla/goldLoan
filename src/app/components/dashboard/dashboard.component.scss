@@ -1,0 +1,28 @@
+.loan-progress {
+  margin-top: 1rem;
+  
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress {
+    height: 100%;
+    transition: width 0.3s ease;
+
+    &.on-track {
+      background-color: #22c55e;
+    }
+
+    &.delayed {
+      background-color: #f59e0b;
+    }
+
+    &.completed {
+      background-color: #3b82f6;
+    }
+  }
+}

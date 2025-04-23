@@ -10,105 +10,149 @@
   </div>
 
   <div class="p-2 sm:p-4 overflow-y-auto max-h-[75vh]">
-    <form [formGroup]="loanForm" (ngSubmit)="onSubmit()">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
-        <!-- Regular fields in 2 columns for desktop -->
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>Lead ID</mat-label>
-          <input matInput formControlName="leadId" placeholder="Enter lead ID">
-        </mat-form-field>
+    <div class="p-4">
+      <div class="max-w-4xl mx-auto">
+        <form [formGroup]="loanForm" (ngSubmit)="onSubmit()">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <mat-form-field appearance="outline">
+              <mat-label>Lender</mat-label>
+              <mat-select formControlName="lender">
+                <mat-option *ngFor="let lender of lenders" [value]="lender">
+                  {{lender}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>Customer Name</mat-label>
-          <input matInput formControlName="customerName" placeholder="Enter customer name">
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Lead ID</mat-label>
+              <input matInput formControlName="leadId" placeholder="Enter 8-digit lead ID">
+              <mat-error *ngIf="loanForm.get('leadId')?.hasError('pattern')">
+                Please enter a valid 8-digit lead ID
+              </mat-error>
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>Phone Number</mat-label>
-          <input matInput formControlName="phoneNumber" placeholder="Enter phone number">
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Name</mat-label>
+              <input matInput formControlName="name" placeholder="Enter customer name">
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>Gold Weight (in grams)</mat-label>
-          <input matInput type="number" formControlName="goldWeight" placeholder="Enter gold weight">
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Login User Mobile No</mat-label>
+              <input matInput formControlName="loginUserMobileNo" placeholder="Enter 10-digit mobile number">
+              <mat-error *ngIf="loanForm.get('loginUserMobileNo')?.hasError('pattern')">
+                Please enter a valid 10-digit mobile number
+              </mat-error>
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>Loan Amount</mat-label>
-          <input matInput type="number" formControlName="loanAmount" placeholder="Enter loan amount">
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Merchant ID</mat-label>
+              <!-- <input matInput formControlName="merchantId" readonly> -->
+              <mat-select formControlName="merchantId">
+                <mat-option *ngFor="let merchant of merchants" [value]="merchant">
+                  {{merchant}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-  <mat-label>Issue Date</mat-label>
-  <input matInput type="date" formControlName="issuedDate" [matDatepicker]="picker" (change)="calculateMaturityDate($event)">
-  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-</mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Loan Amount</mat-label>
+              <input matInput type="number" formControlName="amount" placeholder="Enter loan amount">
+             
+            </mat-form-field>
 
- <mat-form-field appearance="outline" class="text-sm sm:text-base">
-  <mat-label>Maturity Date</mat-label>
-  <input matInput type="date" formControlName="maturityDate" readonly>
-  
-</mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Commission Percentage</mat-label>
+              <mat-select formControlName="commission">
+                <mat-option *ngFor="let percentage of commissionPercentages" [value]="percentage">
+                  {{percentage}}%
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>Agent Name</mat-label>
-          <input matInput formControlName="agentName" placeholder="Enter agent name">
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Commission Amount</mat-label>
+              <input matInput type="number" formControlName="commissionAmount" placeholder="Select Percentage" readonly>             
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Date</mat-label>
+              <input matInput [matDatepicker]="issuePicker" 
+                     formControlName="issuedDate" 
+                     (dateChange)="calculateMaturityDate()">
+              <mat-datepicker-toggle matSuffix [for]="issuePicker"></mat-datepicker-toggle>
+              <mat-datepicker #issuePicker></mat-datepicker>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Maturity Date</mat-label>
+              <input matInput [matDatepicker]="maturityPicker" 
+                     formControlName="maturityDate" 
+                     readonly>
+              <mat-datepicker-toggle matSuffix [for]="maturityPicker"></mat-datepicker-toggle>
+              <mat-datepicker #maturityPicker></mat-datepicker>
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>Aadhar Number</mat-label>
-          <input matInput formControlName="aadharNumber" placeholder="Enter Aadhar number">
-        </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Branch ID</mat-label>
+              <input matInput formControlName="branchId" placeholder="Enter branch ID">
+            </mat-form-field>
 
-         <mat-form-field appearance="outline" class="text-sm sm:text-base">
-          <mat-label>PAN Card</mat-label>
-          <input matInput formControlName="panCard" placeholder="Enter PAN card number">
-        </mat-form-field>
+            
+    
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>City</mat-label>
+              <input matInput
+                     [matAutocomplete]="cityAutoComplete"
+                     formControlName="city"
+                     placeholder="Start typing city name...">
+              <mat-autocomplete #cityAutoComplete="matAutocomplete" [displayWith]="displayCityFn">
+                <mat-option *ngFor="let city of filteredCities | async" [value]="city">
+                  {{city.name}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+
+
+            <mat-form-field appearance="outline">
+              <mat-label>PAN Number</mat-label>
+              <input matInput formControlName="panNumber" placeholder="Enter PAN number">
+              <mat-error *ngIf="loanForm.get('panNumber')?.hasError('pattern')">
+                Please enter a valid PAN number
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Aadhar Number</mat-label>
+              <input matInput formControlName="aadharNumber" placeholder="Enter Aadhar number">
+              <mat-error *ngIf="loanForm.get('aadharNumber')?.hasError('pattern')">
+                Please enter a valid 12-digit Aadhar number
+              </mat-error>
+            </mat-form-field>
+
+           
+
+            <!-- <div class="col-span-2">
+              <p class="text-sm mb-2">Loan Progress</p>
+              <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full transition-all duration-300 rounded-full"
+                     [style.width.%]="loanForm.get('loanProgress')?.value"
+                     [ngClass]="{
+                       'bg-green-500': loanForm.get('loanProgress')?.value < 70,
+                       'bg-yellow-500': loanForm.get('loanProgress')?.value >= 70 && loanForm.get('loanProgress')?.value < 90,
+                       'bg-red-500': loanForm.get('loanProgress')?.value >= 90
+                     }">
+                </div>
+              </div>
+            </div> -->
+          </div>
+
+          <div class="flex justify-end mt-4">
+            <button mat-raised-button color="primary" type="submit" [disabled]="!loanForm.valid">
+              Save Loan
+            </button>
+          </div>
+        </form>
       </div>
-
-      <!-- Address fields take full width -->
-      <div class="col-span-full mt-2 sm:mt-4">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Current Address</mat-label>
-          <input matInput
-                 [matAutocomplete]="currentAutoComplete"
-                 formControlName="currentAddress"
-                 (input)="onAddressSearch($event)"
-                 placeholder="Start typing address...">
-                 <mat-autocomplete #currentAutoComplete="matAutocomplete">
-                    <mat-option *ngFor="let address of filteredAddresses$ | async" [value]="address">
-                      {{address}}
-                    </mat-option>
-                  </mat-autocomplete>
-        </mat-form-field>
-
-        <mat-checkbox formControlName="sameAddress" class="block my-4" (change)="onSameAddressChange($event)">
-          Permanent address same as current address
-        </mat-checkbox>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Permanent Address</mat-label>
-          <input matInput
-                 [matAutocomplete]="permanentAutoComplete"
-                 formControlName="permanentAddress"
-                 [readonly]="loanForm.get('sameAddress')?.value"
-                 (input)="onAddressSearch($event)"
-                 placeholder="Start typing address...">
-                 <mat-autocomplete #permanentAutoComplete="matAutocomplete">
-                    <mat-option *ngFor="let address of filteredAddresses$ | async" [value]="address">
-                      {{address}}
-                    </mat-option>
-                  </mat-autocomplete>
-        </mat-form-field>
-      </div>
-
-      <div class="flex justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
-        <button mat-button (click)="dialogRef.close()">Cancel</button>
-        <button mat-raised-button color="primary" type="submit" class="bg-amber-600" [disabled]="!loanForm.valid">
-          Create Loan
-        </button>
-      </div>
-    </form>
+    </div>
   </div>
 </div>

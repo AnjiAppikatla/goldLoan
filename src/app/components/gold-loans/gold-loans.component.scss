@@ -3,21 +3,41 @@
   background-color: #f1d7b4 !important;
 }
 
-.loan-progress {
-  margin-top: 1rem;
+.loan-progress-mini {
   .progress-bar {
-    height: 8px;
-    border-radius: 4px;
+    height: 6px;
+    border-radius: 3px;
     background-color: #e5e7eb;
     overflow: hidden;
     
     .progress {
       height: 100%;
       transition: width 0.3s ease;
-      &.danger { background-color: #ef4444; }
-      &.warning { background-color: #f59e0b; }
-      &.safe { background-color: #22c55e; }
+      border-radius: 3px;
+      
+      &.safe { 
+        background-color: #22c55e; 
+      }
+      &.warning { 
+        background-color: #f59e0b; 
+      }
+      &.danger { 
+        background-color: #ef4444; 
+      }
     }
+  }
+}
+
+::ng-deep .mat-expansion-panel-header {
+  &:hover {
+    .loan-progress-mini {
+      opacity: 1;
+    }
+  }
+  
+  .loan-progress-mini {
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
   }
 }
 

@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
+import { GoldLoanService } from '../../services/gold-loan.service';
 
 @Component({
   selector: 'app-header',
@@ -23,20 +24,7 @@ import { Router } from '@angular/router';
 export class HeaderComponent {
   @Output() toggleSidebar = new EventEmitter<void>();
   
-  notifications = [
-    {
-      id: 'L1001',
-      type: 'New Loan',
-      message: 'New gold loan application from John Smith',
-      time: '2 hours ago'
-    },
-    {
-      id: 'L1002',
-      type: 'Payment Due',
-      message: 'Payment due for loan ID L789',
-      time: '5 hours ago'
-    }
-  ];
+  notifications: any[] = [];
 
   adminUser = {
     name: 'Admin User',
@@ -45,10 +33,42 @@ export class HeaderComponent {
     branch: 'Main Branch'
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private goldLoanService: GoldLoanService
+  ) {}
+
+  ngOnInit() {
+    // Get latest loan and nearest expiry loan
+    const allLoans = this.goldLoanService.getLoans();
+    
+    // Sort loans by date to get latest
+    const latestLoan = allLoans.sort((a, b) => 
+      new Date(b.issuedDate).getTime() - new Date(a.issuedDate).getTime()
+    )[0];
+
+    // Sort loans by maturity date to get nearest expiry
+    const nearestExpiryLoan = allLoans.sort((a, b) => 
+      new Date(a.maturityDate).getTime() - new Date(b.maturityDate).getTime()
+    )[0];
+
+    this.notifications = [
+      {
+        customerName: latestLoan.customerName,
+        status: 'New Loan Added',
+        maturityDate: latestLoan.issuedDate,
+        type: 'new'
+      },
+      {
+        customerName: nearestExpiryLoan.customerName,
+        status: 'Loan Expiring Soon',
+        maturityDate: nearestExpiryLoan.maturityDate,
+        type: 'expiry'
+      }
+    ];
+  }
 
   logout() {
-    // Add logout logic here
     this.router.navigate(['/login']);
   }
 }

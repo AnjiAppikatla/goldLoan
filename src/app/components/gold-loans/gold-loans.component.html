@@ -10,46 +10,100 @@
   <mat-accordion class="grid grid-cols-1 gap-4">
     <mat-expansion-panel *ngFor="let loan of loans">
       <mat-expansion-panel-header>
-        <mat-panel-title class="flex items-center gap-4">
-          <span class="font-medium">{{loan.customerName}}</span>
-          <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span>
+        <mat-panel-title class="flex items-center gap-4 w-full">
+          <div class="flex items-center gap-2 flex-1">
+            <span class="font-medium">{{loan.name}}</span>
+            <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span>
+          </div>
+          <div class="loan-progress-mini flex items-center gap-2">
+            <div class="progress-bar w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden">
+              <div [ngClass]="{
+                    'bg-red-500': loan.progress.status === 'danger',
+                    'bg-yellow-500': loan.progress.status === 'warning',
+                    'bg-green-500': loan.progress.status === 'safe'
+                  }" [style.width.%]="loan.progress.progress" class="h-full transition-all duration-300">
+              </div>
+            </div>
+            <span class="text-sm" [ngClass]="{
+                  'text-red-600': loan.progress.status === 'danger',
+                  'text-yellow-600': loan.progress.status === 'warning',
+                  'text-green-600': loan.progress.status === 'safe'
+                }">
+              {{loan.progress.progress | number:'1.0-0'}}%
+            </span>
+          </div>
         </mat-panel-title>
       </mat-expansion-panel-header>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         <div class="bg-gray-50 p-4 rounded">
-          <h3 class="font-medium mb-2">Personal Details</h3>
-          <p><strong>Phone:</strong> {{loan.phoneNumber}}</p>
-          <p><strong>Aadhar:</strong> {{loan.aadharNumber}}</p>
-          <p><strong>PAN:</strong> {{loan.panCard}}</p>
+          <h3 class="mb-2 text-amber-500 font-bold">Personal Details</h3>
+          <p><strong>Lender :</strong> {{loan.lender}}</p>
+          <p><strong>LeadId :</strong> {{loan.leadId}}</p>
+          <p><strong>Phone :</strong> {{loan.mobileNo}}</p>
+          <p><strong>City :</strong> {{loan.city}}</p>
+
+
         </div>
 
         <div class="bg-gray-50 p-4 rounded">
-          <div class="bg-gray-50 p-4 rounded">
-            <h3 class="font-medium mb-2">Loan Details</h3>
-            <p><strong>Amount:</strong> ₹{{loan.loanAmount}}</p>
-            <p><strong>Gold Weight:</strong> {{loan.goldWeight}}g</p>
-            <p><strong>Agent:</strong> {{loan.agentName}}</p>
-            <p><strong>Issue Date:</strong> {{loan.issuedDate | date}}</p>
-            <p><strong>Maturity Date:</strong> {{loan.maturityDate | date}}</p>
-            
-            <div class="loan-progress">
-              <p class="text-sm mb-1">Loan Progress</p>
-              <div class="progress-bar">
-                <div [class]="'progress ' + loan.progress.status"
-                     [style.width.%]="loan.progress.progress">
-                </div>
-              </div>
-            </div>
+          <div class="">
+            <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
+            <p><strong>Amount :</strong> {{loan.amount}}</p>
+            <p><strong>Issue Date :</strong> {{loan.issuedDate | date}}</p>
+            <p><strong>Maturity Date :</strong> {{loan.maturityDate | date}}</p>
+
+            <p><strong>Aadhar:</strong> {{loan.aadharNumber}}</p>
           </div>
         </div>
 
         <div class="bg-gray-50 p-4 rounded">
-          <h3 class="font-medium mb-2">Address</h3>
-          <p><strong>Current:</strong> {{loan.currentAddress}}</p>
-          <p *ngIf="loan.permanentAddress"><strong>Permanent:</strong> {{loan.permanentAddress}}</p>
+
+          <h3 class="mb-2 text-amber-500 font-bold">Revenew
+            <span class="inline-flex">
+              <button mat-icon-button color="primary" (click)="openEditDialog(loan)"
+                class="focus-visible:outline-2 focus-visible:outline-offset-2">
+                <mat-icon>edit</mat-icon>
+              </button>
+            </span>
+          </h3>
+
+          <p><strong>Total Revenew :</strong> {{loan.commissionAmount}}</p>
+          <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
+          <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
+
+          <p><strong>PAN:</strong> {{loan.panNumber}}</p>
         </div>
       </div>
     </mat-expansion-panel>
   </mat-accordion>
 </div>
+
+
+<ng-template #editDialog>
+  <div class="p-4">
+    <h2 mat-dialog-title class="text-lg font-semibold mb-4">Update Commission</h2>
+    <mat-dialog-content class="pt-4">
+      <form [formGroup]="commissionForm" class="flex flex-col gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Commission Total</mat-label>
+          <input matInput type="number" formControlName="commissionTotal" readonly>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Received</mat-label>
+          <input matInput type="number" formControlName="received">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Receivable</mat-label>
+          <input matInput type="number" formControlName="receivable" readonly>
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end" class="mt-4">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-raised-button color="primary" [disabled]="!commissionForm.valid" (click)="updateCommission()">Update </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

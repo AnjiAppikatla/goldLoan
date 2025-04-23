@@ -1,137 +1,171 @@
-<div class="p-6">
-  <h1 class="text-2xl font-poppins font-semibold text-gray-800 mb-2">Gold Loan Settings</h1>
-  <p class="text-gray-600 mb-6">Manage your gold loan app settings and configurations</p>
 
-  <mat-tab-group animationDuration="0ms" class="bg-white rounded-lg shadow">
-    <mat-tab label="Gold Rates">
-      <div class="p-6">
-        <div class="flex items-center gap-2 mb-4">
-          <mat-icon class="text-amber-600">monetization_on</mat-icon>
-          <h2 class="text-xl font-semibold">Current Gold Rates</h2>
+<div class="p-3 sm:p-6">
+    <h1 class="text-xl sm:text-2xl font-poppins font-semibold text-gray-800 mb-2">Gold Loan Settings</h1>
+    <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Manage your gold loan app settings and configurations</p>
+  
+    <mat-accordion class="bg-white rounded-lg shadow">
+      <mat-expansion-panel expanded="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="flex items-center gap-2">
+            <mat-icon class="text-amber-600">monetization_on</mat-icon>
+            <span>Gold Rates</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+  
+        <div class="pt-4">
+          <!-- Gold Rates content remains the same -->
+          <div class="p-3 sm:p-6">
+            <div class="flex items-center gap-2 mb-3 sm:mb-4">
+              <mat-icon class="text-amber-600">monetization_on</mat-icon>
+              <h2 class="text-lg sm:text-xl font-semibold">Current Gold Rates</h2>
+            </div>
+            <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Set the current market gold rates for loan calculations</p>
+    
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
+            <mat-form-field appearance="outline">
+              <mat-label>24K Gold (per gram)</mat-label>
+              <input matInput type="number" placeholder="Enter rate">
+              <span matPrefix class="ml-4">₹&nbsp;</span>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline">
+              <mat-label>22K Gold (per gram)</mat-label>
+              <input matInput type="number" placeholder="Enter rate">
+              <span matPrefix class="ml-4">₹&nbsp;</span>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline">
+              <mat-label>18K Gold (per gram)</mat-label>
+              <input matInput type="number" placeholder="Enter rate">
+              <span matPrefix class="ml-4">₹&nbsp;</span>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline">
+              <mat-label>Silver (per gram)</mat-label>
+              <input matInput type="number" placeholder="Enter rate">
+              <span matPrefix class="ml-4">₹&nbsp;</span>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline">
+              <mat-label>Last Rate Update Date</mat-label>
+              <input matInput [matDatepicker]="picker">
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+          </div>
+  
+          <mat-slide-toggle class="mb-3 sm:mb-6">Auto-update from market API</mat-slide-toggle>
+  
+          <button mat-raised-button color="primary" class="bg-amber-600">
+            Update Gold Rates
+          </button>
         </div>
-        <p class="text-gray-600 mb-6">Set the current market gold rates for loan calculations</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <mat-form-field appearance="outline">
-            <mat-label>24K Gold (per gram)</mat-label>
-            <input matInput type="number" placeholder="Enter rate">
-            <span matPrefix class="ml-4">₹&nbsp;</span>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>22K Gold (per gram)</mat-label>
-            <input matInput type="number" placeholder="Enter rate">
-            <span matPrefix class="ml-4">₹&nbsp;</span>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>18K Gold (per gram)</mat-label>
-            <input matInput type="number" placeholder="Enter rate">
-            <span matPrefix class="ml-4">₹&nbsp;</span>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Silver (per gram)</mat-label>
-            <input matInput type="number" placeholder="Enter rate">
-            <span matPrefix class="ml-4">₹&nbsp;</span>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Last Rate Update Date</mat-label>
-            <input matInput [matDatepicker]="picker">
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-          </mat-form-field>
         </div>
-
-        <mat-slide-toggle class="mb-6">Auto-update from market API</mat-slide-toggle>
-
-        <button mat-raised-button color="primary" class="bg-amber-600">
-          Update Gold Rates
-        </button>
-      </div>
-    </mat-tab>
-
-    <mat-tab label="Loan Parameters">
-      <div class="p-6">
-        <div class="flex items-center gap-2 mb-4">
-          <mat-icon class="text-amber-600">settings</mat-icon>
-          <h2 class="text-xl font-semibold">Loan Configuration</h2>
+      </mat-expansion-panel>
+  
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title class="flex items-center gap-2">
+            <mat-icon class="text-amber-600">settings</mat-icon>
+            <span>Loan Parameters</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+  
+        <div class="pt-4">
+          <!-- Loan Parameters content remains the same -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
+            <mat-form-field appearance="outline">
+              <mat-label>Maximum Loan Duration (months)</mat-label>
+              <input matInput type="number" placeholder="Enter months">
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline">
+              <mat-label>Interest Rate (%)</mat-label>
+              <input matInput type="number" placeholder="Enter percentage">
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline">
+              <mat-label>Processing Fee (%)</mat-label>
+              <input matInput type="number" placeholder="Enter percentage">
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline">
+              <mat-label>Late Payment Penalty (%)</mat-label>
+              <input matInput type="number" placeholder="Enter percentage">
+            </mat-form-field>
+          </div>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <mat-form-field appearance="outline">
-            <mat-label>Maximum Loan Duration (months)</mat-label>
-            <input matInput type="number" placeholder="Enter months">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Interest Rate (%)</mat-label>
-            <input matInput type="number" placeholder="Enter percentage">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Processing Fee (%)</mat-label>
-            <input matInput type="number" placeholder="Enter percentage">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Late Payment Penalty (%)</mat-label>
-            <input matInput type="number" placeholder="Enter percentage">
-          </mat-form-field>
+      </mat-expansion-panel>
+  
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title class="flex items-center gap-2">
+            <mat-icon class="text-amber-600">notifications</mat-icon>
+            <span>Notifications</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+  
+        <div class="pt-4">
+          <!-- Notifications content remains the same -->
+          <div class="p-3 sm:p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <mat-icon class="text-amber-600">notifications</mat-icon>
+              <h2 class="text-xl font-semibold">Notification Settings</h2>
+            </div>
+    
+            <div class="space-y-3 sm:space-y-4">
+              <mat-slide-toggle>Enable Email Notifications</mat-slide-toggle>
+              <mat-slide-toggle>Enable SMS Notifications</mat-slide-toggle>
+              <mat-slide-toggle>Payment Reminders</mat-slide-toggle>
+              <mat-slide-toggle>Rate Change Alerts</mat-slide-toggle>
+            </div>
+          </div>
         </div>
-      </div>
-    </mat-tab>
-
-    <mat-tab label="Notifications">
-      <div class="p-6">
-        <div class="flex items-center gap-2 mb-4">
-          <mat-icon class="text-amber-600">notifications</mat-icon>
-          <h2 class="text-xl font-semibold">Notification Settings</h2>
+      </mat-expansion-panel>
+  
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title class="flex items-center gap-2">
+            <mat-icon class="text-amber-600">person</mat-icon>
+            <span>User Profile</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+  
+        <div class="pt-4">
+          <!-- User Profile content remains the same -->
+          <div class="p-3 sm:p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <mat-icon class="text-amber-600">person</mat-icon>
+              <h2 class="text-xl font-semibold">Admin Profile</h2>
+            </div>
+    
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
+              <mat-form-field appearance="outline">
+                <mat-label>Admin Name</mat-label>
+                <input matInput placeholder="Enter name">
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" placeholder="Enter email">
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline">
+                <mat-label>Current Password</mat-label>
+                <input matInput type="password" placeholder="Enter current password">
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline">
+                <mat-label>New Password</mat-label>
+                <input matInput type="password" placeholder="Enter new password">
+              </mat-form-field>
+            </div>
+    
+            <button mat-raised-button color="primary" class="bg-amber-600 mt-4">
+              Update Profile
+            </button>
+          </div>
         </div>
-
-        <div class="space-y-4">
-          <mat-slide-toggle>Enable Email Notifications</mat-slide-toggle>
-          <mat-slide-toggle>Enable SMS Notifications</mat-slide-toggle>
-          <mat-slide-toggle>Payment Reminders</mat-slide-toggle>
-          <mat-slide-toggle>Rate Change Alerts</mat-slide-toggle>
-        </div>
-      </div>
-    </mat-tab>
-
-    <mat-tab label="User Profile">
-      <div class="p-6">
-        <div class="flex items-center gap-2 mb-4">
-          <mat-icon class="text-amber-600">person</mat-icon>
-          <h2 class="text-xl font-semibold">Admin Profile</h2>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <mat-form-field appearance="outline">
-            <mat-label>Admin Name</mat-label>
-            <input matInput placeholder="Enter name">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" placeholder="Enter email">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Current Password</mat-label>
-            <input matInput type="password" placeholder="Enter current password">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>New Password</mat-label>
-            <input matInput type="password" placeholder="Enter new password">
-          </mat-form-field>
-        </div>
-
-        <button mat-raised-button color="primary" class="bg-amber-600 mt-4">
-          Update Profile
-        </button>
-      </div>
-    </mat-tab>
-  </mat-tab-group>
-</div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
