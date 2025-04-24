@@ -20,6 +20,7 @@ import { DatePipe } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { ToastService } from '../../../services/toastr.service';
 
 @Component({
   selector: 'app-new-loan',
@@ -49,98 +50,102 @@ export class NewLoanComponent implements OnInit {
   filteredCities!: Observable<any[]>;
 
   commissionPercentages: number[] = [5, 7, 9, 11, 13, 15];
+  paymentTypes: string[] = ['Cash', 'Online', 'Both'];
+  onlinePaymentTypes: string[] = ['UPI', 'Phone pay', 'GooglePay', 'Bank Transfer'];
+  receivedByList: string[] = ['Manikanta - savings', 'Revathi - savings','Manikanta - current', 'Revathi - current'];
 
   lenders: string[] = ['Bajaj', 'HDFC', 'ICICI', 'SBI'];
   merchants: string[] = ['147224577', '147224578', '147224579', '147224580'];
-  cities: { id: string; name: string }[] = [
-    { id: 'VZG001', name: 'Vizag - Pendurthi' },
-    { id: 'VZG002', name: 'Vizag - Madhurawada' },
-    { id: 'VZG003', name: 'Vizag - Marripalem' },
-    { id: 'VZG004', name: 'Vizag - Ravindra Nagar' },
-    { id: 'VJW001', name: 'Vijayawada - Ajith Singh Nagar' },
-    { id: 'VJW002', name: 'Vijayawada - Bhavanipuram' },
-    { id: 'VJW003', name: 'Vijayawada - Eluru Road' },
-    { id: 'VJW004', name: 'Vijayawada - Chitti Nagar' },
-    { id: 'VJW005', name: 'Vijayawada - Satyanarayanpuram' },
-    { id: 'VJW006', name: 'Vijayawada - Ramavarapadu' },
-    { id: 'VJW007', name: 'Vijayawada - Ibrahimpatnam' },
-    { id: 'VJW008', name: 'Vijayawada - Governorpet' },
-    { id: 'GNT001', name: 'Guntur - Kothapeta' },
-    { id: 'NLR001', name: 'Nellore - Kanakamahal Center' },
-    { id: 'VZG005', name: 'Vizag - Old Gajuwaka' },
-    { id: 'VZG006', name: 'Vizag - Gopalpatanam' },
-    { id: 'VZG007', name: 'Vizag - Dwarakanagar' },
-    { id: 'VZG008', name: 'Vizag - New Gajuwaka' },
-    { id: 'VZG009', name: 'Vizag - Kanchara Palem' },
-    { id: 'VZG010', name: 'Vizag - Dabagardens' },
-    { id: 'VZG011', name: 'Vizag - Pedawaltair' },
-    { id: 'VZG012', name: 'Vizag - Kurmannapalem' },
-    { id: 'VZG013', name: 'Vizag - HB Colony' },
-    { id: 'VZG014', name: 'Vizag - Akkayyapalem' },
-    { id: 'TPT001', name: 'Tirupati - Bairagi Patteda' },
-    { id: 'TPT002', name: 'Tirupati - Tilak Road' },
-    { id: 'TPT003', name: 'Tirupati - Korlagunta' },
-    { id: 'TPT004', name: 'Tirupati - RC Road' },
-    { id: 'NLR002', name: 'Nellore - Nawabpet' },
-    { id: 'NLR003', name: 'Nellore - Vedayapalem' },
-    { id: 'ANK001', name: 'Anakapalle - Bhargavi Plaza' },
-    { id: 'GNT002', name: 'Guntakal - Vegetable Market' },
-    { id: 'KKD001', name: 'Kakinada - Jagannaickpur' },
-    { id: 'KNL001', name: 'Kurnool - Gandhi Nagar' },
-    { id: 'RJY001', name: 'Rajahmundry - Devi Chowk' },
-    { id: 'RCT001', name: 'Rayachoti - Bunglow Road' },
-    { id: 'ELR001', name: 'Eluru - Vasanth Mahal Street' },
-    { id: 'ONG001', name: 'Ongole Addanki - Bus Stand Center' },
-    { id: 'CRL001', name: 'Chirala - Santha Bazar' },
-    { id: 'GNT003', name: 'Guntur - Arundelpet' },
-    { id: 'TNL001', name: 'Tenali - Gandhi Chowk' },
-    { id: 'NDL001', name: 'Nandyal - Srinivas Nagar' },
-    { id: 'NSP001', name: 'Narasaraopet - Arundelpet' },
-    { id: 'ATP001', name: 'Anantpur - Subhash Road' },
-    { id: 'VJW009', name: 'Vijayawada - Moghalrajpuram' },
-    { id: 'CDP001', name: 'Cuddapah - Bhagyanagar Colony' },
-    { id: 'AMP001', name: 'Amalapuram - Main Road' },
-    { id: 'RLW001', name: 'Railway - Koduru Nethaji Road' },
-    { id: 'SKL001', name: 'Srikalahasti - Main Road' },
-    { id: 'JRG001', name: 'Jangareddygudem - Eluru Main Road' },
-    { id: 'VJW018', name: 'Vijayawada - Gurunanak Colony' },
-    { id: 'ATP002', name: 'ANANTAPUR - KALYANDURG ROAD' },
-    { id: 'KKD002', name: 'KAKINADA - SARPAVARAM JUNCTION' },
-    { id: 'TGP001', name: 'Thagarapuvalasa - Bhimili Road' },
-    { id: 'NSP002', name: 'NARSIPATNAM - MAIN ROAD' },
-    { id: 'KDR001', name: 'KADIRI - NTR CIRCLE' },
-    { id: 'CLP001', name: 'CHILAKALURIPET - NRT CENTER' },
-    { id: 'BDV001', name: 'BADVEL - FOUR ROAD CIRCLE' },
-    { id: 'RJY002', name: 'RAJAHAMUNDRY - AV APPARAO ROAD' },
-    { id: 'BBL001', name: 'BOBBILI - PEDA BAZAAR MAIN ROAD' },
-    { id: 'TNK001', name: 'Tanuku - Velupuru Road' },
-    { id: 'NDG001', name: 'Nandigama - Main Road' },
-    { id: 'BPT001', name: 'Bapatla - G B C Road' },
-    { id: 'PNR001', name: 'Ponnur - Bus Stand' },
-    { id: 'CTR001', name: 'Chittoor - D I Road' },
-    { id: 'PLV001', name: 'Pulivendula - Ankalammapetta' },
-    { id: 'GNT004', name: 'Guntur - Vinukonda' },
-    { id: 'PVP001', name: 'Parvathipuram - RTC Bus stand' },
-    { id: 'VZG015', name: 'Vizag - Muralinagar' },
-    { id: 'VZG016', name: 'Vizag - Pedagantyada' },
-    { id: 'VZG017', name: 'Vizag - MVP Colony' },
-    { id: 'VZG018', name: 'Vizag - BGL' },
-    { id: 'TPT005', name: 'Tirupati - BGL' },
-    { id: 'GDV001', name: 'Gudivada - BGL' },
-    { id: 'NLR004', name: 'Nellore - BGL' },
-    { id: 'PDT001', name: 'Pendhurthi - Main Road' },
-    { id: 'SBV001', name: 'Sabbavaram - Main Road' },
-    { id: 'VZG019', name: 'Vizag - PM Palem' },
-    { id: 'SHP001', name: 'Sriharipuram - APSRTC Depo Gate' },
-    { id: 'VJW019', name: 'Vijayawada - Krishna Lanka' },
-    { id: 'KVL001', name: 'Kavali - GNT Road' },
-    { id: 'GJP001', name: 'Gajapathiagaram - Four Road Junction' }
+  cities: { branchId: string; name: string }[] = [
+    { branchId: 'VZG001', name: 'Vizag - Pendurthi' },
+    { branchId: 'VZG002', name: 'Vizag - Madhurawada' },
+    { branchId: 'VZG003', name: 'Vizag - Marripalem' },
+    { branchId: 'VZG004', name: 'Vizag - Ravindra Nagar' },
+    { branchId: 'VJW001', name: 'Vijayawada - Ajith Singh Nagar' },
+    { branchId: 'VJW002', name: 'Vijayawada - Bhavanipuram' },
+    { branchId: 'VJW003', name: 'Vijayawada - Eluru Road' },
+    { branchId: 'VJW004', name: 'Vijayawada - Chitti Nagar' },
+    { branchId: 'VJW005', name: 'Vijayawada - Satyanarayanpuram' },
+    { branchId: 'VJW006', name: 'Vijayawada - Ramavarapadu' },
+    { branchId: 'VJW007', name: 'Vijayawada - Ibrahimpatnam' },
+    { branchId: 'VJW008', name: 'Vijayawada - Governorpet' },
+    { branchId: 'GNT001', name: 'Guntur - Kothapeta' },
+    { branchId: 'NLR001', name: 'Nellore - Kanakamahal Center' },
+    { branchId: 'VZG005', name: 'Vizag - Old Gajuwaka' },
+    { branchId: 'VZG006', name: 'Vizag - Gopalpatanam' },
+    { branchId: 'VZG007', name: 'Vizag - Dwarakanagar' },
+    { branchId: 'VZG008', name: 'Vizag - New Gajuwaka' },
+    { branchId: 'VZG009', name: 'Vizag - Kanchara Palem' },
+    { branchId: 'VZG010', name: 'Vizag - Dabagardens' },
+    { branchId: 'VZG011', name: 'Vizag - Pedawaltair' },
+    { branchId: 'VZG012', name: 'Vizag - Kurmannapalem' },
+    { branchId: 'VZG013', name: 'Vizag - HB Colony' },
+    { branchId: 'VZG014', name: 'Vizag - Akkayyapalem' },
+    { branchId: 'TPT001', name: 'Tirupati - Bairagi Patteda' },
+    { branchId: 'TPT002', name: 'Tirupati - Tilak Road' },
+    { branchId: 'TPT003', name: 'Tirupati - Korlagunta' },
+    { branchId: 'TPT004', name: 'Tirupati - RC Road' },
+    { branchId: 'NLR002', name: 'Nellore - Nawabpet' },
+    { branchId: 'NLR003', name: 'Nellore - Vedayapalem' },
+    { branchId: 'ANK001', name: 'Anakapalle - Bhargavi Plaza' },
+    { branchId: 'GNT002', name: 'Guntakal - Vegetable Market' },
+    { branchId: 'KKD001', name: 'Kakinada - Jagannaickpur' },
+    { branchId: 'KNL001', name: 'Kurnool - Gandhi Nagar' },
+    { branchId: 'RJY001', name: 'Rajahmundry - Devi Chowk' },
+    { branchId: 'RCT001', name: 'Rayachoti - Bunglow Road' },
+    { branchId: 'ELR001', name: 'Eluru - Vasanth Mahal Street' },
+    { branchId: 'ONG001', name: 'Ongole Addanki - Bus Stand Center' },
+    { branchId: 'CRL001', name: 'Chirala - Santha Bazar' },
+    { branchId: 'GNT003', name: 'Guntur - Arundelpet' },
+    { branchId: 'TNL001', name: 'Tenali - Gandhi Chowk' },
+    { branchId: 'NDL001', name: 'Nandyal - Srinivas Nagar' },
+    { branchId: 'NSP001', name: 'Narasaraopet - Arundelpet' },
+    { branchId: 'ATP001', name: 'Anantpur - Subhash Road' },
+    { branchId: 'VJW009', name: 'Vijayawada - Moghalrajpuram' },
+    { branchId: 'CDP001', name: 'Cuddapah - Bhagyanagar Colony' },
+    { branchId: 'AMP001', name: 'Amalapuram - Main Road' },
+    { branchId: 'RLW001', name: 'Railway - Koduru Nethaji Road' },
+    { branchId: 'SKL001', name: 'Srikalahasti - Main Road' },
+    { branchId: 'JRG001', name: 'Jangareddygudem - Eluru Main Road' },
+    { branchId: 'VJW018', name: 'Vijayawada - Gurunanak Colony' },
+    { branchId: 'ATP002', name: 'ANANTAPUR - KALYANDURG ROAD' },
+    { branchId: 'KKD002', name: 'KAKINADA - SARPAVARAM JUNCTION' },
+    { branchId: 'TGP001', name: 'Thagarapuvalasa - Bhimili Road' },
+    { branchId: 'NSP002', name: 'NARSIPATNAM - MAIN ROAD' },
+    { branchId: 'KDR001', name: 'KADIRI - NTR CIRCLE' },
+    { branchId: 'CLP001', name: 'CHILAKALURIPET - NRT CENTER' },
+    { branchId: 'BDV001', name: 'BADVEL - FOUR ROAD CIRCLE' },
+    { branchId: 'RJY002', name: 'RAJAHAMUNDRY - AV APPARAO ROAD' },
+    { branchId: 'BBL001', name: 'BOBBILI - PEDA BAZAAR MAIN ROAD' },
+    { branchId: 'TNK001', name: 'Tanuku - Velupuru Road' },
+    { branchId: 'NDG001', name: 'Nandigama - Main Road' },
+    { branchId: 'BPT001', name: 'Bapatla - G B C Road' },
+    { branchId: 'PNR001', name: 'Ponnur - Bus Stand' },
+    { branchId: 'CTR001', name: 'Chittoor - D I Road' },
+    { branchId: 'PLV001', name: 'Pulivendula - Ankalammapetta' },
+    { branchId: 'GNT004', name: 'Guntur - Vinukonda' },
+    { branchId: 'PVP001', name: 'Parvathipuram - RTC Bus stand' },
+    { branchId: 'VZG015', name: 'Vizag - Muralinagar' },
+    { branchId: 'VZG016', name: 'Vizag - Pedagantyada' },
+    { branchId: 'VZG017', name: 'Vizag - MVP Colony' },
+    { branchId: 'VZG018', name: 'Vizag - BGL' },
+    { branchId: 'TPT005', name: 'Tirupati - BGL' },
+    { branchId: 'GDV001', name: 'Gudivada - BGL' },
+    { branchId: 'NLR004', name: 'Nellore - BGL' },
+    { branchId: 'PDT001', name: 'Pendhurthi - Main Road' },
+    { branchId: 'SBV001', name: 'Sabbavaram - Main Road' },
+    { branchId: 'VZG019', name: 'Vizag - PM Palem' },
+    { branchId: 'SHP001', name: 'Sriharipuram - APSRTC Depo Gate' },
+    { branchId: 'VJW019', name: 'Vijayawada - Krishna Lanka' },
+    { branchId: 'KVL001', name: 'Kavali - GNT Road' },
+    { branchId: 'GJP001', name: 'Gajapathiagaram - Four Road Junction' }
   ];
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<NewLoanComponent>,
-    private goldLoanService: GoldLoanService
+    private goldLoanService: GoldLoanService,
+    private toast: ToastService,
   ) {
     this.initForm();
   }
@@ -149,14 +154,83 @@ export class NewLoanComponent implements OnInit {
     this.loanForm.controls['issuedDate'].setValue(new Date().toISOString());
     this.calculateMaturityDate();
 
-    // Subscribe to commission and amount changes
-    this.loanForm.get('commission')?.valueChanges.subscribe(() => {
-      this.calculateCommission();
+    // Subscribe to payment type changes
+    this.loanForm.get('paymentType')?.valueChanges.subscribe(paymentType => {
+      const amount = this.loanForm.get('amount')?.value;
+      if (amount) {
+        this.updatePaymentAmounts(amount, paymentType);
+      }
     });
 
-    this.loanForm.get('amount')?.valueChanges.subscribe(() => {
-      this.calculateCommission();
+       // Subscribe to loan amount changes
+       this.loanForm.get('amount')?.valueChanges.subscribe(amount => {
+        if (amount) {
+          const paymentType = this.loanForm.get('paymentType')?.value;
+          this.updatePaymentAmounts(amount, paymentType);
+          this.calculateCommissionAmount();
+        }
+      });
+
+      this.loanForm.get('commission')?.valueChanges.subscribe(percentage => {
+        this.calculateCommissionAmount();
+      });
+
+      this.loanForm.get('paymentType')?.valueChanges.subscribe(paymentType => {
+        const amount = this.loanForm.get('amount')?.value;
+        if (amount) {
+          this.updatePaymentAmounts(amount, paymentType);
+        }
+      });
+
+          // Subscribe to cash amount changes
+    this.loanForm.get('cashAmount')?.valueChanges.subscribe(cashAmount => {
+      if (this.loanForm.get('paymentType')?.value === 'Both' && cashAmount) {
+        const totalAmount = this.loanForm.get('amount')?.value || 0;
+        const remainingAmount = totalAmount - (parseFloat(cashAmount) || 0);
+        if (remainingAmount >= 0) {
+          this.loanForm.patchValue({
+            onlineAmount: remainingAmount
+          }, { emitEvent: false });
+        }
+      }
     });
+  }
+
+  private calculateCommissionAmount() {
+    const amount = parseFloat(this.loanForm.get('amount')?.value) || 0;
+    const commissionPercentage = parseFloat(this.loanForm.get('commission')?.value) || 0;
+    
+    if (amount && commissionPercentage) {
+      const commissionAmount = (amount * commissionPercentage) / 100;
+      this.loanForm.patchValue({
+        commissionAmount: commissionAmount.toFixed(2)
+      }, { emitEvent: false });
+    } else {
+      this.loanForm.patchValue({
+        commissionAmount: 0
+      }, { emitEvent: false });
+    }
+  }
+
+  private updatePaymentAmounts(totalAmount: number, paymentType: string) {
+    switch(paymentType) {
+      case 'Cash':
+        this.loanForm.patchValue({
+          cashAmount: totalAmount,
+          onlineAmount: 0
+        }, { emitEvent: false });
+        break;
+      case 'Online':
+        this.loanForm.patchValue({
+          cashAmount: 0,
+          onlineAmount: totalAmount
+        }, { emitEvent: false });
+        break;
+      case 'Both':
+        // Don't auto-fill amounts for 'Both' type
+        // Let user input cash amount and calculate online amount accordingly
+        break;
+    }
   }
 
   private initForm() {
@@ -176,6 +250,37 @@ export class NewLoanComponent implements OnInit {
       loanProgress: [0],
       commission: [5, Validators.required],
       commissionAmount: ['', Validators.required],
+      paymentType: ['Cash', Validators.required],
+      cashAmount: [0],
+      onlineAmount: [0],
+      onlinePaymentType: [''],
+      receivedBy: ['', Validators.required],
+      paymentDate: [new Date(), Validators.required],
+      paymentReference: ['']
+    });
+
+    this.loanForm.get('paymentType')?.valueChanges.subscribe(type => {
+      const cashAmountControl = this.loanForm.get('cashAmount');
+      const onlineAmountControl = this.loanForm.get('onlineAmount');
+      const onlinePaymentTypeControl = this.loanForm.get('onlinePaymentType');
+
+      if (type === 'Cash') {
+        cashAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlineAmountControl?.clearValidators();
+        onlinePaymentTypeControl?.clearValidators();
+      } else if (type === 'Online') {
+        onlineAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlinePaymentTypeControl?.setValidators([Validators.required]);
+        cashAmountControl?.clearValidators();
+      } else if (type === 'Both') {
+        cashAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlineAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlinePaymentTypeControl?.setValidators([Validators.required]);
+      }
+
+      cashAmountControl?.updateValueAndValidity();
+      onlineAmountControl?.updateValueAndValidity();
+      onlinePaymentTypeControl?.updateValueAndValidity();
     });
   }
 
@@ -202,18 +307,34 @@ export class NewLoanComponent implements OnInit {
     );
   }
 
-  private _filterCities(value: string): any[] {
-    const filterValue = value.toLowerCase();
+  private _filterCities(value: any): any[] {
+    if (!value) return this.cities;
+    
+    const filterValue = typeof value === 'string' 
+      ? value.toLowerCase()
+      : value.name 
+        ? value.name.toLowerCase() 
+        : '';
+  
     return this.cities.filter(city => 
       city.name.toLowerCase().includes(filterValue) ||
-      city.id.toLowerCase().includes(filterValue)
+      city.branchId.toLowerCase().includes(filterValue)
     );
   }
 
 
   displayCityFn = (city: any): string => {
     if (!city) return '';
-    return typeof city === 'object' ? city.name : this.cities.find(c => c.id === city)?.name || '';
+    return typeof city === 'object' ? city.name : this.cities.find(c => c.branchId === city)?.name || '';
+  }
+
+  onCitySelected(event: any) {
+    const selectedCity = event.option.value;
+    if (selectedCity && selectedCity.branchId) {
+      this.loanForm.patchValue({
+        branchId: selectedCity.branchId
+      });
+    }
   }
   
 
@@ -235,19 +356,43 @@ export class NewLoanComponent implements OnInit {
 
   onSubmit() {
     if (this.loanForm.valid) {
-      const formData = this.loanForm.value;
-      console.log(formData);
-      const commission = this.loanForm.get('commission')?.value;
+      const formValue = this.loanForm.value;
+      const totalAmount = parseFloat(formValue.amount) || 0;
+      const cashAmount = parseFloat(formValue.cashAmount) || 0;
+      const onlineAmount = parseFloat(formValue.onlineAmount) || 0;
+
+      // Validate payment amounts match loan amount
+      if (formValue.paymentType === 'Both') {
+        if (Math.abs((cashAmount + onlineAmount) - totalAmount) > 0.01) {
+          this.toast.warning('Total of cash and online amounts must equal the loan amount');
+          return;
+        }
+      } else if (formValue.paymentType === 'Cash' && cashAmount !== totalAmount) {
+        this.toast.warning('Cash amount must equal the loan amount');
+        return;
+      } else if (formValue.paymentType === 'Online' && onlineAmount !== totalAmount) {
+        this.toast.warning('Online amount must equal the loan amount');
+        return;
+      }
+
+      // If validation passes, proceed with form submission
+      // ... existing submission code ...
+         if (this.loanForm.valid) {
       const amount = this.loanForm.get('amount')?.value;
+      if (!amount || amount <= 0) {
+        return;
+      }
       
+      const formData = this.loanForm.value;
       formData.createdAt = new Date().toISOString();
-      formData.commissionAmount = (amount * (commission / 100)).toFixed(2);
-      
       this.calculateLoanProgress();
       this.dialogRef.close(formData);
       this.goldLoanService.loans.push(formData);
     }
-}
+    }
+  }
+
+
 
 calculateCommission() {
   const commission = this.loanForm.get('commission')?.value;
@@ -261,17 +406,7 @@ calculateCommission() {
   }
 }
 
-  calculatePayoutMargins() {
-    const amount = this.loanForm.get('amount')?.value;
-    if (amount) {
-      const margin70 = (amount * 0.7).toFixed(2);
-      const margin30 = (amount * 0.3).toFixed(2);
-      this.loanForm.patchValue({
-        payoutMargin70: margin70,
-        payoutMargin30: margin30
-      });
-    }
-  }
+
 
 
 

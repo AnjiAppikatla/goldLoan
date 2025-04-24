@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { LoginComponent } from './components/login/login.component';
     MatInputModule,
     MatButtonModule,
     MatFormFieldModule,
-    AppComponent  // Move AppComponent to imports since it's standalone
+    AppComponent,  // Move AppComponent to imports since it's standalone
+    ToastrModule.forRoot()
   ],
   providers: [],
   schemas: [

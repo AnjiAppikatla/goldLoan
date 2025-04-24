@@ -15,20 +15,18 @@
             <span class="font-medium">{{loan.name}}</span>
             <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span>
           </div>
-          <div class="loan-progress-mini flex items-center gap-2">
-            <div class="progress-bar w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden">
-              <div [ngClass]="{
-                    'bg-red-500': loan.progress.status === 'danger',
-                    'bg-yellow-500': loan.progress.status === 'warning',
-                    'bg-green-500': loan.progress.status === 'safe'
-                  }" [style.width.%]="loan.progress.progress" class="h-full transition-all duration-300">
+          <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
+            <div class="progress-bar w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden relative">
+              <div class="h-full transition-all duration-300" 
+                   [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress.progress) + '%, #ef4444 ' + loan.progress.progress + '%)'"
+                   [style.width.%]="100">
               </div>
             </div>
             <span class="text-sm" [ngClass]="{
-                  'text-red-600': loan.progress.status === 'danger',
-                  'text-yellow-600': loan.progress.status === 'warning',
-                  'text-green-600': loan.progress.status === 'safe'
-                }">
+              'text-red-600': loan.progress.status === 'danger',
+              'text-yellow-600': loan.progress.status === 'warning',
+              'text-green-600': loan.progress.status === 'safe'
+            }">
               {{loan.progress.progress | number:'1.0-0'}}%
             </span>
           </div>
@@ -59,8 +57,8 @@
 
         <div class="bg-gray-50 p-4 rounded">
 
-          <h3 class="mb-2 text-amber-500 font-bold">Revenew
-            <span class="inline-flex">
+          <h3 class="mb-2 text-amber-500 font-bold relative">Revenew
+            <span class="absolute right-0 top-0">
               <button mat-icon-button color="primary" (click)="openEditDialog(loan)"
                 class="focus-visible:outline-2 focus-visible:outline-offset-2">
                 <mat-icon>edit</mat-icon>
@@ -92,7 +90,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Received</mat-label>
-          <input matInput type="number" formControlName="received">
+          <input matInput type="number" formControlName="received" #receiveCommission />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">

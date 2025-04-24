@@ -12,6 +12,7 @@ import { GoldLoansComponent } from '../gold-loans/gold-loans.component';
 import { SettingsComponent } from '../settings/settings.component';
 import { PersonalloansComponent } from '../personalloans/personalloans.component';
 
+
 @Component({
   selector: 'app-layout',
   templateUrl: './layout.component.html',
@@ -28,7 +29,7 @@ import { PersonalloansComponent } from '../personalloans/personalloans.component
     // CustomersComponent,
     GoldLoansComponent,
     SettingsComponent,
-    PersonalloansComponent
+    PersonalloansComponent,
   ]
 })
 export class LayoutComponent {

@@ -36,7 +36,7 @@ export class DashboardComponent {
   ngOnInit() {
     this.createPieChart();
 
-    this.recentLoans = this.goldLoanService.loans;
+    this.recentLoans = this.goldLoanService.getLoans();
 
     this.recentLoans = this.recentLoans.map((loan:any) => ({
       ...loan,

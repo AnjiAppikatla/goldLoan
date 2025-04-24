@@ -38,15 +38,14 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Login User Mobile No</mat-label>
-              <input matInput formControlName="loginUserMobileNo" placeholder="Enter 10-digit mobile number">
-              <mat-error *ngIf="loanForm.get('loginUserMobileNo')?.hasError('pattern')">
+              <input matInput formControlName="mobileNo" placeholder="Enter 10-digit mobile number">
+              <mat-error *ngIf="loanForm.get('mobileNo')?.hasError('pattern')">
                 Please enter a valid 10-digit mobile number
               </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Merchant ID</mat-label>
-              <!-- <input matInput formControlName="merchantId" readonly> -->
               <mat-select formControlName="merchantId">
                 <mat-option *ngFor="let merchant of merchants" [value]="merchant">
                   {{merchant}}
@@ -105,7 +104,7 @@
                      [matAutocomplete]="cityAutoComplete"
                      formControlName="city"
                      placeholder="Start typing city name...">
-              <mat-autocomplete #cityAutoComplete="matAutocomplete" [displayWith]="displayCityFn">
+              <mat-autocomplete #cityAutoComplete="matAutocomplete" [displayWith]="displayCityFn" (optionSelected)="onCitySelected($event)">
                 <mat-option *ngFor="let city of filteredCities | async" [value]="city">
                   {{city.name}}
                 </mat-option>
@@ -129,24 +128,63 @@
               </mat-error>
             </mat-form-field>
 
-           
-
-            <!-- <div class="col-span-2">
-              <p class="text-sm mb-2">Loan Progress</p>
-              <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full transition-all duration-300 rounded-full"
-                     [style.width.%]="loanForm.get('loanProgress')?.value"
-                     [ngClass]="{
-                       'bg-green-500': loanForm.get('loanProgress')?.value < 70,
-                       'bg-yellow-500': loanForm.get('loanProgress')?.value >= 70 && loanForm.get('loanProgress')?.value < 90,
-                       'bg-red-500': loanForm.get('loanProgress')?.value >= 90
-                     }">
-                </div>
-              </div>
-            </div> -->
           </div>
 
-          <div class="flex justify-end mt-4">
+          <div class="col-span-2">
+            <h3 class="text-amber-500 font-semibold mb-3">Payment Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Payment Type</mat-label>
+                <mat-select formControlName="paymentType">
+                  <mat-option *ngFor="let type of paymentTypes" [value]="type">
+                    {{type}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline" *ngIf="loanForm.get('paymentType')?.value === 'Cash' || loanForm.get('paymentType')?.value === 'Both'">
+                <mat-label>Cash Amount</mat-label>
+                <input matInput type="number" formControlName="cashAmount">
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline" *ngIf="loanForm.get('paymentType')?.value === 'Online' || loanForm.get('paymentType')?.value === 'Both'">
+                <mat-label>Online Amount</mat-label>
+                <input matInput type="number" formControlName="onlineAmount">
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline" *ngIf="loanForm.get('paymentType')?.value === 'Online' || loanForm.get('paymentType')?.value === 'Both'">
+                <mat-label>Online Payment Type</mat-label>
+                <mat-select formControlName="onlinePaymentType">
+                  <mat-option *ngFor="let type of onlinePaymentTypes" [value]="type">
+                    {{type}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline">
+                <mat-label>Received By</mat-label>
+                <mat-select formControlName="receivedBy">
+                  <mat-option *ngFor="let person of receivedByList" [value]="person">
+                    {{person}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline">
+                <mat-label>Payment Date</mat-label>
+                <input matInput [matDatepicker]="paymentDatePicker" formControlName="paymentDate">
+                <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #paymentDatePicker></mat-datepicker>
+              </mat-form-field>
+    
+              <mat-form-field appearance="outline" *ngIf="loanForm.get('paymentType')?.value === 'Online' || loanForm.get('paymentType')?.value === 'Both'">
+                <mat-label>Payment Reference</mat-label>
+                <input matInput formControlName="paymentReference">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="flex justify-center mt-4">
             <button mat-raised-button color="primary" type="submit" [disabled]="!loanForm.valid">
               Save Loan
             </button>

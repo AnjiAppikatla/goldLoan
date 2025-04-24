@@ -45,19 +45,58 @@ export class GoldLoanService {
   ];
 
   saveLoan(loanData: any) {
-    this.loans.push(loanData);
+    // Initialize commission-related fields
+    const newLoan = {
+      ...loanData,
+      receivedCommissions: [],
+      totalReceivedCommission: 0,
+      receivableCommission: parseFloat(loanData.commissionAmount) || 0
+    };
+    this.loans.push(newLoan);
+    return true; // Return success status
   }
 
   getLoans() {
     return this.loans;
   }
 
+  updateCommission(leadId: string, commissionData: any) {
+    const loanIndex = this.loans.findIndex(loan => loan.leadId === leadId);
+    if (loanIndex !== -1) {
+      const loan = this.loans[loanIndex];
+      const totalCommissionAmount = parseFloat(loan.commissionAmount);
+      const newCommissionAmount = parseFloat(commissionData.received);
+  
+      // Check if new commission would exceed total commission
+      if (newCommissionAmount > totalCommissionAmount) {
+        throw new Error(`Total received commission cannot exceed ${totalCommissionAmount}`);
+      }
+  
+      // Update the loan with new commission
+      loan.receivedCommissions = [{
+        receivedCommission: newCommissionAmount,
+        receivedDate: new Date().toISOString()
+      }];
+  
+      // Update totals (use the new commission amount directly, not adding to previous)
+      loan.totalReceivedCommission = newCommissionAmount;
+      loan.receivableCommission = totalCommissionAmount - newCommissionAmount;
+  
+      this.loans[loanIndex] = loan;
+    }
+  }
+
+
+  
+
+  
+
 
   calculateProgress(loan: any): { progress: number; status: string } {
     if (!loan.issuedDate || !loan.maturityDate) {
       return { progress: 0, status: 'safe' };
     }
-
+  
     const today = new Date();
     const issuedDate = new Date(loan.issuedDate);
     const maturityDate = new Date(loan.maturityDate);
@@ -65,10 +104,19 @@ export class GoldLoanService {
     const totalDays = maturityDate.getTime() - issuedDate.getTime();
     const daysLeft = maturityDate.getTime() - today.getTime();
     const progress = Math.min(Math.max(((totalDays - daysLeft) / totalDays) * 100, 0), 100);
-
+  
+    // Status logic determines the color transitions
+    let status = 'safe';
+    if (progress >= 75) {
+      status = 'warning';
+    }
+    if (progress >= 90) {
+      status = 'danger';
+    }
+  
     return { 
       progress: Math.round(progress * 100) / 100, 
-      status: this.getProgressClass(progress) 
+      status: status 
     };
   }
 
@@ -82,6 +130,10 @@ export class GoldLoanService {
     if (progress >= 90) return 'text-red-600';
     if (progress >= 75) return 'text-yellow-600';
     return 'text-green-600';
+  }
+
+  updateLoans(loans: any[]) {
+    this.loans = [...loans];
   }
 
 
