@@ -16,6 +16,22 @@
     font-family: 'Poppins', sans-serif;
 }
 
+$--app-bg-color: #066359;
+$--app-accordion-bg-color: #4b958d;
+
+.app-theme-bg{
+    background-color: $--app-bg-color;
+}
+
+.app-theme-btn{
+    background-color: #296660 !important;
+    box-shadow: -1px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), -2px 0px 5px 0px rgba(0, 0, 0, 0.12) !important;
+}
+
+.app-theme-color{
+    color: $--app-bg-color !important
+}
+
 html, body { height: 100%; }
 body { margin: 0; }
 
@@ -27,4 +43,15 @@ body { margin: 0; }
 
 .cm-shadow{
     box-shadow: -1px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), -2px 0px 5px 0px rgba(0, 0, 0, 0.12);
+}
+
+.app-accordion-bg{
+    .mat-expansion-panel-header{
+        background: $--app-accordion-bg-color !important;
+    }
+    .mat-expanded{
+        .mat-expansion-panel-header.mat-expanded:hover{
+            background: $--app-accordion-bg-color !important;
+        }
+    }
 }

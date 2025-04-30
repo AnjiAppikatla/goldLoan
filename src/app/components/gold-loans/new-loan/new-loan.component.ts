@@ -21,6 +21,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { ToastService } from '../../../services/toastr.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-new-loan',
@@ -54,98 +55,30 @@ export class NewLoanComponent implements OnInit {
   onlinePaymentTypes: string[] = ['UPI', 'Phone pay', 'GooglePay', 'Bank Transfer'];
   receivedByList: string[] = ['Manikanta - savings', 'Revathi - savings','Manikanta - current', 'Revathi - current'];
 
-  lenders: string[] = ['Bajaj', 'HDFC', 'ICICI', 'SBI'];
-  merchants: string[] = ['147224577', '147224578', '147224579', '147224580'];
-  cities: { branchId: string; name: string }[] = [
-    { branchId: 'VZG001', name: 'Vizag - Pendurthi' },
-    { branchId: 'VZG002', name: 'Vizag - Madhurawada' },
-    { branchId: 'VZG003', name: 'Vizag - Marripalem' },
-    { branchId: 'VZG004', name: 'Vizag - Ravindra Nagar' },
-    { branchId: 'VJW001', name: 'Vijayawada - Ajith Singh Nagar' },
-    { branchId: 'VJW002', name: 'Vijayawada - Bhavanipuram' },
-    { branchId: 'VJW003', name: 'Vijayawada - Eluru Road' },
-    { branchId: 'VJW004', name: 'Vijayawada - Chitti Nagar' },
-    { branchId: 'VJW005', name: 'Vijayawada - Satyanarayanpuram' },
-    { branchId: 'VJW006', name: 'Vijayawada - Ramavarapadu' },
-    { branchId: 'VJW007', name: 'Vijayawada - Ibrahimpatnam' },
-    { branchId: 'VJW008', name: 'Vijayawada - Governorpet' },
-    { branchId: 'GNT001', name: 'Guntur - Kothapeta' },
-    { branchId: 'NLR001', name: 'Nellore - Kanakamahal Center' },
-    { branchId: 'VZG005', name: 'Vizag - Old Gajuwaka' },
-    { branchId: 'VZG006', name: 'Vizag - Gopalpatanam' },
-    { branchId: 'VZG007', name: 'Vizag - Dwarakanagar' },
-    { branchId: 'VZG008', name: 'Vizag - New Gajuwaka' },
-    { branchId: 'VZG009', name: 'Vizag - Kanchara Palem' },
-    { branchId: 'VZG010', name: 'Vizag - Dabagardens' },
-    { branchId: 'VZG011', name: 'Vizag - Pedawaltair' },
-    { branchId: 'VZG012', name: 'Vizag - Kurmannapalem' },
-    { branchId: 'VZG013', name: 'Vizag - HB Colony' },
-    { branchId: 'VZG014', name: 'Vizag - Akkayyapalem' },
-    { branchId: 'TPT001', name: 'Tirupati - Bairagi Patteda' },
-    { branchId: 'TPT002', name: 'Tirupati - Tilak Road' },
-    { branchId: 'TPT003', name: 'Tirupati - Korlagunta' },
-    { branchId: 'TPT004', name: 'Tirupati - RC Road' },
-    { branchId: 'NLR002', name: 'Nellore - Nawabpet' },
-    { branchId: 'NLR003', name: 'Nellore - Vedayapalem' },
-    { branchId: 'ANK001', name: 'Anakapalle - Bhargavi Plaza' },
-    { branchId: 'GNT002', name: 'Guntakal - Vegetable Market' },
-    { branchId: 'KKD001', name: 'Kakinada - Jagannaickpur' },
-    { branchId: 'KNL001', name: 'Kurnool - Gandhi Nagar' },
-    { branchId: 'RJY001', name: 'Rajahmundry - Devi Chowk' },
-    { branchId: 'RCT001', name: 'Rayachoti - Bunglow Road' },
-    { branchId: 'ELR001', name: 'Eluru - Vasanth Mahal Street' },
-    { branchId: 'ONG001', name: 'Ongole Addanki - Bus Stand Center' },
-    { branchId: 'CRL001', name: 'Chirala - Santha Bazar' },
-    { branchId: 'GNT003', name: 'Guntur - Arundelpet' },
-    { branchId: 'TNL001', name: 'Tenali - Gandhi Chowk' },
-    { branchId: 'NDL001', name: 'Nandyal - Srinivas Nagar' },
-    { branchId: 'NSP001', name: 'Narasaraopet - Arundelpet' },
-    { branchId: 'ATP001', name: 'Anantpur - Subhash Road' },
-    { branchId: 'VJW009', name: 'Vijayawada - Moghalrajpuram' },
-    { branchId: 'CDP001', name: 'Cuddapah - Bhagyanagar Colony' },
-    { branchId: 'AMP001', name: 'Amalapuram - Main Road' },
-    { branchId: 'RLW001', name: 'Railway - Koduru Nethaji Road' },
-    { branchId: 'SKL001', name: 'Srikalahasti - Main Road' },
-    { branchId: 'JRG001', name: 'Jangareddygudem - Eluru Main Road' },
-    { branchId: 'VJW018', name: 'Vijayawada - Gurunanak Colony' },
-    { branchId: 'ATP002', name: 'ANANTAPUR - KALYANDURG ROAD' },
-    { branchId: 'KKD002', name: 'KAKINADA - SARPAVARAM JUNCTION' },
-    { branchId: 'TGP001', name: 'Thagarapuvalasa - Bhimili Road' },
-    { branchId: 'NSP002', name: 'NARSIPATNAM - MAIN ROAD' },
-    { branchId: 'KDR001', name: 'KADIRI - NTR CIRCLE' },
-    { branchId: 'CLP001', name: 'CHILAKALURIPET - NRT CENTER' },
-    { branchId: 'BDV001', name: 'BADVEL - FOUR ROAD CIRCLE' },
-    { branchId: 'RJY002', name: 'RAJAHAMUNDRY - AV APPARAO ROAD' },
-    { branchId: 'BBL001', name: 'BOBBILI - PEDA BAZAAR MAIN ROAD' },
-    { branchId: 'TNK001', name: 'Tanuku - Velupuru Road' },
-    { branchId: 'NDG001', name: 'Nandigama - Main Road' },
-    { branchId: 'BPT001', name: 'Bapatla - G B C Road' },
-    { branchId: 'PNR001', name: 'Ponnur - Bus Stand' },
-    { branchId: 'CTR001', name: 'Chittoor - D I Road' },
-    { branchId: 'PLV001', name: 'Pulivendula - Ankalammapetta' },
-    { branchId: 'GNT004', name: 'Guntur - Vinukonda' },
-    { branchId: 'PVP001', name: 'Parvathipuram - RTC Bus stand' },
-    { branchId: 'VZG015', name: 'Vizag - Muralinagar' },
-    { branchId: 'VZG016', name: 'Vizag - Pedagantyada' },
-    { branchId: 'VZG017', name: 'Vizag - MVP Colony' },
-    { branchId: 'VZG018', name: 'Vizag - BGL' },
-    { branchId: 'TPT005', name: 'Tirupati - BGL' },
-    { branchId: 'GDV001', name: 'Gudivada - BGL' },
-    { branchId: 'NLR004', name: 'Nellore - BGL' },
-    { branchId: 'PDT001', name: 'Pendhurthi - Main Road' },
-    { branchId: 'SBV001', name: 'Sabbavaram - Main Road' },
-    { branchId: 'VZG019', name: 'Vizag - PM Palem' },
-    { branchId: 'SHP001', name: 'Sriharipuram - APSRTC Depo Gate' },
-    { branchId: 'VJW019', name: 'Vijayawada - Krishna Lanka' },
-    { branchId: 'KVL001', name: 'Kavali - GNT Road' },
-    { branchId: 'GJP001', name: 'Gajapathiagaram - Four Road Junction' }
+  lenders: any[] = [
+    {lenderName: 'Bajaj', id: 1, percentage: 0.006},
+    {lenderName: 'HDFC', id: 2, percentage: 0.006},
+    {lenderName: 'ICICI', id: 3, percentage: 0.006},
+    {lenderName: 'SBI', id: 4, percentage: 0.006}
   ];
+  merchants: any[] = [
+    {merchantName: 'Mani', merchantid: '147224577'},
+    {merchantName: 'Revathi', merchantid: '147224578'},
+    {merchantName: 'Tomasri', merchantid: '147224579'},
+    {merchantName: 'Kanta', merchantid: '147224580'}
+  ];
+  cities: any[] = []
+
+  Agents: any = []
+  currentUser: any;
+
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<NewLoanComponent>,
     private goldLoanService: GoldLoanService,
     private toast: ToastService,
+    private authService: AuthService
   ) {
     this.initForm();
   }
@@ -154,46 +87,64 @@ export class NewLoanComponent implements OnInit {
     this.loanForm.controls['issuedDate'].setValue(new Date().toISOString());
     this.calculateMaturityDate();
 
+    this.cities = this.goldLoanService.cities;
     // Subscribe to payment type changes
     this.loanForm.get('paymentType')?.valueChanges.subscribe(paymentType => {
+      const cashAmountControl = this.loanForm.get('cashAmount');
+      const onlineAmountControl = this.loanForm.get('onlineAmount');
+      const onlinePaymentTypeControl = this.loanForm.get('onlinePaymentType');
+
+      if (paymentType === 'Cash') {
+        cashAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlineAmountControl?.clearValidators();
+        onlinePaymentTypeControl?.clearValidators();
+      } else if (paymentType === 'Online') {
+        onlineAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlinePaymentTypeControl?.setValidators([Validators.required]);
+        cashAmountControl?.clearValidators();
+      } else if (paymentType === 'Both') {
+        cashAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlineAmountControl?.setValidators([Validators.required, Validators.min(0)]);
+        onlinePaymentTypeControl?.setValidators([Validators.required]);
+      }
+
+      cashAmountControl?.updateValueAndValidity();
+      onlineAmountControl?.updateValueAndValidity();
+      onlinePaymentTypeControl?.updateValueAndValidity();
+
       const amount = this.loanForm.get('amount')?.value;
       if (amount) {
         this.updatePaymentAmounts(amount, paymentType);
       }
     });
 
-       // Subscribe to loan amount changes
-       this.loanForm.get('amount')?.valueChanges.subscribe(amount => {
-        if (amount) {
-          const paymentType = this.loanForm.get('paymentType')?.value;
-          this.updatePaymentAmounts(amount, paymentType);
-          this.calculateCommissionAmount();
-        }
-      });
+   this.Agents = this.authService.users;
 
-      this.loanForm.get('commission')?.valueChanges.subscribe(percentage => {
-        this.calculateCommissionAmount();
-      });
-
-      this.loanForm.get('paymentType')?.valueChanges.subscribe(paymentType => {
-        const amount = this.loanForm.get('amount')?.value;
-        if (amount) {
-          this.updatePaymentAmounts(amount, paymentType);
-        }
-      });
-
-          // Subscribe to cash amount changes
-    this.loanForm.get('cashAmount')?.valueChanges.subscribe(cashAmount => {
-      if (this.loanForm.get('paymentType')?.value === 'Both' && cashAmount) {
-        const totalAmount = this.loanForm.get('amount')?.value || 0;
-        const remainingAmount = totalAmount - (parseFloat(cashAmount) || 0);
-        if (remainingAmount >= 0) {
-          this.loanForm.patchValue({
-            onlineAmount: remainingAmount
-          }, { emitEvent: false });
-        }
+   this.currentUser = this.authService.currentUserValue;
+    
+   // If user is an agent, pre-select and disable agent selection
+   if (this.currentUser?.role === 'agent') {
+    this.loanForm.patchValue({
+      agentname: this.currentUser.name,
+      agentId: this.currentUser.id  // Set the agent ID from current user
+    });
+    this.loanForm.get('agentname')?.disable();
+    this.loanForm.get('agentId')?.disable();
+  }
+   
+   // Only load agent list for admin
+   if (this.currentUser?.role === 'admin') {
+    this.Agents = this.authService.users.filter(user => user.role === 'agent');
+    // For admin, enable selecting agent and their ID
+    this.loanForm.get('agentname')?.valueChanges.subscribe(agentName => {
+      const selectedAgent = this.Agents.find((agent:any) => agent.name === agentName);
+      if (selectedAgent) {
+        this.loanForm.patchValue({
+          agentId: selectedAgent.id
+        });
       }
     });
+  }
   }
 
   private calculateCommissionAmount() {
@@ -239,50 +190,62 @@ export class NewLoanComponent implements OnInit {
       leadId: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
       name: ['', Validators.required],
       mobileNo: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
-      merchantId: ['147224577', Validators.required],
+      merchantId: [this.merchants[0].merchantid, Validators.required],
       amount: ['', [Validators.required, Validators.min(0)]],
+      commission: [0.006, Validators.required], // Set default commission
+      commissionAmount: [''],
       branchId: ['', [Validators.required]],
       city: ['', Validators.required],
-      panNumber: ['', [Validators.pattern('[A-Z]{5}[0-9]{4}[A-Z]{1}')]],
-      aadharNumber: ['', [Validators.pattern('^[0-9]{12}$')]],
-      issuedDate: [new Date().toISOString, Validators.required],
+      panNumber: [''], // Optional
+      aadharNumber: [''], // Optional
+      issuedDate: [new Date().toISOString(), Validators.required],
       maturityDate: ['', Validators.required],
       loanProgress: [0],
-      commission: [5, Validators.required],
-      commissionAmount: ['', Validators.required],
-      paymentType: ['Cash', Validators.required],
+      paymentType: ['Cash', Validators.required], // Set default payment type
       cashAmount: [0],
       onlineAmount: [0],
       onlinePaymentType: [''],
+      paymentDate: [new Date().toISOString(), Validators.required],
+      paymentReference: [''],
+      agentname: [''],
+      agentId: [''],
       receivedBy: ['', Validators.required],
-      paymentDate: [new Date(), Validators.required],
-      paymentReference: ['']
+      accountName: ['', Validators.required],
+      accountNumber: ['', [Validators.required, Validators.pattern('^[0-9]{9,18}$')]],
+      ifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
+      amountReceived: ['', [Validators.required, Validators.min(0)]]
     });
+}
 
-    this.loanForm.get('paymentType')?.valueChanges.subscribe(type => {
-      const cashAmountControl = this.loanForm.get('cashAmount');
-      const onlineAmountControl = this.loanForm.get('onlineAmount');
-      const onlinePaymentTypeControl = this.loanForm.get('onlinePaymentType');
-
-      if (type === 'Cash') {
-        cashAmountControl?.setValidators([Validators.required, Validators.min(0)]);
-        onlineAmountControl?.clearValidators();
-        onlinePaymentTypeControl?.clearValidators();
-      } else if (type === 'Online') {
-        onlineAmountControl?.setValidators([Validators.required, Validators.min(0)]);
-        onlinePaymentTypeControl?.setValidators([Validators.required]);
-        cashAmountControl?.clearValidators();
-      } else if (type === 'Both') {
-        cashAmountControl?.setValidators([Validators.required, Validators.min(0)]);
-        onlineAmountControl?.setValidators([Validators.required, Validators.min(0)]);
-        onlinePaymentTypeControl?.setValidators([Validators.required]);
+private validateForm(): boolean {
+  // Check if form is valid
+  if (!this.loanForm.valid) {
+    // Mark all fields as touched to show validation errors
+    Object.keys(this.loanForm.controls).forEach(key => {
+      const control = this.loanForm.get(key);
+      control?.markAsTouched();
+      
+      // Log invalid controls for debugging
+      if (control?.invalid) {
+        console.log(`Invalid control: ${key}`, control.errors);
       }
-
-      cashAmountControl?.updateValueAndValidity();
-      onlineAmountControl?.updateValueAndValidity();
-      onlinePaymentTypeControl?.updateValueAndValidity();
     });
+    return false;
   }
+
+  // Validate payment amounts
+  const paymentType = this.loanForm.get('paymentType')?.value;
+  const amount = parseFloat(this.loanForm.get('amount')?.value);
+  const cashAmount = parseFloat(this.loanForm.get('cashAmount')?.value) || 0;
+  const onlineAmount = parseFloat(this.loanForm.get('onlineAmount')?.value) || 0;
+
+  if (paymentType === 'Both' && (cashAmount + onlineAmount) !== amount) {
+    this.toast.error('Total of cash and online amounts must equal loan amount');
+    return false;
+  }
+
+  return true;
+}
 
   calculateMaturityDate() {
     const issuedDate = this.loanForm.get('issuedDate')?.value;
@@ -315,10 +278,9 @@ export class NewLoanComponent implements OnInit {
       : value.name 
         ? value.name.toLowerCase() 
         : '';
-  
+
     return this.cities.filter(city => 
-      city.name.toLowerCase().includes(filterValue) ||
-      city.branchId.toLowerCase().includes(filterValue)
+      city.name.toLowerCase().includes(filterValue)
     );
   }
 
@@ -330,7 +292,7 @@ export class NewLoanComponent implements OnInit {
 
   onCitySelected(event: any) {
     const selectedCity = event.option.value;
-    if (selectedCity && selectedCity.branchId) {
+    if (selectedCity) {
       this.loanForm.patchValue({
         branchId: selectedCity.branchId
       });
@@ -355,42 +317,43 @@ export class NewLoanComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.loanForm.valid) {
-      const formValue = this.loanForm.value;
-      const totalAmount = parseFloat(formValue.amount) || 0;
-      const cashAmount = parseFloat(formValue.cashAmount) || 0;
-      const onlineAmount = parseFloat(formValue.onlineAmount) || 0;
-
-      // Validate payment amounts match loan amount
-      if (formValue.paymentType === 'Both') {
-        if (Math.abs((cashAmount + onlineAmount) - totalAmount) > 0.01) {
-          this.toast.warning('Total of cash and online amounts must equal the loan amount');
-          return;
-        }
-      } else if (formValue.paymentType === 'Cash' && cashAmount !== totalAmount) {
-        this.toast.warning('Cash amount must equal the loan amount');
-        return;
-      } else if (formValue.paymentType === 'Online' && onlineAmount !== totalAmount) {
-        this.toast.warning('Online amount must equal the loan amount');
-        return;
-      }
-
-      // If validation passes, proceed with form submission
-      // ... existing submission code ...
-         if (this.loanForm.valid) {
-      const amount = this.loanForm.get('amount')?.value;
-      if (!amount || amount <= 0) {
-        return;
-      }
-      
+    if (this.validateForm()) {
       const formData = this.loanForm.value;
+      
+      // Format dates
       formData.createdAt = new Date().toISOString();
+      formData.issuedDate = new Date(formData.issuedDate).toISOString();
+      formData.maturityDate = new Date(formData.maturityDate).toISOString();
+      formData.paymentDate = new Date(formData.paymentDate).toISOString();
+      
+      // Format numbers
+      formData.amount = parseFloat(formData.amount);
+      formData.cashAmount = parseFloat(formData.cashAmount) || 0;
+      formData.onlineAmount = parseFloat(formData.onlineAmount) || 0;
+      formData.amountReceived = parseFloat(formData.amountReceived);
+      
+      // Calculate commission
+      const selectedLender = this.lenders.find(l => l.lenderName === formData.lender);
+      formData.commissionPercentage = selectedLender?.percentage || 0.006;
+      formData.commissionAmount = (formData.amount * formData.commissionPercentage).toFixed(2);
+      
+      // Initialize commission tracking
+      formData.receivedCommissions = [];
+      formData.receivableCommission = formData.commissionAmount;
+      formData.totalReceivedCommission = 0;
+      formData.agentname = this.loanForm.get('agentname')?.value;
+      
+      // Calculate loan progress
       this.calculateLoanProgress();
-      this.dialogRef.close(formData);
+      formData.loanProgress = this.loanForm.get('loanProgress')?.value;
+      
+      // Add to service and close dialog
       this.goldLoanService.loans.push(formData);
+      this.toast.success('Loan created successfully');
+      console.log(this.goldLoanService.loans, formData)
+      this.dialogRef.close(formData);
     }
-    }
-  }
+}
 
 
 

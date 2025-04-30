@@ -1,118 +1,118 @@
-::ng-deep .mat-mdc-tab-group {
-    @media (max-width: 640px) {
-      .mat-mdc-tab-header {
-        display: flex;
-        flex-direction: column;
-        border-bottom: none;
+// ::ng-deep .mat-mdc-tab-group {
+//     @media (max-width: 640px) {
+//       .mat-mdc-tab-header {
+//         display: flex;
+//         flex-direction: column;
+//         border-bottom: none;
         
-        .mat-mdc-tab-labels {
-          display: flex;
-          flex-direction: column;
-        }
+//         .mat-mdc-tab-labels {
+//           display: flex;
+//           flex-direction: column;
+//         }
         
-        .mat-mdc-tab {
-          width: 100%;
-          justify-content: flex-start;
-          padding: 12px 16px;
-          border-bottom: 1px solid #e5e7eb;
+//         .mat-mdc-tab {
+//           width: 100%;
+//           justify-content: flex-start;
+//           padding: 12px 16px;
+//           border-bottom: 1px solid #e5e7eb;
           
-          .mdc-tab__text-label {
-            text-align: left;
-          }
-        }
-      }
-    }
+//           .mdc-tab__text-label {
+//             text-align: left;
+//           }
+//         }
+//       }
+//     }
   
-    .mat-mdc-tab {
-      &.mdc-tab--active {
-        .mdc-tab__text-label {
-          color: #d97706;
-        }
-      }
-    }
-  }
+//     .mat-mdc-tab {
+//       &.mdc-tab--active {
+//         .mdc-tab__text-label {
+//           color: #d97706;
+//         }
+//       }
+//     }
+//   }
 
-::ng-deep .mat-mdc-tab-group {
-  .mat-mdc-tab-header {
-    border-bottom: 1px solid #e5e7eb;
-    overflow-x: auto;
+// ::ng-deep .mat-mdc-tab-group {
+//   .mat-mdc-tab-header {
+//     border-bottom: 1px solid #e5e7eb;
+//     overflow-x: auto;
     
-    @media (max-width: 640px) {
-      .mat-mdc-tab-labels {
-        display: flex;
-        white-space: nowrap;
-      }
-    }
-  }
+//     @media (max-width: 640px) {
+//       .mat-mdc-tab-labels {
+//         display: flex;
+//         white-space: nowrap;
+//       }
+//     }
+//   }
   
-  .mat-mdc-tab {
-    min-width: auto;
-    padding: 0 12px;
-    font-size: 14px;
+//   .mat-mdc-tab {
+//     min-width: auto;
+//     padding: 0 12px;
+//     font-size: 14px;
     
-    @media (max-width: 640px) {
-      min-width: 120px;
-      padding: 0 8px;
-    }
+//     @media (max-width: 640px) {
+//       min-width: 120px;
+//       padding: 0 8px;
+//     }
     
-    @media (min-width: 641px) {
-      padding: 0 24px;
-      font-size: 16px;
-    }
+//     @media (min-width: 641px) {
+//       padding: 0 24px;
+//       font-size: 16px;
+//     }
     
-    &.mdc-tab--active {
-      .mdc-tab__text-label {
-        color: #d97706;
-      }
-    }
-  }
+//     &.mdc-tab--active {
+//       .mdc-tab__text-label {
+//         color: #d97706;
+//       }
+//     }
+//   }
 
-  .mat-mdc-tab-body-content {
-    @media (max-width: 640px) {
-      padding: 8px;
-    }
-  }
-}
+//   .mat-mdc-tab-body-content {
+//     @media (max-width: 640px) {
+//       padding: 8px;
+//     }
+//   }
+// }
 
-::ng-deep .mat-expansion-panel {
-  margin-bottom: 8px !important;
+// ::ng-deep .mat-expansion-panel {
+//   margin-bottom: 8px !important;
   
-  .mat-expansion-panel-header {
-    padding: 16px;
+//   .mat-expansion-panel-header {
+//     padding: 16px;
     
-    &.mat-expanded {
-      background-color: #fff7ed !important;
-    }
-  }
+//     &.mat-expanded {
+//       background-color: #fff7ed !important;
+//     }
+//   }
   
-  .mat-expansion-panel-header-title {
-    color: #1f2937;
-    font-size: 16px;
+//   .mat-expansion-panel-header-title {
+//     color: #1f2937;
+//     font-size: 16px;
     
-    @media (max-width: 640px) {
-      font-size: 14px;
-    }
-  }
-}
+//     @media (max-width: 640px) {
+//       font-size: 14px;
+//     }
+//   }
+// }
 
-.mat-mdc-form-field {
-  @media (max-width: 640px) {
-    width: 100%;
-    font-size: 14px;
-  }
-}
+// .mat-mdc-form-field {
+//   @media (max-width: 640px) {
+//     width: 100%;
+//     font-size: 14px;
+//   }
+// }
 
-.mat-mdc-slide-toggle {
-  display: block;
-  margin-bottom: 0.75rem;
+// .mat-mdc-slide-toggle {
+//   display: block;
+//   margin-bottom: 0.75rem;
   
-  @media (max-width: 640px) {
-    font-size: 14px;
-  }
-}
+//   @media (max-width: 640px) {
+//     font-size: 14px;
+//   }
+// }
 
-::ng-deep .mat-mdc-tab-body-wrapper {
-  @media (max-width: 640px) {
-    margin: 8px;
-  }
-}
+// ::ng-deep .mat-mdc-tab-body-wrapper {
+//   @media (max-width: 640px) {
+//     margin: 8px;
+//   }
+// }

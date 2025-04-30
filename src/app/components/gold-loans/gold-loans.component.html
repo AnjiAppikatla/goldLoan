@@ -1,62 +1,66 @@
 <div class="p-4 md:p-6">
   <div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-poppins font-semibold text-gray-800 mb-0">Gold Loans</h2>
-    <button mat-raised-button color="primary" (click)="openNewLoanDialog()" class="bg-amber-600">
+    <h2 class="text-md sm:text-2xl font-poppins font-semibold mb-0 app-theme-color">Gold Loans</h2>
+
+       <!-- Only show filter for admin -->
+       <button *ngIf="currentUser?.role === 'admin'" 
+       mat-raised-button 
+       (click)="filterDialong()" 
+       class="app-theme-btn text-white text-center">
+ <mat-icon class="mr-2">filter_alt</mat-icon>
+ <span class="hidden lg:inline">Filter</span>
+</button>
+
+    <button mat-raised-button (click)="openNewLoanDialog()" class="app-theme-btn text-white text-center">
       <mat-icon class="mr-2">add</mat-icon>
-      New Loan
+      <span class="hidden lg:inline">New Loan</span>
     </button>
   </div>
 
-  <mat-accordion class="grid grid-cols-1 gap-4">
-    <mat-expansion-panel *ngFor="let loan of loans">
+  <mat-accordion class="grid grid-cols-1 gap-4 app-accordion-bg">
+    <mat-expansion-panel *ngFor="let loan of filteredLoans">
       <mat-expansion-panel-header>
         <mat-panel-title class="flex items-center gap-4 w-full">
           <div class="flex items-center gap-2 flex-1">
-            <span class="font-medium">{{loan.name}}</span>
-            <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span>
+            <span class="font-medium text-white">{{loan.name}}</span>
+            <!-- <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span> -->
           </div>
           <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
-            <div class="progress-bar w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden relative">
+            <div class="progress-bar w-16 sm:w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden relative">
               <div class="h-full transition-all duration-300" 
                    [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress.progress) + '%, #ef4444 ' + loan.progress.progress + '%)'"
                    [style.width.%]="100">
               </div>
             </div>
-            <span class="text-sm" [ngClass]="{
-              'text-red-600': loan.progress.status === 'danger',
-              'text-yellow-600': loan.progress.status === 'warning',
-              'text-green-600': loan.progress.status === 'safe'
-            }">
+            <span class="text-sm text-white">
               {{loan.progress.progress | number:'1.0-0'}}%
             </span>
           </div>
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-        <div class="bg-gray-50 p-4 rounded">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
+        <div class="bg-gray-200 p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Personal Details</h3>
           <p><strong>Lender :</strong> {{loan.lender}}</p>
           <p><strong>LeadId :</strong> {{loan.leadId}}</p>
           <p><strong>Phone :</strong> {{loan.mobileNo}}</p>
           <p><strong>City :</strong> {{loan.city}}</p>
-
-
+          <p><strong>Agent Name :</strong> {{loan.agentName}}</p>
         </div>
 
-        <div class="bg-gray-50 p-4 rounded">
+        <div class="bg-gray-200 p-4 rounded">
           <div class="">
             <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
             <p><strong>Amount :</strong> {{loan.amount}}</p>
             <p><strong>Issue Date :</strong> {{loan.issuedDate | date}}</p>
             <p><strong>Maturity Date :</strong> {{loan.maturityDate | date}}</p>
-
             <p><strong>Aadhar:</strong> {{loan.aadharNumber}}</p>
+            <p><strong>PAN:</strong> {{loan.panNumber}}</p>
           </div>
         </div>
 
-        <div class="bg-gray-50 p-4 rounded">
-
+        <div class="bg-gray-200 p-4 rounded" *ngIf="currentUser?.role === 'admin'">
           <h3 class="mb-2 text-amber-500 font-bold relative">Revenew
             <span class="absolute right-0 top-0">
               <button mat-icon-button color="primary" (click)="openEditDialog(loan)"
@@ -69,9 +73,42 @@
           <p><strong>Total Revenew :</strong> {{loan.commissionAmount}}</p>
           <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
           <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
-
-          <p><strong>PAN:</strong> {{loan.panNumber}}</p>
+          
         </div>
+
+   
+
+        <div class="bg-gray-200 p-4 rounded">
+          <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
+          <p><strong>Payment Date :</strong> {{loan.paymentDate | date}}</p>
+          <p><strong>Payment Type :</strong> {{loan.merchantId}}</p>
+          
+
+          <ng-container *ngIf="loan.paymentType == 'Cash'">
+            <p><strong>Cash Amount :</strong> {{loan.cashAmount}}</p>
+          </ng-container>
+          <ng-container *ngIf="loan.paymentType == 'Online'">
+            <p><strong>Payment Type :</strong> {{loan.paymentType}}</p>
+            <p><strong>Online Amount :</strong> {{loan.onlineAmount}}</p>
+          </ng-container>
+          <ng-container *ngIf="loan.paymentType == 'Both'">
+            <p><strong>Cash Amount :</strong> {{loan.cashAmount}}</p>
+            <p><strong>Payment Type :</strong> {{loan.paymentType}}</p>
+            <p><strong>Online Amount :</strong> {{loan.onlineAmount}}</p>
+          </ng-container>
+          
+          
+          
+        </div>
+
+        <div class="bg-gray-200 p-4 rounded">
+          <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
+          <p><strong>Refund Date :</strong> {{loan.paymentDate | date}}</p>
+          <p><strong>Account Name :</strong> {{loan.accountName}}</p>
+          <p><strong>Account Number :</strong> {{loan.accountNumber}}</p>
+          <p><strong>IFSC Code :</strong> {{loan.ifscCode}}</p>
+        </div>
+
       </div>
     </mat-expansion-panel>
   </mat-accordion>
@@ -102,6 +139,62 @@
     <mat-dialog-actions align="end" class="mt-4">
       <button mat-button mat-dialog-close>Cancel</button>
       <button mat-raised-button color="primary" [disabled]="!commissionForm.valid" (click)="updateCommission()">Update </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>
+
+<ng-template #filterdialog>
+  <div class="p-4">
+    <h2 mat-dialog-title class="text-lg font-semibold mb-4">Filter Loans</h2>
+    <mat-dialog-content>
+      <div class="bg-white rounded-lg mb-4 pt-3">
+        <div class="flex flex-col gap-4">
+          <!-- Agent Filter -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Filter by Agent</mat-label>
+            <mat-select [(ngModel)]="selectedAgent" (selectionChange)="applyFilters()">
+              <mat-option value="">All Agents</mat-option>
+              <mat-option *ngFor="let agent of uniqueAgents" [value]="agent">
+                {{agent}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Date Filter -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Date Filter</mat-label>
+            <mat-select [(ngModel)]="selectedDateFilter" (selectionChange)="applyFilters()">
+              <mat-option value="">All Time</mat-option>
+              <mat-option value="today">Today</mat-option>
+              <mat-option value="yesterday">Yesterday</mat-option>
+              <mat-option value="thisWeek">This Week</mat-option>
+              <mat-option value="thisMonth">This Month</mat-option>
+              <mat-option value="custom">Custom Range</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Custom Date Range -->
+          <div *ngIf="selectedDateFilter === 'custom'" class="flex flex-col gap-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>From Date</mat-label>
+              <input matInput [matDatepicker]="fromPicker" [(ngModel)]="fromDate" (dateChange)="applyFilters()">
+              <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+              <mat-datepicker #fromPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>To Date</mat-label>
+              <input matInput [matDatepicker]="toPicker" [(ngModel)]="toDate" (dateChange)="applyFilters()">
+              <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+              <mat-datepicker #toPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end" class="mt-4">
+      <button mat-raised-button class="app-theme-btn text-white" (click)="resetFilters()">Reset</button>
+      <button mat-raised-button mat-dialog-close class="bg-red-400">Close</button>
     </mat-dialog-actions>
   </div>
 </ng-template>

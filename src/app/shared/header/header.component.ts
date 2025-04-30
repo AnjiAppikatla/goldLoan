@@ -5,8 +5,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { GoldLoanService } from '../../services/gold-loan.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -18,7 +19,8 @@ import { GoldLoanService } from '../../services/gold-loan.service';
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
+    RouterModule
   ]
 })
 export class HeaderComponent {
@@ -26,21 +28,22 @@ export class HeaderComponent {
   
   notifications: any[] = [];
 
-  adminUser = {
-    name: 'Admin User',
-    email: 'admin@tomasri.com',
-    role: 'Administrator',
-    branch: 'Main Branch'
-  };
+  adminUser:any = []
 
   constructor(
     private router: Router,
-    private goldLoanService: GoldLoanService
+    private goldLoanService: GoldLoanService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     // Get latest loan and nearest expiry loan
     const allLoans = this.goldLoanService.getLoans();
+
+    this.adminUser = this.authService.currentUserValue;
+
+    // console.log(this.adminUser);
+
     
     // Sort loans by date to get latest
     const latestLoan = allLoans.sort((a, b) => 

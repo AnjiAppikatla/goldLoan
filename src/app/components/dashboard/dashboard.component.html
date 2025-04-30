@@ -1,112 +1,151 @@
 <main class="p-4 md:p-6">
-  <div class="flex items-center mb-2">
-    <h2 class="text-xl font-poppins font-bold">Welcome, Admin User</h2>
-    <!-- <span class="ml-2 text-gray-600">Administrator</span> -->
+  <!-- Header Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
+    <div>
+      <h2 class="text-xl font-poppins font-bold">Welcome, Admin User</h2>
+    </div>
+    <!-- Filter Section -->
+    <div class="bg-white rounded-lg">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Select Time Period</mat-label>
+          <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+            <mat-option value="today">Today</mat-option>
+            <mat-option value="yesterday">Yesterday</mat-option>
+            <mat-option value="week">Last Week</mat-option>
+            <mat-option value="month">Last Month</mat-option>
+            <mat-option value="custom">Custom Range</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div *ngIf="selectedPeriod === 'custom'" class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <mat-form-field appearance="outline" class="w-full sm:w-40">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" (dateChange)="onDateChange()">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full sm:w-40">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="onDateChange()">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
   </div>
 
 
 
-  <!-- Tables and Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-2">
-    <div class="lg:col-span-2 order-last lg:order-first rounded-lg">
-      <h3 class="text-lg font-semibold mb-4">Recent Loans</h3>
+  <!-- Charts Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:mb-2 mb-6">
+    <!-- Agent Distribution Chart -->
+    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
+      <h3 class="text-lg font-semibold mb-4">Loans By Agent's</h3>
+      <div class="h-[calc(100%-4rem)]">
+        <canvas id="goldDistributionChart"></canvas>
+      </div>
+    </div>
 
-      <mat-accordion>
-        <mat-expansion-panel *ngFor="let loan of recentLoans" class="mb-2">
-          <mat-expansion-panel-header>
-            <mat-panel-title class="flex items-center justify-between w-full">
-              <div class="flex items-center gap-3">
-                <span class="font-medium">{{loan.leadId}}</span>
-                <span>{{loan.name}}</span>
-              </div>
-              <div class="loan-progress-mini flex items-center gap-2">
-                <div class="progress-bar w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden">
-                  <div class="h-full transition-all duration-300" 
-     [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress.progress) + '%, #ef4444 ' + loan.progress.progress + '%)'"
-     [style.width.%]="100">
-</div>
+    <!-- Time Distribution Chart -->
+    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
+      <h3 class="text-lg font-semibold mb-4">Loans By Time</h3>
+      <div class="h-[calc(100%-2rem)]">
+        <canvas id="timeDistributionChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Loans Section -->
+  <div class="bg-white rounded-lg">
+    <h3 class="text-lg font-semibold mb-4">Recent Loans</h3>
+    <mat-accordion class="grid grid-cols-1 gap-4 app-accordion-bg">
+      <mat-expansion-panel *ngFor="let loan of recentLoans">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="flex items-center gap-4 w-full">
+            <div class="flex items-center gap-2 flex-1">
+              <span class="font-medium text-white">{{loan.name}}</span>
+            </div>
+            <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
+              <div class="progress-bar w-16 sm:w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden relative">
+                <div class="h-full transition-all duration-300"
+                  [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress.progress) + '%, #ef4444 ' + loan.progress.progress + '%)'"
+                  [style.width.%]="100">
                 </div>
-                <span class="text-sm" [ngClass]="{
-                      'text-red-600': loan.progress.status === 'danger',
-                      'text-yellow-600': loan.progress.status === 'warning',
-                      'text-green-600': loan.progress.status === 'safe'
-                    }">
-                  {{loan.progress.progress | number:'1.0-0'}}%
-                </span>
               </div>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            <div class="bg-gray-50 p-4 rounded">
-              <h3 class="font-bold text-amber-500 mb-2">Personal Details</h3>
-              <p><strong>Lender :</strong> {{loan.lender}}</p>
-              <p><strong>LeadId :</strong> {{loan.leadId}}</p>
-              <p><strong>Phone :</strong> {{loan.mobileNo}}</p>
-              <p><strong>City :</strong> {{loan.city}}</p>
-
-
+              <span class="text-sm text-white">
+                {{loan.progress.progress | number:'1.0-0'}}%
+              </span>
             </div>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
 
-            <div class="bg-gray-50 p-4 rounded">
-              <div class="">
-                <h3 class="font-bold text-amber-500 mb-2">Loan Details</h3>
-                <p><strong>Amount :</strong> {{loan.amount}}</p>
-                <p><strong>Issue Date :</strong> {{loan.issuedDate | date}}</p>
-                <p><strong>Maturity Date :</strong> {{loan.maturityDate | date}}</p>
-
-                <p><strong>Aadhar:</strong> {{loan.aadharNumber}}</p>
-
-              </div>
-            </div>
-
-            <div class="bg-gray-50 p-4 rounded">
-
-              <h3 class="mb-2 text-amber-500 font-bold">Revenew</h3>
-
-              <p><strong>Total Revenew :</strong> {{loan.commissionAmount}}</p>
-              <p><strong>Received :</strong> {{loan.commissionAmount}}</p>
-              <p><strong>Receivable :</strong> {{loan.commissionAmount}}</p>
-
-              <p><strong>PAN:</strong> {{loan.panCard}}</p>
-              <!-- <h3 class="font-medium mb-2">Address</h3>
-              <p><strong>Current:</strong> {{loan.currentAddress}}</p>
-              <p *ngIf="loan.permanentAddress"><strong>Permanent:</strong> {{loan.permanentAddress}}</p> -->
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
+          <!-- Personal Details -->
+          <div class="bg-gray-200 p-4 rounded">
+            <h3 class="mb-2 text-amber-500 font-bold">Personal Details</h3>
+            <p><strong>Lender :</strong> {{loan.lender}}</p>
+            <p><strong>LeadId :</strong> {{loan.leadId}}</p>
+            <p><strong>Phone :</strong> {{loan.mobileNo}}</p>
+            <p><strong>City :</strong> {{loan.city}}</p>
+            <p><strong>Agent Name :</strong> {{loan.agentName}}</p>
           </div>
-        </mat-expansion-panel>
-      </mat-accordion>
-    </div>
 
-    <div class="lg:col-span-1 order-first lg:order-last bg-white p-4 md:p-6 rounded-lg shadow-md">
-      <h3 class="text-lg font-semibold mb-4">Gold Distribution</h3>
-      <canvas id="goldDistributionChart"></canvas>
-    </div>
+          <!-- Loan Details -->
+          <div class="bg-gray-200 p-4 rounded">
+            <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
+            <p><strong>Amount :</strong> {{loan.amount}}</p>
+            <p><strong>Issue Date :</strong> {{loan.issuedDate | date}}</p>
+            <p><strong>Maturity Date :</strong> {{loan.maturityDate | date}}</p>
+            <p><strong>Aadhar:</strong> {{loan.aadharNumber}}</p>
+            <p><strong>PAN:</strong> {{loan.panNumber}}</p>
+          </div>
+
+          <!-- Revenue Details -->
+          <div class="bg-gray-200 p-4 rounded" *ngIf="currentUser?.role === 'admin'">
+            <h3 class="mb-2 text-amber-500 font-bold relative">Revenue
+              <span class="absolute right-0 top-0">
+                <button mat-icon-button color="primary" class="focus-visible:outline-2 focus-visible:outline-offset-2">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </span>
+            </h3>
+            <p><strong>Total Revenue :</strong> {{loan.commissionAmount}}</p>
+            <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
+            <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
+          </div>
+
+          <!-- Payment Details -->
+          <div class="bg-gray-200 p-4 rounded">
+            <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
+            <p><strong>Payment Date :</strong> {{loan.paymentDate | date}}</p>
+            <p><strong>Payment Type :</strong> {{loan.merchantId}}</p>
+            <ng-container [ngSwitch]="loan.paymentType">
+              <ng-container *ngSwitchCase="'Cash'">
+                <p><strong>Cash Amount :</strong> {{loan.cashAmount}}</p>
+              </ng-container>
+              <ng-container *ngSwitchCase="'Online'">
+                <p><strong>Online Amount :</strong> {{loan.onlineAmount}}</p>
+              </ng-container>
+              <ng-container *ngSwitchCase="'Both'">
+                <p><strong>Cash Amount :</strong> {{loan.cashAmount}}</p>
+                <p><strong>Online Amount :</strong> {{loan.onlineAmount}}</p>
+              </ng-container>
+            </ng-container>
+          </div>
+
+          <!-- Refund Details -->
+          <div class="bg-gray-200 p-4 rounded">
+            <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
+            <p><strong>Refund Date :</strong> {{loan.paymentDate | date}}</p>
+            <p><strong>Account Name :</strong> {{loan.accountName}}</p>
+            <p><strong>Account Number :</strong> {{loan.accountNumber}}</p>
+            <p><strong>IFSC Code :</strong> {{loan.ifscCode}}</p>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
   </div>
-
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 mt-5">
-    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow">
-      <h3 class="text-amber-700 font-bold mb-2">Total Loans Active</h3>
-      <div class="text-xl md:text-2xl font-bold">148</div>
-      <div class="text-green-500 text-sm">+12.5% from last month</div>
-    </div>
-    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow">
-      <h3 class="text-amber-700 font-bold mb-2">Gold Assets (kg)</h3>
-      <div class="text-xl md:text-2xl font-bold">24.5</div>
-      <div class="text-green-500 text-sm">+7.2% from last month</div>
-    </div>
-    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow">
-      <h3 class="text-amber-700 font-bold mb-2">Total Customers</h3>
-      <div class="text-xl md:text-2xl font-bold">1,248</div>
-      <div class="text-green-500 text-sm">+4.9% from last month</div>
-    </div>
-    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow">
-      <h3 class="text-amber-700 font-bold mb-2">Total Loan Value</h3>
-      <div class="text-xl md:text-2xl font-bold">$782,500</div>
-      <div class="text-green-500 text-sm">+18.2% from last month</div>
-    </div>
-  </div>
-
-
 </main>

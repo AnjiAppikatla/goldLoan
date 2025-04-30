@@ -1,171 +1,294 @@
-
 <div class="p-3 sm:p-6">
-    <h1 class="text-xl sm:text-2xl font-poppins font-semibold text-gray-800 mb-2">Gold Loan Settings</h1>
-    <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Manage your gold loan app settings and configurations</p>
-  
-    <mat-accordion class="bg-white rounded-lg shadow">
-      <mat-expansion-panel expanded="true">
-        <mat-expansion-panel-header>
+  <h1 class="text-xl font-semibold text-gray-800 mb-1">Settings</h1>
+  <p class="text-sm text-gray-600 mb-4">Manage your app settings and configurations</p>
+
+  <mat-accordion class="bg-white settings-accordion">
+
+       <!-- Branches Section -->
+       <mat-expansion-panel>
+        <mat-expansion-panel-header class="bg-gray-200">
           <mat-panel-title class="flex items-center gap-2">
-            <mat-icon class="text-amber-600">monetization_on</mat-icon>
-            <span>Gold Rates</span>
-          </mat-panel-title>
+            <mat-icon>business</mat-icon> Branches
+          </mat-panel-title>    
         </mat-expansion-panel-header>
   
-        <div class="pt-4">
-          <!-- Gold Rates content remains the same -->
-          <div class="p-3 sm:p-6">
-            <div class="flex items-center gap-2 mb-3 sm:mb-4">
-              <mat-icon class="text-amber-600">monetization_on</mat-icon>
-              <h2 class="text-lg sm:text-xl font-semibold">Current Gold Rates</h2>
+        <div class="pt-3">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 w-full mb-4">
+              <mat-form-field class="w-full">
+                <mat-label>Search Branches</mat-label>
+                <input matInput (input)="searchBranches($event)" placeholder="Search by name">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+              
+              <button mat-mini-fab color="primary" class="flex-shrink-0" (click)="openBranchDialog()">
+                <mat-icon>add</mat-icon>
+              </button>
             </div>
-            <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Set the current market gold rates for loan calculations</p>
-    
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
-            <mat-form-field appearance="outline">
-              <mat-label>24K Gold (per gram)</mat-label>
-              <input matInput type="number" placeholder="Enter rate">
-              <span matPrefix class="ml-4">₹&nbsp;</span>
-            </mat-form-field>
   
-            <mat-form-field appearance="outline">
-              <mat-label>22K Gold (per gram)</mat-label>
-              <input matInput type="number" placeholder="Enter rate">
-              <span matPrefix class="ml-4">₹&nbsp;</span>
-            </mat-form-field>
-  
-            <mat-form-field appearance="outline">
-              <mat-label>18K Gold (per gram)</mat-label>
-              <input matInput type="number" placeholder="Enter rate">
-              <span matPrefix class="ml-4">₹&nbsp;</span>
-            </mat-form-field>
-  
-            <mat-form-field appearance="outline">
-              <mat-label>Silver (per gram)</mat-label>
-              <input matInput type="number" placeholder="Enter rate">
-              <span matPrefix class="ml-4">₹&nbsp;</span>
-            </mat-form-field>
-  
-            <mat-form-field appearance="outline">
-              <mat-label>Last Rate Update Date</mat-label>
-              <input matInput [matDatepicker]="picker">
-              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </mat-form-field>
+            <!-- Branch Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <mat-card *ngFor="let branch of branches" class="bg-gray-50">
+                <mat-card-header>
+                  <mat-card-title class="text-lg font-medium">{{branch.name}}</mat-card-title>
+                  <mat-card-subtitle>ID: {{branch.branchId}}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content class="mt-2">
+                  <p><strong>City:</strong> {{branch.city}}</p>
+                </mat-card-content>
+                <mat-card-actions align="end">
+                  <button mat-button color="primary" (click)="editBranch(branch)">Edit</button>
+                  <button mat-button color="warn" (click)="deleteBranch(branch)">Delete</button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
           </div>
-  
-          <mat-slide-toggle class="mb-3 sm:mb-6">Auto-update from market API</mat-slide-toggle>
-  
-          <button mat-raised-button color="primary" class="bg-amber-600">
-            Update Gold Rates
+        </div>
+      </mat-expansion-panel>
+
+   <!-- Lenders Section -->
+   <mat-expansion-panel>
+    <mat-expansion-panel-header class="bg-gray-200">
+      <mat-panel-title class="flex items-center gap-2">
+        <mat-icon>account_balance</mat-icon>
+        <span>Lenders & Commissions</span>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <div class="pt-3">
+      <div class="flex items-center gap-2 w-full mb-4">
+        <mat-form-field class="w-full">
+          <mat-label>Search Lenders</mat-label>
+          <input matInput placeholder="Search by name">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        
+        <button mat-mini-fab color="primary" class="flex-shrink-0" (click)="openLenderDialog()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      <!-- Lender Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <mat-card *ngFor="let lender of lenders" class="bg-gray-50">
+          <mat-card-header>
+            <mat-card-title class="text-lg font-medium">{{lender.name}}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="mt-2">
+            <p><strong>Commission Rate:</strong> {{lender.commission}}%</p>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <button mat-button color="primary" (click)="editLender(lender)">Edit</button>
+            <button mat-button color="warn" (click)="deleteLender(lender)">Delete</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+  </mat-expansion-panel>
+
+    <!-- Merchants Section -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header class="bg-gray-200">
+        <mat-panel-title class="flex items-center gap-2">
+          <mat-icon>store</mat-icon>
+          <span>Merchants</span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="pt-3">
+        <div class="flex items-center gap-2 w-full mb-4">
+          <mat-form-field class="w-full">
+            <mat-label>Search Merchants</mat-label>
+            <input matInput placeholder="Search by name">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+          
+          <button mat-mini-fab color="primary" class="flex-shrink-0" (click)="openMerchantDialog()">
+            <mat-icon>add</mat-icon>
           </button>
         </div>
+
+        <!-- Merchant Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <mat-card *ngFor="let merchant of merchants" class="bg-gray-50">
+            <mat-card-header>
+              <mat-card-title class="text-lg font-medium">{{merchant.merchantName}}</mat-card-title>
+              <mat-card-subtitle>ID: {{merchant.merchantId}}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content class="mt-2">
+              <p><strong>Contact:</strong> {{merchant.contactNumber}}</p>
+            </mat-card-content>
+            <mat-card-actions align="end">
+              <button mat-button color="primary" (click)="editMerchant(merchant)">Edit</button>
+              <button mat-button color="warn" (click)="deleteMerchant(merchant)">Delete</button>
+            </mat-card-actions>
+          </mat-card>
         </div>
-      </mat-expansion-panel>
-  
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
+      </div>
+    </mat-expansion-panel>
+
+       <!-- Agents Section -->
+       <mat-expansion-panel>
+        <mat-expansion-panel-header class="bg-gray-200">
           <mat-panel-title class="flex items-center gap-2">
-            <mat-icon class="text-amber-600">settings</mat-icon>
-            <span>Loan Parameters</span>
+            <mat-icon>people</mat-icon>
+            <span>Agents</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
   
-        <div class="pt-4">
-          <!-- Loan Parameters content remains the same -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
-            <mat-form-field appearance="outline">
-              <mat-label>Maximum Loan Duration (months)</mat-label>
-              <input matInput type="number" placeholder="Enter months">
+        <div class="pt-3">
+          <div class="flex items-center gap-2 w-full mb-4">
+            <mat-form-field class="w-full">
+              <mat-label>Search Agents</mat-label>
+              <input matInput placeholder="Search by name">
+              <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
-  
-            <mat-form-field appearance="outline">
-              <mat-label>Interest Rate (%)</mat-label>
-              <input matInput type="number" placeholder="Enter percentage">
-            </mat-form-field>
-  
-            <mat-form-field appearance="outline">
-              <mat-label>Processing Fee (%)</mat-label>
-              <input matInput type="number" placeholder="Enter percentage">
-            </mat-form-field>
-  
-            <mat-form-field appearance="outline">
-              <mat-label>Late Payment Penalty (%)</mat-label>
-              <input matInput type="number" placeholder="Enter percentage">
-            </mat-form-field>
-          </div>
-        </div>
-      </mat-expansion-panel>
-  
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title class="flex items-center gap-2">
-            <mat-icon class="text-amber-600">notifications</mat-icon>
-            <span>Notifications</span>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-  
-        <div class="pt-4">
-          <!-- Notifications content remains the same -->
-          <div class="p-3 sm:p-6">
-            <div class="flex items-center gap-2 mb-4">
-              <mat-icon class="text-amber-600">notifications</mat-icon>
-              <h2 class="text-xl font-semibold">Notification Settings</h2>
-            </div>
-    
-            <div class="space-y-3 sm:space-y-4">
-              <mat-slide-toggle>Enable Email Notifications</mat-slide-toggle>
-              <mat-slide-toggle>Enable SMS Notifications</mat-slide-toggle>
-              <mat-slide-toggle>Payment Reminders</mat-slide-toggle>
-              <mat-slide-toggle>Rate Change Alerts</mat-slide-toggle>
-            </div>
-          </div>
-        </div>
-      </mat-expansion-panel>
-  
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title class="flex items-center gap-2">
-            <mat-icon class="text-amber-600">person</mat-icon>
-            <span>User Profile</span>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-  
-        <div class="pt-4">
-          <!-- User Profile content remains the same -->
-          <div class="p-3 sm:p-6">
-            <div class="flex items-center gap-2 mb-4">
-              <mat-icon class="text-amber-600">person</mat-icon>
-              <h2 class="text-xl font-semibold">Admin Profile</h2>
-            </div>
-    
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
-              <mat-form-field appearance="outline">
-                <mat-label>Admin Name</mat-label>
-                <input matInput placeholder="Enter name">
-              </mat-form-field>
-    
-              <mat-form-field appearance="outline">
-                <mat-label>Email</mat-label>
-                <input matInput type="email" placeholder="Enter email">
-              </mat-form-field>
-    
-              <mat-form-field appearance="outline">
-                <mat-label>Current Password</mat-label>
-                <input matInput type="password" placeholder="Enter current password">
-              </mat-form-field>
-    
-              <mat-form-field appearance="outline">
-                <mat-label>New Password</mat-label>
-                <input matInput type="password" placeholder="Enter new password">
-              </mat-form-field>
-            </div>
-    
-            <button mat-raised-button color="primary" class="bg-amber-600 mt-4">
-              Update Profile
+            
+            <button mat-mini-fab color="primary" class="flex-shrink-0" (click)="openAgentDialog()">
+              <mat-icon>add</mat-icon>
             </button>
           </div>
+  
+          <!-- Agent Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <mat-card *ngFor="let agent of agents" class="bg-gray-50">
+              <mat-card-header>
+                <mat-card-title class="text-lg font-medium">{{agent.name}}</mat-card-title>
+                <mat-card-subtitle>{{agent.role}}</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content class="mt-2">
+                <p><strong>Email:</strong> {{agent.email}}</p>
+                <p><strong>Branch:</strong> {{agent.branch}}</p>
+              </mat-card-content>
+              <mat-card-actions align="end">
+                <button mat-button color="primary" (click)="editAgent(agent)">Edit</button>
+                <button mat-button color="warn" (click)="deleteAgent(agent)">Delete</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
         </div>
       </mat-expansion-panel>
-    </mat-accordion>
-  </div>
+  </mat-accordion>
+
+
+
+</div>
+
+
+    <!-- Dialog Templates -->
+    <ng-template #agentDialog>
+      <h2 mat-dialog-title>Add New Agent</h2>
+      <mat-dialog-content>
+        <form [formGroup]="agentForm" class="flex flex-col gap-4">
+          <mat-form-field>
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" type="password">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Role</mat-label>
+            <input matInput formControlName="role" type="text">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Branch</mat-label>
+            <mat-select formControlName="branch">
+              <mat-option *ngFor="let branch of branches" [value]="branch.name">
+                {{branch.name}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+      </mat-dialog-content>
+      <mat-dialog-actions align="end">
+        <button mat-button mat-dialog-close>Cancel</button>
+        <button mat-raised-button color="primary" (click)="saveAgent()">Save</button>
+      </mat-dialog-actions>
+    </ng-template>
+  
+  <!-- Branch Dialog Template -->
+  <ng-template #branchDialog>
+    <h2 mat-dialog-title>{{isEdit ? 'Edit Branch' : 'Add New Branch'}}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="branchForm" class="flex flex-col gap-4">
+        <mat-form-field>
+          <mat-label>Branch ID</mat-label>
+          <input matInput formControlName="branchId">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city">
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveBranch()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
+  
+  <!-- Lender Dialog Template -->
+  <ng-template #lenderDialog>
+    <h2 mat-dialog-title>{{isEdit ? 'Edit Lender' : 'Add New Lender'}}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="lenderForm" class="flex flex-col gap-4">
+        <mat-form-field>
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Commission (%)</mat-label>
+          <input matInput type="number" formControlName="commission">
+          <mat-error *ngIf="lenderForm.get('commission')?.hasError('min')">
+            Commission must be greater than 0
+          </mat-error>
+          <mat-error *ngIf="lenderForm.get('commission')?.hasError('max')">
+            Commission cannot exceed 100%
+          </mat-error>
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveLender()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
+  
+  <!-- Merchant Dialog Template -->
+  <ng-template #merchantDialog>
+    <h2 mat-dialog-title>{{isEdit ? 'Edit Merchant' : 'Add New Merchant'}}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="merchantForm" class="flex flex-col gap-4">
+        <mat-form-field>
+          <mat-label>Merchant ID</mat-label>
+          <input matInput formControlName="merchantId">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="merchantName">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Contact Number</mat-label>
+          <input matInput formControlName="contactNumber">
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveMerchant()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
+
+
+
+

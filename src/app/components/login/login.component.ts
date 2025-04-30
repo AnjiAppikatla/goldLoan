@@ -5,6 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -19,17 +20,12 @@ import { CommonModule } from '@angular/common';
   ]
 })
 export class LoginComponent {
-  // Remove separate form controls since we're using FormGroup
   loginForm: FormGroup;
-  
-  private credentials = [
-    { email: 'admin@goldloan.com', password: 'admin123' },
-    { email: 'agent@goldloan.com', password: 'agent123' }
-  ];
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -37,24 +33,21 @@ export class LoginComponent {
     });
   }
 
-  onSubmit() {
-    this.router.navigate(['/dashboard']);
-    console.log('Form submitted', this.loginForm.value); // Add logging
-    
+  async onSubmit() {
     if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
-      
-      const isValid = this.credentials.some(
-        cred => cred.email === email && cred.password === password
-      );
-
-      if (isValid) {
-        this.router.navigate(['/layout']);
-      } else {
+      try {
+        const { email, password } = this.loginForm.value;
+        const data = await this.authService.login(email, password);
+        if (data) {
+          this.router.navigate(['/layout']);
+          console.log(data)
+        }
+      } catch (error) {
+        console.error('Login error:', error);
         alert('Invalid credentials');
       }
     } else {
-      console.log('Form is invalid', this.loginForm.errors); // Add error logging
+      console.log('Form is invalid', this.loginForm.errors);
     }
   }
 }

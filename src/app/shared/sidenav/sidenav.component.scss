@@ -3,11 +3,15 @@
         padding: 10px;
         &:hover{
             cursor: pointer;
-            background: #e0c5a1;
+            background: #3c8a82;
         }
         &.active {
-            background: #c8aa83;
+            background: #3a7670;
+            color: #fff;
           }
     }
     
+}
+.side-nav-bg{
+    background: #4b958d;
 }

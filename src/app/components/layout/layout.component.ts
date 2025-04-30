@@ -11,6 +11,7 @@ import { CustomersComponent } from '../customers/customers.component';
 import { GoldLoansComponent } from '../gold-loans/gold-loans.component';
 import { SettingsComponent } from '../settings/settings.component';
 import { PersonalloansComponent } from '../personalloans/personalloans.component';
+import { AuthService } from '../../services/auth.service';
 
 
 @Component({
@@ -33,19 +34,29 @@ import { PersonalloansComponent } from '../personalloans/personalloans.component
   ]
 })
 export class LayoutComponent {
-  isDashboard = true;
+  isDashboard = false;  // Changed to false by default
   isCustomers = false;
-  isGoldLoans = false;
+  isGoldLoans = true;   // Changed to true by default
   isSettings = false;
   personalloans = false;
 
   showSidenav = false;
+  currentUser: any;
+
+  constructor(private authService: AuthService) {
+    this.currentUser = this.authService.currentUserValue;
+  }
 
   toggleSidenav() {
     this.showSidenav = !this.showSidenav;
   }
 
   onScreenChange(screen: string) {
+    // Check if user has access to the screen
+    if ((screen === 'dashboard' || screen === 'settings') && this.currentUser?.role !== 'admin') {
+      return; // Don't change screen if user is not admin
+    }
+
     this.resetScreens();
     switch(screen) {
       case 'dashboard':
@@ -61,7 +72,7 @@ export class LayoutComponent {
         this.isSettings = true;
         break;
       case 'personalLoans':
-        this.personalloans = !this.personalloans;
+        this.personalloans = true;
         break;
     }
   }
