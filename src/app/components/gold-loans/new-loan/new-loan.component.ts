@@ -22,6 +22,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { ToastService } from '../../../services/toastr.service';
 import { AuthService } from '../../../services/auth.service';
+import { ControllersService } from '../../../services/controllers.service';
 
 @Component({
   selector: 'app-new-loan',
@@ -53,19 +54,19 @@ export class NewLoanComponent implements OnInit {
   commissionPercentages: number[] = [5, 7, 9, 11, 13, 15];
   paymentTypes: string[] = ['Cash', 'Online', 'Both'];
   onlinePaymentTypes: string[] = ['UPI', 'Phone pay', 'GooglePay', 'Bank Transfer'];
-  receivedByList: string[] = ['Manikanta - savings', 'Revathi - savings','Manikanta - current', 'Revathi - current'];
+  receivedByList: string[] = ['Manikanta - savings', 'Revathi - savings', 'Manikanta - current', 'Revathi - current'];
 
   lenders: any[] = [
-    {lenderName: 'Bajaj', id: 1, percentage: 0.006},
-    {lenderName: 'HDFC', id: 2, percentage: 0.006},
-    {lenderName: 'ICICI', id: 3, percentage: 0.006},
-    {lenderName: 'SBI', id: 4, percentage: 0.006}
+    { lenderName: 'Bajaj', id: 1, percentage: 0.006 },
+    { lenderName: 'HDFC', id: 2, percentage: 0.006 },
+    { lenderName: 'ICICI', id: 3, percentage: 0.006 },
+    { lenderName: 'SBI', id: 4, percentage: 0.006 }
   ];
   merchants: any[] = [
-    {merchantName: 'Mani', merchantid: '147224577'},
-    {merchantName: 'Revathi', merchantid: '147224578'},
-    {merchantName: 'Tomasri', merchantid: '147224579'},
-    {merchantName: 'Kanta', merchantid: '147224580'}
+    { merchantName: 'Mani', merchantid: '147224577' },
+    { merchantName: 'Revathi', merchantid: '147224578' },
+    { merchantName: 'Tomasri', merchantid: '147224579' },
+    { merchantName: 'Kanta', merchantid: '147224580' }
   ];
   cities: any[] = []
 
@@ -78,7 +79,8 @@ export class NewLoanComponent implements OnInit {
     public dialogRef: MatDialogRef<NewLoanComponent>,
     private goldLoanService: GoldLoanService,
     private toast: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    private controllersService: ControllersService
   ) {
     this.initForm();
   }
@@ -118,53 +120,54 @@ export class NewLoanComponent implements OnInit {
       }
     });
 
-   this.Agents = this.authService.users;
+    this.Agents = this.authService.users;
 
-   this.currentUser = this.authService.currentUserValue;
+    this.currentUser = this.authService.currentUserValue;
     
-   // If user is an agent, pre-select and disable agent selection
-   if (this.currentUser?.role === 'agent') {
-    this.loanForm.patchValue({
-      agentname: this.currentUser.name,
-      agentId: this.currentUser.id  // Set the agent ID from current user
-    });
-    this.loanForm.get('agentname')?.disable();
-    this.loanForm.get('agentId')?.disable();
-  }
-   
-   // Only load agent list for admin
-   if (this.currentUser?.role === 'admin') {
-    this.Agents = this.authService.users.filter(user => user.role === 'agent');
-    // For admin, enable selecting agent and their ID
-    this.loanForm.get('agentname')?.valueChanges.subscribe(agentName => {
-      const selectedAgent = this.Agents.find((agent:any) => agent.name === agentName);
-      if (selectedAgent) {
-        this.loanForm.patchValue({
-          agentId: selectedAgent.id
-        });
-      }
-    });
-  }
-  }
 
-  private calculateCommissionAmount() {
-    const amount = parseFloat(this.loanForm.get('amount')?.value) || 0;
-    const commissionPercentage = parseFloat(this.loanForm.get('commission')?.value) || 0;
-    
-    if (amount && commissionPercentage) {
-      const commissionAmount = (amount * commissionPercentage) / 100;
+    // If user is an agent, pre-select and disable agent selection
+    if (this.currentUser?.role === 'agent') {
       this.loanForm.patchValue({
-        commissionAmount: commissionAmount.toFixed(2)
-      }, { emitEvent: false });
-    } else {
-      this.loanForm.patchValue({
-        commissionAmount: 0
-      }, { emitEvent: false });
+        agentname: this.currentUser.name,
+        agentId: this.currentUser.id  // Set the agent ID from current user
+      });
+      this.loanForm.get('agentname')?.disable();
+      this.loanForm.get('agentId')?.disable();
+    }
+
+    // Only load agent list for admin
+    if (this.currentUser?.role === 'admin') {
+      this.Agents = this.authService.users.filter(user => user.role === 'agent');
+      // For admin, enable selecting agent and their ID
+      this.loanForm.get('agentname')?.valueChanges.subscribe(agentName => {
+        const selectedAgent = this.Agents.find((agent: any) => agent.name === agentName);
+        if (selectedAgent) {
+          this.loanForm.patchValue({
+            agentId: selectedAgent.id
+          });
+        }
+      });
     }
   }
 
+  // private calculateCommissionAmount() {
+  //   const amount = parseFloat(this.loanForm.get('amount')?.value) || 0;
+  //   const commissionPercentage = parseFloat(this.loanForm.get('commission')?.value) || 0;
+
+  //   if (amount && commissionPercentage) {
+  //     const commissionAmount = (amount * commissionPercentage) / 100;
+  //     this.loanForm.patchValue({
+  //       commissionAmount: commissionAmount.toFixed(2)
+  //     }, { emitEvent: false });
+  //   } else {
+  //     this.loanForm.patchValue({
+  //       commissionAmount: 0
+  //     }, { emitEvent: false });
+  //   }
+  // }
+
   private updatePaymentAmounts(totalAmount: number, paymentType: string) {
-    switch(paymentType) {
+    switch (paymentType) {
       case 'Cash':
         this.loanForm.patchValue({
           cashAmount: totalAmount,
@@ -188,6 +191,10 @@ export class NewLoanComponent implements OnInit {
     this.loanForm = this.fb.group({
       lender: ['Bajaj', Validators.required],
       leadId: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
+      agentname: [{
+        value: this.currentUser?.name || '',
+        disabled: this.currentUser?.role === 'agent'
+      }, Validators.required],
       name: ['', Validators.required],
       mobileNo: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       merchantId: [this.merchants[0].merchantid, Validators.required],
@@ -207,7 +214,7 @@ export class NewLoanComponent implements OnInit {
       onlinePaymentType: [''],
       paymentDate: [new Date().toISOString(), Validators.required],
       paymentReference: [''],
-      agentname: [''],
+      // agentname: [''],
       agentId: [''],
       receivedBy: ['', Validators.required],
       accountName: ['', Validators.required],
@@ -215,51 +222,53 @@ export class NewLoanComponent implements OnInit {
       ifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
       amountReceived: ['', [Validators.required, Validators.min(0)]]
     });
-}
-
-private validateForm(): boolean {
-  // Check if form is valid
-  if (!this.loanForm.valid) {
-    // Mark all fields as touched to show validation errors
-    Object.keys(this.loanForm.controls).forEach(key => {
-      const control = this.loanForm.get(key);
-      control?.markAsTouched();
-      
-      // Log invalid controls for debugging
-      if (control?.invalid) {
-        console.log(`Invalid control: ${key}`, control.errors);
-      }
-    });
-    return false;
   }
 
-  // Validate payment amounts
-  const paymentType = this.loanForm.get('paymentType')?.value;
-  const amount = parseFloat(this.loanForm.get('amount')?.value);
-  const cashAmount = parseFloat(this.loanForm.get('cashAmount')?.value) || 0;
-  const onlineAmount = parseFloat(this.loanForm.get('onlineAmount')?.value) || 0;
+  private validateForm(): boolean {
+    // Check if form is valid
+    if (!this.loanForm.valid) {
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.loanForm.controls).forEach(key => {
+        const control = this.loanForm.get(key);
+        control?.markAsTouched();
 
-  if (paymentType === 'Both' && (cashAmount + onlineAmount) !== amount) {
-    this.toast.error('Total of cash and online amounts must equal loan amount');
-    return false;
+        // Log invalid controls for debugging
+        if (control?.invalid) {
+          console.log(`Invalid control: ${key}`, control.errors);
+        }
+      });
+      return false;
+    }
+
+    // Validate payment amounts
+    const paymentType = this.loanForm.get('paymentType')?.value;
+    const amount = parseFloat(this.loanForm.get('amount')?.value);
+    const cashAmount = parseFloat(this.loanForm.get('cashAmount')?.value) || 0;
+    const onlineAmount = parseFloat(this.loanForm.get('onlineAmount')?.value) || 0;
+
+    if (paymentType === 'Both' && (cashAmount + onlineAmount) !== amount) {
+      this.toast.error('Total of cash and online amounts must equal loan amount');
+      return false;
+    }
+
+    return true;
   }
-
-  return true;
-}
 
   calculateMaturityDate() {
     const issuedDate = this.loanForm.get('issuedDate')?.value;
     if (issuedDate) {
       const maturityDate = new Date(issuedDate);
       maturityDate.setDate(maturityDate.getDate() + 45);
-      
+
       maturityDate.setHours(23, 59, 59);
-      
+
       this.loanForm.patchValue({
         maturityDate: maturityDate
       });
     }
   }
+
+
 
   private initCityAutocomplete() {
     this.filteredCities = this.loanForm.get('city')!.valueChanges.pipe(
@@ -272,14 +281,14 @@ private validateForm(): boolean {
 
   private _filterCities(value: any): any[] {
     if (!value) return this.cities;
-    
-    const filterValue = typeof value === 'string' 
+
+    const filterValue = typeof value === 'string'
       ? value.toLowerCase()
-      : value.name 
-        ? value.name.toLowerCase() 
+      : value.name
+        ? value.name.toLowerCase()
         : '';
 
-    return this.cities.filter(city => 
+    return this.cities.filter(city =>
       city.name.toLowerCase().includes(filterValue)
     );
   }
@@ -298,76 +307,88 @@ private validateForm(): boolean {
       });
     }
   }
-  
+
 
   calculateLoanProgress() {
     const today = new Date();
     const issuedDate = new Date(this.loanForm.get('issuedDate')?.value);
     const maturityDate = new Date(this.loanForm.get('maturityDate')?.value);
-    
+
     const totalDays = (maturityDate.getTime() - issuedDate.getTime()) / (1000 * 3600 * 24);
     const daysElapsed = (today.getTime() - issuedDate.getTime()) / (1000 * 3600 * 24);
-    
+
     let progress = (daysElapsed / totalDays) * 100;
     progress = Math.min(Math.max(progress, 0), 100); // Ensure progress is between 0 and 100
-    
+
     this.loanForm.patchValue({
       loanProgress: progress
     });
   }
 
   onSubmit() {
+    
     if (this.validateForm()) {
       const formData = this.loanForm.value;
-      
+
       // Format dates
       formData.createdAt = new Date().toISOString();
       formData.issuedDate = new Date(formData.issuedDate).toISOString();
       formData.maturityDate = new Date(formData.maturityDate).toISOString();
       formData.paymentDate = new Date(formData.paymentDate).toISOString();
-      
+
       // Format numbers
       formData.amount = parseFloat(formData.amount);
       formData.cashAmount = parseFloat(formData.cashAmount) || 0;
       formData.onlineAmount = parseFloat(formData.onlineAmount) || 0;
       formData.amountReceived = parseFloat(formData.amountReceived);
-      
+
       // Calculate commission
       const selectedLender = this.lenders.find(l => l.lenderName === formData.lender);
       formData.commissionPercentage = selectedLender?.percentage || 0.006;
       formData.commissionAmount = (formData.amount * formData.commissionPercentage).toFixed(2);
-      
+
       // Initialize commission tracking
-      formData.receivedCommissions = [];
-      formData.receivableCommission = formData.commissionAmount;
-      formData.totalReceivedCommission = 0;
+      // formData.receivedCommissions = [];
+      // formData.receivableCommission = formData.commissionAmount;
+      // formData.totalReceivedCommission = 0;
       formData.agentname = this.loanForm.get('agentname')?.value;
-      
+
       // Calculate loan progress
       this.calculateLoanProgress();
-      formData.loanProgress = this.loanForm.get('loanProgress')?.value;
-      
+      // formData.loanProgress = this.loanForm.get('loanProgress')?.value;
+
       // Add to service and close dialog
-      this.goldLoanService.loans.push(formData);
-      this.toast.success('Loan created successfully');
-      console.log(this.goldLoanService.loans, formData)
+      // this.goldLoanService.loans.push(formData);
+      // this.toast.success('Loan created successfully');
+      this.controllersService.CreateLoan(formData).subscribe(
+        (response) => {
+          // console.log('Loan created successfully:', response);
+          this.toast.success(response);
+          this.goldLoanService.GetAllLoans();
+          // Handle success, e.g., show a success message
+        },
+        (error) => {
+          console.error('Error creating loan:', error);
+          // Handle error, e.g., show an error message
+        }
+      );
       this.dialogRef.close(formData);
     }
-}
-
-
-
-calculateCommission() {
-  const commission = this.loanForm.get('commission')?.value;
-  const amount = this.loanForm.get('amount')?.value;
-  
-  if (commission && amount) {
-    const commissionAmount = (amount * (commission / 100)).toFixed(2);
-    this.loanForm.patchValue({
-      commissionAmount: commissionAmount
-    });
   }
-}
+
+
+
+  calculateCommission() {
+    const commission = this.loanForm.get('commission')?.value;
+    const amount = this.loanForm.get('amount')?.value;
+
+    if (commission && amount) {
+      const commissionAmount = (amount * (commission / 100)).toFixed(2);
+      this.loanForm.patchValue({
+        commissionAmount: commissionAmount
+      });
+    }
+  }
 
 
 

@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Router, RouterModule } from '@angular/router';
 import { GoldLoanService } from '../../services/gold-loan.service';
 import { AuthService } from '../../services/auth.service';
+import { ControllersService } from '../../services/controllers.service';
 
 @Component({
   selector: 'app-header',
@@ -27,48 +28,73 @@ export class HeaderComponent {
   @Output() toggleSidebar = new EventEmitter<void>();
   
   notifications: any[] = [];
-
-  adminUser:any = []
+  loans: any = [];
+  adminUser: any = null;
 
   constructor(
     private router: Router,
     private goldLoanService: GoldLoanService,
-    private authService: AuthService
+    private authService: AuthService,
+    private controllers: ControllersService
   ) {}
 
   ngOnInit() {
-    // Get latest loan and nearest expiry loan
-    const allLoans = this.goldLoanService.getLoans();
-
-    this.adminUser = this.authService.currentUserValue;
-
-    // console.log(this.adminUser);
-
+    // Get loans and handle empty case
+    this.GetAllLoans();
     
-    // Sort loans by date to get latest
-    const latestLoan = allLoans.sort((a, b) => 
-      new Date(b.issuedDate).getTime() - new Date(a.issuedDate).getTime()
-    )[0];
+    // Only process notifications if we have loans
+    if (this.loans.length > 0) {
+      // Sort loans by date to get latest
+      const latestLoan = this.loans.sort((a:any, b:any) => 
+        new Date(b.IssuedDate || '').getTime() - new Date(a.IssuedDate || '').getTime()
+      )[0];
 
-    // Sort loans by maturity date to get nearest expiry
-    const nearestExpiryLoan = allLoans.sort((a, b) => 
-      new Date(a.maturityDate).getTime() - new Date(b.maturityDate).getTime()
-    )[0];
+      // Sort loans by maturity date to get nearest expiry
+      const nearestExpiryLoan = this.loans.sort((a:any, b:any) => 
+        new Date(a.MaturityDate || '').getTime() - new Date(b.MaturityDate || '').getTime()
+      )[0];
 
-    this.notifications = [
-      {
-        customerName: latestLoan.customerName,
-        status: 'New Loan Added',
-        maturityDate: latestLoan.issuedDate,
-        type: 'new'
-      },
-      {
-        customerName: nearestExpiryLoan.customerName,
-        status: 'Loan Expiring Soon',
-        maturityDate: nearestExpiryLoan.maturityDate,
-        type: 'expiry'
+      if (latestLoan && nearestExpiryLoan) {
+        this.notifications = [
+          {
+            customerName: latestLoan.Name || 'Unknown Customer',
+            status: 'New Loan Added',
+            maturityDate: latestLoan.IssuedDate,
+            type: 'new'
+          },
+          {
+            customerName: nearestExpiryLoan.CustomerName || 'Unknown Customer',
+            status: 'Loan Expiring Soon',
+            maturityDate: nearestExpiryLoan.MaturityDate,
+            type: 'expiry'
+          }
+        ];
       }
-    ];
+    }
+
+    // Subscribe to user changes
+    this.authService.currentUser.subscribe(user => {
+      this.adminUser = user;
+    });
+  }
+
+  GetAllLoans() {
+    this.loans = [];
+    this.controllers.GetAllLoans().subscribe({
+      next: (response) => {
+        if (response) {
+          this.loans = response;
+          this.loans.map((loan: any) => {
+            const {progress, status} = this.goldLoanService.calculateProgress(loan);
+            loan.progress = progress;
+            loan.status = status;
+          })
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching loans:', error);
+      }
+    });
   }
 
   logout() {

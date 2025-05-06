@@ -15,6 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { ControllersService } from '../../services/controllers.service';
 
 @Component({
   selector: 'app-gold-loans',
@@ -67,7 +68,8 @@ export class GoldLoansComponent {
     private cdr: ChangeDetectorRef,
     private fb: FormBuilder,
     private toast: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    private controllers: ControllersService,
 
   ) {
     this.commissionForm = this.fb.group({
@@ -92,12 +94,14 @@ export class GoldLoansComponent {
   }
 
   ngOnInit() {
+    this.GetAllLoans();
+    this.GetAllBranches();
     this.currentUser = this.authService.currentUserValue;
     // Get loans from service
-    this.loans = this.loanService.getLoans() || [];
+    // this.loans = this.loanService.getLoans() || [];
 
     // Initialize filtered loans
-    this.filteredLoans = [...this.loans];
+    // this.filteredLoans = [...this.loans];
 
     this.uniqueAgents = [...new Set(this.authService.users.map(loan => loan.name))].filter(agent => agent);
 
@@ -228,6 +232,71 @@ export class GoldLoansComponent {
     this.filteredLoans = [...this.loans];
   }
 
+  GetAllLoans() {
+    this.filteredLoans = [];
+    this.controllers.GetAllLoans().subscribe({
+      next: (response) => {
+        if (response) {
+          this.filteredLoans = response;
+          this.filteredLoans.map((loan: any) => {
+            const {progress, status} = this.loanService.calculateProgress(loan);
+            loan.progress = progress;
+            loan.status = status;
+          });
+          console.log(this.filteredLoans);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching loans:', error);
+      }
+    });
+    
+  }
+
+  GetAllBranches(){
+    this.loanService.cities = [];
+    this.controllers.GetAllBranches().subscribe({
+      next: (data) => {
+        if (data) {
+          this.loanService.cities = data;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching cities:', error);
+      }
+    });
+    this.GetAllLenders()
+  }
+
+  GetAllLenders(){
+    this.loanService.lenders = [];
+    this.controllers.GetAllLenders().subscribe({
+      next: (data) => {
+        if (data) {
+          this.loanService.lenders = data;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching lenders:', error);
+      }
+    });
+    this.GetAllMerchants()
+  }
+
+  GetAllMerchants(){
+    this.loanService.merchants = [];
+    this.controllers.GetAllMerchants().subscribe({
+      next: (data) => {
+        if (data) {
+          this.loanService.merchants = data;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching merchants:', error);
+      }
+    });
+  }
+
   openNewLoanDialog() {
     const dialogWidth = window.innerWidth <= 768 ? '96vw' : '800px';
     const dialogRef = this.dialog.open(NewLoanComponent, {
@@ -246,7 +315,7 @@ export class GoldLoansComponent {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         // Reload loans data
-        this.loans = this.loanService.getLoans();
+        this.loans = this.loanService.loans;
   
         // Initialize progress for new loans
         this.loans = this.loans.map(loan => {
@@ -279,7 +348,7 @@ export class GoldLoansComponent {
         this.uniqueAgents = [...new Set(this.loans.map(loan => loan.agentname))].filter(agent => agent);
   
         // Show success message
-        this.toast.success('Loan created successfully');
+        // this.toast.success('Loan created successfully');
   
         // Force change detection
         this.cdr.detectChanges();

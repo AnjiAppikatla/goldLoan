@@ -15,6 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
+import { ControllersService } from '../../services/controllers.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -45,24 +46,56 @@ export class DashboardComponent implements OnInit {
   startDate: Date | null = null;
   endDate: Date | null = null;
   filteredLoans: any[] = [];
-
+  AllAgents: any = [];
   constructor(
     private goldLoanService: GoldLoanService,
-    private authService: AuthService
+    private authService: AuthService,
+    private controllers: ControllersService
   ) { }
 
   ngOnInit() {
-    this.recentLoans = this.goldLoanService.getLoans();
+    this.GetAllLoans();
+    this.GetAllAgents();
 
-    this.recentLoans = this.recentLoans.map((loan: any) => ({
-      ...loan,
-      progress: this.goldLoanService.calculateProgress(loan)
-    }));
+    // this.recentLoans = this.recentLoans.map((loan: any) => ({
+    //   ...loan,
+    //   progress: this.goldLoanService.calculateProgress(loan)
+    // }));
 
     this.currentUser = this.authService.currentUserValue;
-    this.createPieChart();
-    this.createTimeDistributionChart();
+    setTimeout(() => {
+      this.createPieChart();
+      this.createTimeDistributionChart();
+    }, 1000);
   
+  }
+
+  GetAllLoans() {
+    this.recentLoans = [];
+    this.controllers.GetAllLoans().subscribe({
+      next: (response) => {
+        if (response) {
+          this.recentLoans = response;
+
+         this.recentLoans.map((loan: any) => {
+           const {progress, status} = this.goldLoanService.calculateProgress(loan);
+           loan.progress = progress;
+           loan.status = status;
+         });
+        }
+      }
+    })
+  }
+
+  GetAllAgents() {
+    this.AllAgents = []; // Clear the array before fetc
+    this.controllers.GetAllAgents().subscribe({
+      next: (response) => {
+        if (response) {
+          this.AllAgents = response;
+        }
+      }
+    })
   }
 
 
@@ -71,8 +104,8 @@ export class DashboardComponent implements OnInit {
 
   private createPieChart() {
     try {
-        // Get all agents
-        const agents = this.authService.getAllAgents();
+        // Use AllAgents instead of authService.getAllAgents()
+        const agents = this.AllAgents;
         if (!agents || agents.length === 0) {
             console.warn('No agents found');
             return;
@@ -80,24 +113,19 @@ export class DashboardComponent implements OnInit {
 
         // Calculate loans per agent
         const agentLoans = agents
-            .filter((agent): agent is NonNullable<typeof agent> => agent !== null)
-            .map(agent => {
-                if (!agent.id) {
-                    console.warn('Invalid agent data');
-                    return null;
-                }
-
-                const loans = this.goldLoanService.getLoans();
+            .filter((agent: any) => agent && agent.name) // Check for name
+            .map((agent: any) => {
+                const loans = this.recentLoans;
                 const agentLoans = loans ? loans.filter(
-                    (loan: any) => loan && loan.agentId === agent.id
+                    (loan: any) => loan && loan.AgentName === agent.name // Match by name
                 ) : [];
 
                 return {
-                    name: agent.name || 'Unknown Agent',
+                    name: agent.name,
                     loanCount: agentLoans.length
                 };
             })
-            .filter((loan): loan is NonNullable<typeof loan> => loan !== null);
+            .filter((data:any) => data.loanCount > 0); // Only include agents with loans
 
         if (agentLoans.length === 0) {
             console.warn('No loan data to display');
@@ -110,20 +138,18 @@ export class DashboardComponent implements OnInit {
             this.chart = null;
         }
 
-        // Get the canvas element
         const canvas = document.getElementById('goldDistributionChart');
         if (!canvas) {
             console.error('Chart canvas element not found');
             return;
         }
 
-        // Create new chart
         this.chart = new Chart(canvas as HTMLCanvasElement, {
             type: 'pie',
             data: {
-                labels: agentLoans.map(agent => agent.name),
+                labels: agentLoans.map((agent:any) => agent.name),
                 datasets: [{
-                    data: agentLoans.map(agent => agent.loanCount),
+                    data: agentLoans.map((agent:any) => agent.loanCount),
                     backgroundColor: [
                         '#4CAF50',  // Green
                         '#2196F3',  // Blue
@@ -137,23 +163,13 @@ export class DashboardComponent implements OnInit {
                 responsive: true,
                 maintainAspectRatio: true,
                 aspectRatio: 1,
-                layout: {
-                    padding: {
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: 0
-                    }
-                },
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
                             padding: 20,
                             boxWidth: 12,
-                            font: {
-                                size: 11
-                            }
+                            font: { size: 11 }
                         }
                     }
                 }
@@ -166,7 +182,7 @@ export class DashboardComponent implements OnInit {
 
 private createTimeDistributionChart() {
     try {
-      const loans = this.goldLoanService.getLoans() || [];
+      const loans = this.recentLoans;
       const now = new Date();
       const yesterday = new Date(now.setDate(now.getDate() - 1));
       const lastWeek = new Date(now.setDate(now.getDate() - 7));
@@ -180,8 +196,8 @@ private createTimeDistributionChart() {
         older: 0
       };
 
-      loans.forEach(loan => {
-        const loanDate = new Date(loan.issuedDate);
+      loans.forEach((loan:any) => {
+        const loanDate = new Date(loan.IssuedDate);
         if (loanDate.toDateString() === new Date().toDateString()) {
           timeDistribution.today++;
         } else if (loanDate.toDateString() === yesterday.toDateString()) {

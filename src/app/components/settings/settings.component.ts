@@ -18,6 +18,12 @@ import { ToastService } from '../../services/toastr.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
+import { ControllersService } from '../../services/controllers.service';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { CityService } from '../../services/city.service';
+import { debounceTime, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { AddressService } from '../../services/address.service';
 
 
 @Component({
@@ -39,7 +45,9 @@ import { MatTableModule } from '@angular/material/table';
     MatSelectModule,
     MatCardModule,
     MatDialogModule,
-    MatTableModule
+    MatTableModule,
+    MatMenuModule,
+    MatAutocompleteModule
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'
@@ -50,10 +58,14 @@ export class SettingsComponent {
   lenderForm!: FormGroup;
   merchantForm!: FormGroup;
 
+  
+
   @ViewChild('agentDialog') agentDialog!: TemplateRef<any>;
   @ViewChild('branchDialog') branchDialog!: TemplateRef<any>;
   @ViewChild('lenderDialog') lenderDialog!: TemplateRef<any>;
   @ViewChild('merchantDialog') merchantDialog!: TemplateRef<any>;
+
+  
 
   cities : any = [];
   agents: any[] = [];
@@ -69,81 +81,84 @@ export class SettingsComponent {
   filteredAgents: any[] = [];
 
   filteredLoans: any[] = [
-    {
-      aadharNumber: "123456789012",
-      accountName: "Anji",
-      accountNumber: "312321323121",
-      amount: 30000,
-      amountReceived: 30000,
-      branchId: "123",
-      cashAmount: 0,
-      city: "Guntur - Arundelpet",
-      commission: 0.006,
-      commissionAmount: "180.00",
-      commissionPercentage: 0.006,
-      createdAt: "2025-04-24T17:52:12.924Z",
-      ifscCode: "",
-      issuedDate: "2025-04-24T17:52:03.289Z",
-      leadId: "13213213",
-      lender: "Bajaj",
-      loanProgress: 0.00024766880293326235,
-      maturityDate: "2025-06-08T18:29:59.289Z",
-      merchantId: "147224577",
-      mobileNo: "1233444444",
-      name: "testing name 2",
-      onlineAmount: 0,
-      onlinePaymentType: "",
-      panNumber: "",
-      paymentDate: "2025-04-24T17:52:03.225Z",
-      paymentReference: "",
-      paymentType: "Cash",
-      receivableCommission: "180.00",
-      receivedBy: "Manikanta - savings",
-      receivedCommissions: [],
-      totalReceivedCommission: 0
-    },
-    {
-      aadharNumber: "123456789012",
-      accountName: "Anji",
-      accountNumber: "312321323121",
-      amount: 30000,
-      amountReceived: 30000,
-      branchId: "123",
-      cashAmount: 0,
-      city: "Guntur - Arundelpet",
-      commission: 0.006,
-      commissionAmount: "180.00",
-      commissionPercentage: 0.006,
-      createdAt: "2025-04-24T17:52:12.924Z",
-      ifscCode: "",
-      issuedDate: "2025-04-24T17:52:03.289Z",
-      leadId: "13213213",
-      lender: "Bajaj",
-      loanProgress: 0.00024766880293326235,
-      maturityDate: "2025-06-08T18:29:59.289Z",
-      merchantId: "147224577",
-      mobileNo: "1233444444",
-      name: "testing name 2",
-      onlineAmount: 0,
-      onlinePaymentType: "",
-      panNumber: "",
-      paymentDate: "2025-04-24T17:52:03.225Z",
-      paymentReference: "",
-      paymentType: "Cash",
-      receivableCommission: "180.00",
-      receivedBy: "Manikanta - savings",
-      receivedCommissions: [],
-      totalReceivedCommission: 0
-    }
+    // {
+    //   aadharNumber: "123456789012",
+    //   accountName: "Anji",
+    //   accountNumber: "312321323121",
+    //   amount: 30000,
+    //   amountReceived: 30000,
+    //   branchId: "123",
+    //   cashAmount: 0,
+    //   city: "Guntur - Arundelpet",
+    //   commission: 0.006,
+    //   commissionAmount: "180.00",
+    //   commissionPercentage: 0.006,
+    //   createdAt: "2025-04-24T17:52:12.924Z",
+    //   ifscCode: "",
+    //   issuedDate: "2025-04-24T17:52:03.289Z",
+    //   leadId: "13213213",
+    //   lender: "Bajaj",
+    //   loanProgress: 0.00024766880293326235,
+    //   maturityDate: "2025-06-08T18:29:59.289Z",
+    //   merchantId: "147224577",
+    //   mobileNo: "1233444444",
+    //   name: "testing name 2",
+    //   onlineAmount: 0,
+    //   onlinePaymentType: "",
+    //   panNumber: "",
+    //   paymentDate: "2025-04-24T17:52:03.225Z",
+    //   paymentReference: "",
+    //   paymentType: "Cash",
+    //   receivableCommission: "180.00",
+    //   receivedBy: "Manikanta - savings",
+    //   receivedCommissions: [],
+    //   totalReceivedCommission: 0
+    // },
+    // {
+    //   aadharNumber: "123456789012",
+    //   accountName: "Anji",
+    //   accountNumber: "312321323121",
+    //   amount: 30000,
+    //   amountReceived: 30000,
+    //   branchId: "123",
+    //   cashAmount: 0,
+    //   city: "Guntur - Arundelpet",
+    //   commission: 0.006,
+    //   commissionAmount: "180.00",
+    //   commissionPercentage: 0.006,
+    //   createdAt: "2025-04-24T17:52:12.924Z",
+    //   ifscCode: "",
+    //   issuedDate: "2025-04-24T17:52:03.289Z",
+    //   leadId: "13213213",
+    //   lender: "Bajaj",
+    //   loanProgress: 0.00024766880293326235,
+    //   maturityDate: "2025-06-08T18:29:59.289Z",
+    //   merchantId: "147224577",
+    //   mobileNo: "1233444444",
+    //   name: "testing name 2",
+    //   onlineAmount: 0,
+    //   onlinePaymentType: "",
+    //   panNumber: "",
+    //   paymentDate: "2025-04-24T17:52:03.225Z",
+    //   paymentReference: "",
+    //   paymentType: "Cash",
+    //   receivableCommission: "180.00",
+    //   receivedBy: "Manikanta - savings",
+    //   receivedCommissions: [],
+    //   totalReceivedCommission: 0
+    // }
 
   ];
+  filteredCities!: Observable<string[]>;
 
   constructor(
     private dialog: MatDialog,
     private fb: FormBuilder,
     private authService: AuthService,
     private goldLoanService: GoldLoanService,
-    private toast: ToastService
+    private toast: ToastService,
+    private controllersService: ControllersService,
+    private addressService: AddressService
   ) {
     this.initializeForms();
   }
@@ -154,6 +169,12 @@ export class SettingsComponent {
     this.filteredLenders = this.lenders;
     this.filteredMerchants = this.merchants;
     this.filteredAgents = this.agents;
+
+    this.GetAllAgents();
+    this.GetAllBranches();
+    this.GetAllLenders();
+    this.GetAllMerchants();
+    
   }
 
   searchAgents(event: any) {
@@ -441,6 +462,54 @@ export class SettingsComponent {
       this.closeDialog();
       this.loadData();
     }
+  }
+
+  GetAllBranches() {
+    this.controllersService.GetAllBranches().subscribe((data: any) => {
+      if(data){
+        this.branches = data;
+      }
+    })
+  }
+
+  GetAllLenders() {
+    this.controllersService.GetAllLenders().subscribe((data: any) => {
+      if(data){
+        this.lenders = data;
+      }
+    })
+  }
+
+  GetAllMerchants() {
+    this.controllersService.GetAllMerchants().subscribe((data: any) => {
+      if(data){
+        this.merchants = data;
+      }
+    })
+  }
+
+  GetAllAgents() {
+    this.controllersService.GetAllAgents().subscribe((data: any) => {
+      if(data){
+        this.agents = data;
+      }
+    })
+  }
+
+  onCityInput(event: any) {
+    const query = event.target.value;
+    if (query && query.length > 2) {
+      this.addressService.searchAddress(query).subscribe((data: string[]) => {
+        this.cities = data;
+        this.filteredCities = of(this.cities);
+      });
+    } else {
+      this.filteredCities = of([]);
+    }
+  }
+
+  displayCityFn(city: string): string {
+    return city || '';
   }
 
 

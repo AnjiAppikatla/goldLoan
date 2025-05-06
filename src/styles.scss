@@ -55,3 +55,15 @@ body { margin: 0; }
         }
     }
 }
+
+.mat-cs-body{
+    .mat-expansion-panel-body {
+        padding: 0.5rem; // equivalent to p-2
+      }
+      
+      @media (min-width: 640px) {
+        ::ng-deep mat-expansion-panel-body {
+          padding: 1rem; // adjust as needed
+        }
+      }
+}

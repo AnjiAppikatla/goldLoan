@@ -22,18 +22,18 @@
       <mat-expansion-panel-header>
         <mat-panel-title class="flex items-center gap-4 w-full">
           <div class="flex items-center gap-2 flex-1">
-            <span class="font-medium text-white">{{loan.name}}</span>
+            <span class="font-medium text-white">{{loan.Name}}</span>
             <!-- <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span> -->
           </div>
           <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
             <div class="progress-bar w-16 sm:w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden relative">
               <div class="h-full transition-all duration-300" 
-                   [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress.progress) + '%, #ef4444 ' + loan.progress.progress + '%)'"
+                   [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
                    [style.width.%]="100">
               </div>
             </div>
             <span class="text-sm text-white">
-              {{loan.progress.progress | number:'1.0-0'}}%
+              {{loan.progress | number:'1.0-0'}}%
             </span>
           </div>
         </mat-panel-title>
@@ -42,21 +42,21 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
         <div class="bg-gray-200 p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Personal Details</h3>
-          <p><strong>Lender :</strong> {{loan.lender}}</p>
-          <p><strong>LeadId :</strong> {{loan.leadId}}</p>
-          <p><strong>Phone :</strong> {{loan.mobileNo}}</p>
-          <p><strong>City :</strong> {{loan.city}}</p>
-          <p><strong>Agent Name :</strong> {{loan.agentName}}</p>
+          <p><strong>Lender :</strong> {{loan.Lender}}</p>
+          <p><strong>LeadId :</strong> {{loan.LeadId}}</p>
+          <p><strong>Phone :</strong> {{loan.MobileNo}}</p>
+          <p><strong>City :</strong> {{loan.City}}</p>
+          <p><strong>Agent Name :</strong> {{loan.AgentName}}</p>
         </div>
 
         <div class="bg-gray-200 p-4 rounded">
           <div class="">
             <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
-            <p><strong>Amount :</strong> {{loan.amount}}</p>
-            <p><strong>Issue Date :</strong> {{loan.issuedDate | date}}</p>
-            <p><strong>Maturity Date :</strong> {{loan.maturityDate | date}}</p>
-            <p><strong>Aadhar:</strong> {{loan.aadharNumber}}</p>
-            <p><strong>PAN:</strong> {{loan.panNumber}}</p>
+            <p><strong>Amount :</strong> {{loan.Amount}}</p>
+            <p><strong>Issue Date :</strong> {{loan.IssuedDate | date}}</p>
+            <p><strong>Maturity Date :</strong> {{loan.MaturityDate | date}}</p>
+            <p><strong>Aadhar:</strong> {{loan.AadharNumber}}</p>
+            <p><strong>PAN:</strong> {{loan.PanNumber}}</p>
           </div>
         </div>
 
@@ -70,7 +70,7 @@
             </span>
           </h3>
 
-          <p><strong>Total Revenew :</strong> {{loan.commissionAmount}}</p>
+          <p><strong>Total Revenew :</strong> {{loan.CommissionAmount}}</p>
           <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
           <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
           
@@ -80,21 +80,21 @@
 
         <div class="bg-gray-200 p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
-          <p><strong>Payment Date :</strong> {{loan.paymentDate | date}}</p>
-          <p><strong>Payment Type :</strong> {{loan.merchantId}}</p>
+          <p><strong>Payment Date :</strong> {{loan.PaymentDate | date}}</p>
+          <p><strong>Payment Type :</strong> {{loan.MerchantId}}</p>
           
 
           <ng-container *ngIf="loan.paymentType == 'Cash'">
-            <p><strong>Cash Amount :</strong> {{loan.cashAmount}}</p>
+            <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
           </ng-container>
           <ng-container *ngIf="loan.paymentType == 'Online'">
-            <p><strong>Payment Type :</strong> {{loan.paymentType}}</p>
-            <p><strong>Online Amount :</strong> {{loan.onlineAmount}}</p>
+            <p><strong>Payment Type :</strong> {{loan.OnlinePaymentType}}</p>
+            <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
           </ng-container>
           <ng-container *ngIf="loan.paymentType == 'Both'">
-            <p><strong>Cash Amount :</strong> {{loan.cashAmount}}</p>
-            <p><strong>Payment Type :</strong> {{loan.paymentType}}</p>
-            <p><strong>Online Amount :</strong> {{loan.onlineAmount}}</p>
+            <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
+            <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
+            <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
           </ng-container>
           
           
@@ -103,10 +103,10 @@
 
         <div class="bg-gray-200 p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
-          <p><strong>Refund Date :</strong> {{loan.paymentDate | date}}</p>
-          <p><strong>Account Name :</strong> {{loan.accountName}}</p>
-          <p><strong>Account Number :</strong> {{loan.accountNumber}}</p>
-          <p><strong>IFSC Code :</strong> {{loan.ifscCode}}</p>
+          <p><strong>Refund Date :</strong> {{loan.PaymentDate | date}}</p>
+          <p><strong>Account Name :</strong> {{loan.AccountName}}</p>
+          <p><strong>Account Number :</strong> {{loan.AccountNumber}}</p>
+          <p><strong>IFSC Code :</strong> {{loan.IfscCode}}</p>
         </div>
 
       </div>

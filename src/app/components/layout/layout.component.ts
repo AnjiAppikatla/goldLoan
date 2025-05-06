@@ -12,6 +12,7 @@ import { GoldLoansComponent } from '../gold-loans/gold-loans.component';
 import { SettingsComponent } from '../settings/settings.component';
 import { PersonalloansComponent } from '../personalloans/personalloans.component';
 import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -43,7 +44,14 @@ export class LayoutComponent {
   showSidenav = false;
   currentUser: any;
 
+  // private subscription: Subscription;
+
   constructor(private authService: AuthService) {
+    // this.currentUser = this.authService.currentUserValue;
+    // // console.log(this.currentUser);
+  }
+
+  ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
   }
 
@@ -84,4 +92,6 @@ export class LayoutComponent {
     this.isSettings = false;
     this.personalloans = false;
   }
+
+
 }

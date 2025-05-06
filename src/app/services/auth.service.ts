@@ -1,5 +1,8 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { ControllersService } from './controllers.service';
 
 export interface User {
   id: number;
@@ -14,7 +17,7 @@ export interface User {
   providedIn: 'root'
 })
 export class AuthService {
-  private currentUserSubject: BehaviorSubject<User | null>;
+  public currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 
   public users: User[] = [
@@ -44,25 +47,62 @@ export class AuthService {
     }
   ];
 
-  constructor() {
-    this.currentUserSubject = new BehaviorSubject<User | null>(this.getStoredUser());
-    this.currentUser = this.currentUserSubject.asObservable();
+  constructor(
+    private controllers: ControllersService
+  ) {
+        // Initialize with stored user data
+        const storedUser = this.getStoredUser();
+        this.currentUserSubject = new BehaviorSubject<User | null>(storedUser);
+        this.currentUser = this.currentUserSubject.asObservable();
+    
   }
 
   public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
 
-  login(username: string, password: string): boolean {
-    const user = this.users.find(u => u.username === username && u.password === password);
-    
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      this.currentUserSubject.next(user);
-      return true;
-    }
-    
-    return false;
+
+
+  login(username: string, password: string): Observable<any> {
+    return new Observable(observer => {
+      this.controllers.GetAgentById(username, password).subscribe({
+        next: (data: any) => {
+          if (data && data.username && data.role) {
+            // Create a proper User object
+            const user: User = {
+              id: data.id,
+              username: data.username,
+              password: data.password,
+              role: data.role,
+              name: data.name,
+              branch: data.branch
+            };
+
+            // Store in localStorage
+            localStorage.setItem('currentUser', JSON.stringify(user));
+
+            // Update BehaviorSubject
+            this.currentUserSubject.next(user);
+
+            // Log successful login
+            console.log('Login successful:', user);
+            console.log('Current user subject:', this.currentUserSubject.value);
+
+            observer.next(user);
+            observer.complete();
+          } else {
+            console.error('Invalid user data:', data);
+            observer.error('Invalid user data received');
+          }
+        },
+        error: (error) => {
+          console.error('Login error:', error);
+          localStorage.removeItem('currentUser');
+          this.currentUserSubject.next(null);
+          observer.error(error);
+        }
+      });
+    });
   }
 
   logout(): void {
@@ -71,8 +111,21 @@ export class AuthService {
   }
 
   private getStoredUser(): User | null {
-    const storedUser = localStorage.getItem('currentUser');
-    return storedUser ? JSON.parse(storedUser) : null;
+    try {
+      const storedUser = localStorage.getItem('currentUser');
+      if (!storedUser) return null;
+      
+      const user = JSON.parse(storedUser);
+      // Validate user object
+      if (user && user.username && user.role) {
+        return user as User;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error parsing stored user:', error);
+      localStorage.removeItem('currentUser');
+      return null;
+    }
   }
 
   isLoggedIn(): boolean {
@@ -110,6 +163,7 @@ export class AuthService {
       this.users.splice(index, 1);
     }
   }
+
 
 
 

@@ -6,6 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { ToastrService } from 'ngx-toastr';
+import { ToastService } from '../../services/toastr.service';
+import { ControllersService } from '../../services/controllers.service';
+import { GoldLoanService } from '../../services/gold-loan.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +30,10 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService
+    private toast: ToastService,
+    private controllers: ControllersService,
+    private authService: AuthService,
+    private goldLoanService: GoldLoanService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -33,21 +41,35 @@ export class LoginComponent {
     });
   }
 
-  async onSubmit() {
+  onSubmit() {
     if (this.loginForm.valid) {
-      try {
-        const { email, password } = this.loginForm.value;
-        const data = await this.authService.login(email, password);
-        if (data) {
-          this.router.navigate(['/layout']);
-          console.log(data)
+      const { email, password } = this.loginForm.value;
+      
+      this.controllers.GetAgentById(email, password).subscribe({
+        next: (data) => {
+          if (data) {
+            const parsedData = JSON.parse(data);
+            const user = parsedData[0];
+      
+            if (user) {
+              this.authService.currentUserSubject.next(user);
+              localStorage.setItem('currentUser', JSON.stringify(user));
+              this.router.navigate(['/layout']);
+            }
+          } else {
+            this.toast.error('Invalid credentials');
+          }
+        },
+        error: (error) => {
+          console.error('Login error:', error);
+          this.toast.error('Login failed. Please try again.');
+          localStorage.removeItem('currentUser');
+          this.authService.currentUserSubject.next(null);
         }
-      } catch (error) {
-        console.error('Login error:', error);
-        alert('Invalid credentials');
-      }
+      });
     } else {
-      console.log('Form is invalid', this.loginForm.errors);
+      this.toast.warning('Please fill in all required fields');
     }
   }
+
 }
