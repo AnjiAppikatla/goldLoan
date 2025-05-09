@@ -2,22 +2,22 @@
   <nav class="gold-loan">
     <!-- Show dashboard only for admin -->
     <a *ngIf="currentUser?.role === 'admin'" 
-   class="text-left flex items-center mt-0" 
-   [class.active]="activepage === 'dashboard'"  
-   (click)="changeScreen('dashboard')">
-  <mat-icon class="mr-2">dashboard</mat-icon> 
-  <span>Dashboard</span>
-</a>
-
-<a class="text-left flex items-center mt-0" 
-[class.active]="activepage === 'goldLoans'" 
-(click)="changeScreen('goldLoans')">
-<mat-icon class="mr-2">account_balance</mat-icon> 
-<span>Gold Loans</span>
-</a>
+       class="text-left flex items-center mt-0" 
+       [class.active]="activeClass === 'dashboard'"  
+       (click)="changeScreen('dashboard')">
+      <mat-icon class="mr-2">dashboard</mat-icon> 
+      <span>Dashboard</span>
+    </a>
 
     <a class="text-left flex items-center mt-0" 
-       [class.active]="activepage === 'personalLoans'" 
+       [class.active]="activeClass === 'goldLoans'" 
+       (click)="changeScreen('goldLoans')">
+      <mat-icon class="mr-2">account_balance</mat-icon> 
+      <span>Gold Loans</span>
+    </a>
+
+    <a class="text-left flex items-center mt-0" 
+       [class.active]="activeClass === 'personalLoans'" 
        (click)="changeScreen('personalLoans')">
       <mat-icon class="mr-2">person</mat-icon> 
       <span>Personal Loans</span>
@@ -26,7 +26,7 @@
     <!-- Show settings only for admin -->
     <a *ngIf="currentUser?.role === 'admin'" 
        class="text-left flex items-center mt-0" 
-       [class.active]="activepage === 'settings'" 
+       [class.active]="activeClass == 'settings'" 
        (click)="changeScreen('settings')">
       <mat-icon class="mr-2">settings</mat-icon> 
       <span>Settings</span>

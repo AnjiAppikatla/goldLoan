@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,11 +24,11 @@ import { ControllersService } from '../../services/controllers.service';
     RouterModule
   ]
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   @Output() toggleSidebar = new EventEmitter<void>();
   
   notifications: any[] = [];
-  loans: any = [];
+  loans: any[] = [];
   adminUser: any = null;
 
   constructor(
@@ -41,8 +41,13 @@ export class HeaderComponent {
   ngOnInit() {
     // Get loans and handle empty case
     this.GetAllLoans();
+
+     // Subscribe to user changes
+    this.adminUser = this.authService.currentUserValue;
+
     
     // Only process notifications if we have loans
+   setTimeout(() => {
     if (this.loans.length > 0) {
       // Sort loans by date to get latest
       const latestLoan = this.loans.sort((a:any, b:any) => 
@@ -63,7 +68,7 @@ export class HeaderComponent {
             type: 'new'
           },
           {
-            customerName: nearestExpiryLoan.CustomerName || 'Unknown Customer',
+            customerName: nearestExpiryLoan.Name || 'Unknown Customer',
             status: 'Loan Expiring Soon',
             maturityDate: nearestExpiryLoan.MaturityDate,
             type: 'expiry'
@@ -71,11 +76,9 @@ export class HeaderComponent {
         ];
       }
     }
+   },2000)
 
-    // Subscribe to user changes
-    this.authService.currentUser.subscribe(user => {
-      this.adminUser = user;
-    });
+   
   }
 
   GetAllLoans() {

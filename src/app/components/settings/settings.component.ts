@@ -327,7 +327,6 @@ export class SettingsComponent {
      this.branches = this.goldLoanService.getBranches();
     this.lenders = this.goldLoanService.getLenders();
     this.merchants = this.goldLoanService.getMerchants();
-    this.agents = this.authService.getAllAgents()
   }
 
   openAgentDialog() {

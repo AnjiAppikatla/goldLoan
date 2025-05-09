@@ -3,26 +3,31 @@
   <div class="flex flex-1">
     <!-- Sidebar for desktop -->
     <div class="hidden lg:block w-64">
-      <app-sidenav 
-        (screenChange)="onScreenChange($event)" 
-        class="bg-amber-50 h-full">
+      <app-sidenav (screenChange)="onScreenChange($event)" class="bg-amber-50 h-full">
       </app-sidenav>
     </div>
 
     <!-- Mobile Sidebar -->
-    <div *ngIf="showSidenav" 
+    <!-- <div *ngIf="showSidenav" 
          class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
          (click)="toggleSidenav()">
-    </div>
-    <div  *ngIf="showSidenav" 
-    class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-    (click)="toggleSidenav()" class="fixed top-0 left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-50 lg:hidden"
-         [class.translate-x-0]="showSidenav"
-         [class.-translate-x-full]="!showSidenav">
-         <button *ngIf="showSidenav" mat-icon-button class="absolute right-[-50px] bg-amber-100" (click)="toggleSidenav()">
-          <mat-icon>close</mat-icon>
-        </button>
-      <app-sidenav (screenChange)="onScreenChange($event)"></app-sidenav>
+    </div> -->
+    <div *ngIf="showSidenav" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" (click)="toggleSidenav()"
+      class="fixed top-0 left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-50 lg:hidden"
+      [class.translate-x-0]="showSidenav" [class.-translate-x-full]="!showSidenav">
+      <div [ngClass]="{
+          'transform translate-x-0': showSidenav,
+          'transform -translate-x-full': !showSidenav
+        }" class="fixed top-0 left-0 h-full w-64 transition-transform duration-300 ease-in-out z-50 lg:hidden">
+        <p class="app-theme-bg shadow-md p-3 relative z-10 mb-0 text-lg text-white font-bold">Tomasri Gold Loans
+          <button *ngIf="showSidenav" mat-icon-button class="absolute right-0 top-0" (click)="toggleSidenav()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </p>
+        <app-sidenav [activeClassFromParent]="activeClass" (screenChange)="onScreenChange($event)"></app-sidenav>
+      </div>
+
+
     </div>
 
     <!-- Main Content -->
@@ -30,11 +35,11 @@
       <div *ngIf="isDashboard">
         <app-dashboard></app-dashboard>
       </div>
-      
+
       <!-- <div *ngIf="isCustomers">
         <app-customers></app-customers>
       </div> -->
-      
+
       <div *ngIf="isGoldLoans">
         <app-gold-loans></app-gold-loans>
       </div>
@@ -42,7 +47,7 @@
       <div *ngIf="personalloans">
         <app-personalloans></app-personalloans>
       </div>
-      
+
       <div *ngIf="isSettings">
         <app-settings></app-settings>
       </div>

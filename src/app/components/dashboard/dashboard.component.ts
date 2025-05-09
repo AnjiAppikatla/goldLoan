@@ -42,7 +42,7 @@ export class DashboardComponent implements OnInit {
   currentUser: any = [];
   private chart: Chart | null = null;
   private timeChart: Chart | null = null;
-  selectedPeriod: string = 'month';
+  selectedPeriod: string = 'today';
   startDate: Date | null = null;
   endDate: Date | null = null;
   filteredLoans: any[] = [];

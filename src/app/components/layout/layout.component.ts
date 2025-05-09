@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -35,63 +35,77 @@ import { Subscription } from 'rxjs';
   ]
 })
 export class LayoutComponent {
-  isDashboard = false;  // Changed to false by default
-  isCustomers = false;
-  isGoldLoans = true;   // Changed to true by default
+  isDashboard = false;
+  isGoldLoans = false;
   isSettings = false;
   personalloans = false;
 
   showSidenav = false;
   currentUser: any;
+  activeClass: string = '';
 
-  // private subscription: Subscription;
-
-  constructor(private authService: AuthService) {
-    // this.currentUser = this.authService.currentUserValue;
-    // // console.log(this.currentUser);
-  }
+  constructor(
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    this.currentUser = this.authService.currentUserValue;
-  }
-
-  toggleSidenav() {
-    this.showSidenav = !this.showSidenav;
-  }
-
-  onScreenChange(screen: string) {
-    // Check if user has access to the screen
-    if ((screen === 'dashboard' || screen === 'settings') && this.currentUser?.role !== 'admin') {
-      return; // Don't change screen if user is not admin
+    this.currentUser = this.authService.currentUserValue;    
+    
+    // Set initial screen based on user role
+    if (this.currentUser?.role === "admin") {
+      this.isDashboard = true;
+      this.activeClass = 'dashboard';
+      this.onScreenChange('dashboard');
+    } else {
+      this.isGoldLoans = true;
+      this.activeClass = 'goldLoans';
+      this.onScreenChange('goldLoans');
     }
+}
 
-    this.resetScreens();
-    switch(screen) {
-      case 'dashboard':
+toggleSidenav() {
+  this.showSidenav = !this.showSidenav;
+  // if (this.showSidenav) {
+  //   this.activeClass = this.currentUser?.role === 'admin' ? 'dashboard' : 'goldLoans';
+  // }
+  this.cdr.detectChanges();
+}
+
+onScreenChange(screen: string) {
+  // Strict role-based access control
+  if (this.currentUser?.role !== 'admin' && (screen === 'dashboard' || screen === 'settings')) {
+    console.log('Access denied: Admin only screen');
+    return;
+  }
+
+  this.activeClass = screen;
+  this.resetScreens();
+
+  switch(screen) {
+    case 'dashboard':
+      if (this.currentUser?.role === 'admin') {
         this.isDashboard = true;
-        break;
-      case 'customers':
-        this.isCustomers = true;
-        break;
-      case 'goldLoans':
-        this.isGoldLoans = true;
-        break;
-      case 'settings':
+      }
+      break;
+    case 'goldLoans':
+      this.isGoldLoans = true;
+      break;
+    case 'settings':
+      if (this.currentUser?.role === 'admin') {
         this.isSettings = true;
-        break;
-      case 'personalLoans':
-        this.personalloans = true;
-        break;
-    }
+      }
+      break;
+    case 'personalLoans':
+      this.personalloans = true;
+      break;
   }
+}
 
   private resetScreens() {
     this.isDashboard = false;
-    this.isCustomers = false;
     this.isGoldLoans = false;
     this.isSettings = false;
     this.personalloans = false;
   }
-
-
 }

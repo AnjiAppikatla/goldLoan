@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,31 +17,43 @@ import { AuthService } from '../../services/auth.service';
     MatButtonModule
   ],
 })
-export class SidenavComponent {
+export class SidenavComponent implements OnInit {
   @Output() screenChange = new EventEmitter<string>();
+  @Input() activeClassFromParent: string = '';
 
-  currentUser: any = [];
-  activepage: string = 'dashboard';
+  currentUser: any = null;
+  activepage: string = '';
+  activeClass: string = '';
 
-  constructor(
-    private authService: AuthService 
-  ) {}
+  constructor(private authService: AuthService) {}
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
-    if(this.currentUser?.role === 'admin') {  // Add safe navigation operator
-      this.activepage = 'dashboard';
-      this.screenChange.emit('dashboard');  // Emit initial screen
+    console.log(localStorage.getItem('currentUser'));
+    
+    // If mobile menu is clicked, use the activeClassFromParent
+    if (this.activeClassFromParent) {
+      this.activepage = this.activeClassFromParent;
+      this.activeClass = this.activeClassFromParent;
     } else {
-      this.activepage = 'goldLoans';
-      this.screenChange.emit('goldLoans');  // Emit initial screen
+      // Default behavior based on user role
+      this.activepage = this.currentUser?.role === 'admin' ? 'dashboard' : 'goldLoans';
+      this.activeClass = this.activepage;
     }
+    
+    this.screenChange.emit(this.activepage);
   }
 
-  
-
   changeScreen(screen: string) {
+    if ((screen === 'dashboard' || screen === 'settings') && this.currentUser?.role !== 'admin') {
+      return; // Don't change screen if user is not admin
+    }
     this.activepage = screen;
+    this.activeClass = screen;
     this.screenChange.emit(screen);
+  }
+
+  isActive(page: string): boolean {
+    return this.activepage === page;
   }
 }

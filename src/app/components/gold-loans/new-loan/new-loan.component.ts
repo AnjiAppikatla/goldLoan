@@ -57,16 +57,16 @@ export class NewLoanComponent implements OnInit {
   receivedByList: string[] = ['Manikanta - savings', 'Revathi - savings', 'Manikanta - current', 'Revathi - current'];
 
   lenders: any[] = [
-    { lenderName: 'Bajaj', id: 1, percentage: 0.006 },
-    { lenderName: 'HDFC', id: 2, percentage: 0.006 },
-    { lenderName: 'ICICI', id: 3, percentage: 0.006 },
-    { lenderName: 'SBI', id: 4, percentage: 0.006 }
+    // { lenderName: 'Bajaj', id: 1, percentage: 0.006 },
+    // { lenderName: 'HDFC', id: 2, percentage: 0.006 },
+    // { lenderName: 'ICICI', id: 3, percentage: 0.006 },
+    // { lenderName: 'SBI', id: 4, percentage: 0.006 }
   ];
   merchants: any[] = [
-    { merchantName: 'Mani', merchantid: '147224577' },
-    { merchantName: 'Revathi', merchantid: '147224578' },
-    { merchantName: 'Tomasri', merchantid: '147224579' },
-    { merchantName: 'Kanta', merchantid: '147224580' }
+    // { merchantName: 'Mani', merchantid: '147224577' },
+    // { merchantName: 'Revathi', merchantid: '147224578' },
+    // { merchantName: 'Tomasri', merchantid: '147224579' },
+    // { merchantName: 'Kanta', merchantid: '147224580' }
   ];
   cities: any[] = []
 
@@ -85,6 +85,7 @@ export class NewLoanComponent implements OnInit {
     this.initForm();
   }
   ngOnInit() {
+    this.GetAllAgents();
     this.initCityAutocomplete();
     this.loanForm.controls['issuedDate'].setValue(new Date().toISOString());
     this.calculateMaturityDate();
@@ -120,8 +121,6 @@ export class NewLoanComponent implements OnInit {
       }
     });
 
-    this.Agents = this.authService.users;
-
     this.currentUser = this.authService.currentUserValue;
     
 
@@ -137,17 +136,29 @@ export class NewLoanComponent implements OnInit {
 
     // Only load agent list for admin
     if (this.currentUser?.role === 'admin') {
-      this.Agents = this.authService.users.filter(user => user.role === 'agent');
+      // this.Agents = this.authService.users.filter(user => user.role === 'agent');
       // For admin, enable selecting agent and their ID
       this.loanForm.get('agentname')?.valueChanges.subscribe(agentName => {
         const selectedAgent = this.Agents.find((agent: any) => agent.name === agentName);
         if (selectedAgent) {
           this.loanForm.patchValue({
-            agentId: selectedAgent.id
+            agentId: selectedAgent.id,
+            agentname: selectedAgent.name
           });
         }
       });
     }
+  }
+
+  GetAllAgents() {
+    this.controllersService.GetAllAgents().subscribe(
+      (response) => {
+        this.Agents = response;
+      },
+      (error) => {
+        console.error('Error fetching agents:', error);
+      }
+    );
   }
 
   // private calculateCommissionAmount() {
@@ -199,30 +210,32 @@ export class NewLoanComponent implements OnInit {
       mobileNo: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       merchantId: [this.merchants[0].merchantid, Validators.required],
       amount: ['', [Validators.required, Validators.min(0)]],
-      commission: [0.006, Validators.required], // Set default commission
+      commission: [0.006, Validators.required],
       commissionAmount: [''],
       branchId: ['', [Validators.required]],
       city: ['', Validators.required],
-      panNumber: [''], // Optional
-      aadharNumber: [''], // Optional
+      panNumber: [''],
+      aadharNumber: [''],
       issuedDate: [new Date().toISOString(), Validators.required],
       maturityDate: ['', Validators.required],
       loanProgress: [0],
-      paymentType: ['Cash', Validators.required], // Set default payment type
+      paymentType: ['Cash', Validators.required],
       cashAmount: [0],
       onlineAmount: [0],
       onlinePaymentType: [''],
       paymentDate: [new Date().toISOString(), Validators.required],
       paymentReference: [''],
-      // agentname: [''],
-      agentId: [''],
+      agentId: [{
+        value: this.currentUser?.id || '',
+        disabled: this.currentUser?.role === 'agent'
+      }],
       receivedBy: ['', Validators.required],
       accountName: ['', Validators.required],
       accountNumber: ['', [Validators.required, Validators.pattern('^[0-9]{9,18}$')]],
       ifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
       amountReceived: ['', [Validators.required, Validators.min(0)]]
     });
-  }
+}
 
   private validateForm(): boolean {
     // Check if form is valid

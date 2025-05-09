@@ -2,17 +2,24 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ControllersService {
-  private baseUrl = 'https://192.168.0.107';
+  
+  // private baseUrl = 'https://192.168.0.107';
+  private baseUrl = 'http://192.168.0.107/GoldLoanAPI';
   // private baseUrl = environment.apiUrl
 
   constructor(
-    private http: HttpClient
-  ) { }
+    private http: HttpClient,
+    
+  ) {
+    
+   }
+
 
 
   GetAgentById(username: string, password: string): Observable<any> {

@@ -16,7 +16,7 @@
     
     <div class="flex items-center space-x-4">
       <!-- Notifications Menu -->
-      <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="relative text-white">
+      <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="relative text-white" *ngIf="adminUser.role === 'admin'">
         <mat-icon>notifications</mat-icon>
         <span class="absolute top-0 right-0 h-2 w-2 bg-amber-500 rounded-full"></span>
       </button>

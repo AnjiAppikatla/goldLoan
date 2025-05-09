@@ -1,40 +1,41 @@
 
-<div class="min-h-screen grid place-items-center bg-gray-100 p-4">
-  <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
+<div class="min-h-screen grid place-items-center bg-cover bg-center bg-fixed p-4 relative overflow-hidden">
+  <!-- Overlay with gradient -->
+  <div class="absolute inset-0 bg-gradient-to-br from-blue-50/90 to-teal-50/90 backdrop-blur-sm"></div>
+  
+  <!-- Decorative elements -->
+  <div class="absolute top-0 left-0 w-full h-64 bg-[url('assets/images/wave.svg')] bg-no-repeat bg-cover opacity-10"></div>
+  <div class="absolute bottom-0 right-0 w-full h-64 bg-[url('assets/images/wave.svg')] bg-no-repeat bg-cover opacity-10 transform rotate-180"></div>
+  
+  <div class="bg-white/90 p-8 rounded-md shadow-lg border border-white/50 w-full max-w-sm relative z-10">
     <div class="header-content mb-8">
-      <div class="flex items-center">
-        <h1 class="text-2xl font-bold">Tomasri</h1>
-        <span class="text-gray-600 ml-4 text-lg">Gold Loans</span>
+      <div class="flex items-center justify-center app-theme-color">
+        <h1 class="text-2xl font-bold mb-2">Tomasri</h1>
+        <span class="ml-4 text-lg text-gray-600">Gold Loans</span>
       </div>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" formControlName="email" required autocomplete="current-password" />
-        <mat-error *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</mat-error>
-        <mat-error *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email</mat-error>
+      <mat-form-field appearance="outline" class="w-full bg-white/80 rounded-lg">
+        <mat-label class="text-gray-700">Email</mat-label>
+        <input matInput type="email" formControlName="email" required autocomplete="current-password" class="text-gray-800" />
+        <mat-error *ngIf="loginForm.get('email')?.errors?.['required']" class="text-red-500">Email is required</mat-error>
+        <mat-error *ngIf="loginForm.get('email')?.errors?.['email']" class="text-red-500">Please enter a valid email</mat-error>
       </mat-form-field>
     
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Password</mat-label>
-        <input matInput type="password" formControlName="password" required autocomplete="current-password" />
-        <mat-error *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</mat-error>
+      <mat-form-field appearance="outline" class="w-full bg-white/80 rounded-lg">
+        <mat-label class="text-gray-700">Password</mat-label>
+        <input matInput type="password" formControlName="password" required autocomplete="current-password" class="text-gray-800" />
+        <mat-error *ngIf="loginForm.get('password')?.errors?.['required']" class="text-red-500">Password is required</mat-error>
       </mat-form-field>
     
       <button
         mat-raised-button
-        color="primary"
         type="submit"
-        class="w-full py-2"
+        class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors duration-200 shadow-sm"
       >
         Login
       </button>
     </form>
-
-    <div class="mt-6 text-center text-sm text-gray-600">
-      <p>Admin login: admin&#64;goldloan.com / admin123</p>
-      <p>Agent login: agent&#64;goldloan.com / agent123</p>
-    </div>
   </div>
 </div>

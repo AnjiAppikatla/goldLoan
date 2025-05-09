@@ -48,25 +48,24 @@ export class LoginComponent {
       this.controllers.GetAgentById(email, password).subscribe({
         next: (data) => {
           if (data) {
-            const parsedData = JSON.parse(data);
-            const user = parsedData[0];
-      
-            if (user) {
-              this.authService.currentUserSubject.next(user);
-              localStorage.setItem('currentUser', JSON.stringify(user));
+            this.toast.success('Welcome' + " " + data[0].name);
+              this.authService.currentUserSubject.next(data);
+              localStorage.setItem('currentUser', JSON.stringify(data));
               this.router.navigate(['/layout']);
-            }
           } else {
             this.toast.error('Invalid credentials');
           }
         },
         error: (error) => {
           console.error('Login error:', error);
-          this.toast.error('Login failed. Please try again.');
+          this.toast.error('Invalid credentials');
           localStorage.removeItem('currentUser');
           this.authService.currentUserSubject.next(null);
         }
       });
+
+
+
     } else {
       this.toast.warning('Please fill in all required fields');
     }
