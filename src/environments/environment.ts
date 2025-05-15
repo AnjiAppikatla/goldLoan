@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://192.168.0.107/GoldLoanAPI',
+  apiUrl: 'https://api.tomasri.in',
   allowInsecureSSL: true
 };

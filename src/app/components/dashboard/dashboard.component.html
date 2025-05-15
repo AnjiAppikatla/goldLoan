@@ -69,13 +69,13 @@
               <span class="font-medium text-white">{{loan.Name}}</span>
             </div>
             <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
-              <div class="progress-bar w-16 sm:w-24 h-[20px] bg-gray-200 rounded-sm overflow-hidden relative">
+              <div class="progress-bar w-16 sm:w-24 h-[15px] bg-gray-200 rounded-sm overflow-hidden relative">
                 <div class="h-full transition-all duration-300"
                   [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
                   [style.width.%]="100">
                 </div>
               </div>
-              <span class="text-sm text-white">
+              <span class="text-sm text-white w-10">
                 {{loan.progress | number:'1.0-0'}}%
               </span>
             </div>
@@ -107,9 +107,9 @@
           <div class="bg-gray-200 p-4 rounded" *ngIf="currentUser?.role === 'admin'">
             <h3 class="mb-2 text-amber-500 font-bold relative">Revenue
               <span class="absolute right-0 top-0">
-                <button mat-icon-button color="primary" class="focus-visible:outline-2 focus-visible:outline-offset-2">
+                <!-- <button mat-icon-button color="primary" class="focus-visible:outline-2 focus-visible:outline-offset-2">
                   <mat-icon>edit</mat-icon>
-                </button>
+                </button> -->
               </span>
             </h3>
             <p><strong>Total Revenue :</strong> {{loan.CommissionAmount}}</p>

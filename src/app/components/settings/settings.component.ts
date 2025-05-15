@@ -380,8 +380,8 @@ export class SettingsComponent {
 
     this.branchForm = this.fb.group({
       branchId: ['', Validators.required],
-      name: ['', Validators.required],
-      city: ['', Validators.required]
+      name: ['', Validators.required]
+      // city: ['', Validators.required]
     });
 
     this.lenderForm = this.fb.group({

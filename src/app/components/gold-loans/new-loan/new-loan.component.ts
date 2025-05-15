@@ -82,15 +82,20 @@ export class NewLoanComponent implements OnInit {
     private authService: AuthService,
     private controllersService: ControllersService
   ) {
-    this.initForm();
+    
   }
   ngOnInit() {
     this.GetAllAgents();
+    this.GetAllMerchants();
+    this.GetAllLenders();
+    this.initForm();
     this.initCityAutocomplete();
     this.loanForm.controls['issuedDate'].setValue(new Date().toISOString());
     this.calculateMaturityDate();
 
-    this.cities = this.goldLoanService.cities;
+    this.GetAllBranches()
+
+    // this.cities = this.goldLoanService.cities;
     // Subscribe to payment type changes
     this.loanForm.get('paymentType')?.valueChanges.subscribe(paymentType => {
       const cashAmountControl = this.loanForm.get('cashAmount');
@@ -142,9 +147,8 @@ export class NewLoanComponent implements OnInit {
         const selectedAgent = this.Agents.find((agent: any) => agent.name === agentName);
         if (selectedAgent) {
           this.loanForm.patchValue({
-            agentId: selectedAgent.id,
-            agentname: selectedAgent.name
-          });
+            agentId: selectedAgent.id
+          }, { emitEvent: false }); // Add emitEvent: false to prevent circular updates
         }
       });
     }
@@ -153,10 +157,49 @@ export class NewLoanComponent implements OnInit {
   GetAllAgents() {
     this.controllersService.GetAllAgents().subscribe(
       (response) => {
-        this.Agents = response;
+        setTimeout(() => {
+          this.Agents = response;
+        }, 300); // Delay for 1 second to ensure data is availabl
       },
       (error) => {
         console.error('Error fetching agents:', error);
+      }
+    );
+  }
+
+  GetAllBranches() {
+    this.controllersService.GetAllBranches().subscribe(
+      (response) => {
+        this.cities = response;
+        this.initCityAutocomplete();
+      },
+      (error) => {
+        console.error('Error fetching branches:', error);
+      }
+    );
+  }
+
+  GetAllLenders() {
+    this.controllersService.GetAllLenders().subscribe(
+      (response) => {
+        this.lenders = response;
+      },
+      (error) => {
+        console.error('Error fetching lenders:', error);
+        this.initForm()
+      }
+    );
+  }
+
+  GetAllMerchants() {
+    this.controllersService.GetAllMerchants().subscribe(
+      (response) => {
+        this.merchants = response;
+        // this.initForm()
+      },
+      (error) => {
+        console.error('Error fetching merchants:', error);
+        this.initForm()
       }
     );
   }
@@ -207,8 +250,9 @@ export class NewLoanComponent implements OnInit {
         disabled: this.currentUser?.role === 'agent'
       }, Validators.required],
       name: ['', Validators.required],
-      mobileNo: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
-      merchantId: [this.merchants[0].merchantid, Validators.required],
+      // mobileNo: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+      merchantId: [Validators.required],
+      mobileNo: ['', [Validators.required]],
       amount: ['', [Validators.required, Validators.min(0)]],
       commission: [0.006, Validators.required],
       commissionAmount: [''],

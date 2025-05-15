@@ -231,16 +231,16 @@
           <mat-label>Branch ID</mat-label>
           <input matInput formControlName="branchId">
         </mat-form-field>
-        <mat-form-field>
+        <!-- <mat-form-field>
           <mat-label>Name</mat-label>
           <input matInput formControlName="name">
-        </mat-form-field>
+        </mat-form-field> -->
         <mat-form-field>
-          <mat-label>City</mat-label>
+          <mat-label>Name</mat-label>
           <input matInput
                  (input)="onCityInput($event)"
                  [matAutocomplete]="cityAuto"
-                 formControlName="city"
+                 formControlName="name"
                  placeholder="Start typing city name...">
                  <mat-autocomplete #cityAuto="matAutocomplete" [displayWith]="displayCityFn">
                   <mat-option *ngFor="let city of filteredCities | async" [value]="city">

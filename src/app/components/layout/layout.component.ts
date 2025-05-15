@@ -19,6 +19,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-layout',
   templateUrl: './layout.component.html',
   standalone: true,
+  styleUrls: ['./layout.component.scss'],
   imports: [
     CommonModule,
     RouterModule,
