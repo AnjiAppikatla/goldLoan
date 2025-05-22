@@ -12,7 +12,7 @@
           </mat-panel-title>    
         </mat-expansion-panel-header>
   
-        <div class="pt-3 h-[350px] overflow-auto">
+        <div class="pt-3 h-[350px] overflow-auto overflow-x-hidden">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 w-full mb-4">
               <mat-form-field class="w-full">
@@ -28,9 +28,9 @@
   
             <!-- Branch Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <mat-card *ngFor="let branch of branches" class="bg-gray-50">
+              <mat-card *ngFor="let branch of filteredBranches" class="bg-gray-50">
                 <mat-card-content class="mt-2">
-                  <mat-card-title style="width: 90%;" class="text-lg font-medium">{{branch.name}}</mat-card-title>
+                  <mat-card-title style="width: 90%;" class="text-sm font-medium">{{branch.name}}</mat-card-title>
                   <mat-card-subtitle>ID: {{branch.branchId}}</mat-card-subtitle>
 
                   <div class="absolute right-0 top-0">
@@ -42,7 +42,7 @@
                         <mat-icon>edit</mat-icon>
                         <span>Edit</span>
                       </button>
-                      <button mat-menu-item (click)="deleteBranch(branch)">
+                      <button mat-menu-item (click)="deleteBranch(branch.id)">
                         <mat-icon>delete</mat-icon>
                         <span>Delete</span>
                       </button>
@@ -65,11 +65,11 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
 
-    <div class="pt-3 h-[350px] overflow-auto">
+    <div class="pt-3 h-[350px] overflow-auto overflow-x-hidden">
       <div class="flex items-center gap-2 w-full mb-4">
         <mat-form-field class="w-full">
           <mat-label>Search Lenders</mat-label>
-          <input matInput placeholder="Search by name">
+          <input matInput placeholder="Search by name" (input)="searchLenders($event)">
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
         
@@ -80,16 +80,17 @@
 
       <!-- Lender Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <mat-card *ngFor="let lender of lenders" class="bg-gray-50">
-          <mat-card-header>
-            <mat-card-title class="text-lg font-medium">{{lender.name}}</mat-card-title>
-          </mat-card-header>
+        <mat-card *ngFor="let lender of filteredLenders" class="bg-gray-50">
+          <!-- <mat-card-header>
+            <mat-card-title class="text-lg font-medium">{{lender.lenderName}}</mat-card-title>
+          </mat-card-header> -->
           <mat-card-content class="mt-2">
-            <p><strong>Commission Rate:</strong> {{lender.commission}}%</p>
+            <p><strong>Lender Name :</strong> {{lender.lenderName}}%</p>
+            <p><strong>Commission Rate :</strong> {{lender.percentage}}%</p>
           </mat-card-content>
           <mat-card-actions align="end">
             <button mat-button color="primary" (click)="editLender(lender)">Edit</button>
-            <button mat-button color="warn" (click)="deleteLender(lender)">Delete</button>
+            <button mat-button color="warn" (click)="deleteLender(lender.id)">Delete</button>
           </mat-card-actions>
         </mat-card>
       </div>
@@ -105,11 +106,11 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <div class="pt-3 h-[350px] overflow-auto">
+      <div class="pt-3 h-[350px] overflow-auto overflow-x-hidden">
         <div class="flex items-center gap-2 w-full mb-4">
           <mat-form-field class="w-full">
             <mat-label>Search Merchants</mat-label>
-            <input matInput placeholder="Search by name">
+            <input matInput placeholder="Search by name" (input)="searchMerchants($event)">
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
           
@@ -120,17 +121,19 @@
 
         <!-- Merchant Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <mat-card *ngFor="let merchant of merchants" class="bg-gray-50">
-            <mat-card-header>
+          <mat-card *ngFor="let merchant of filteredMerchants" class="bg-gray-50">
+            <!-- <mat-card-header>
               <mat-card-title class="text-lg font-medium">{{merchant.merchantName}}</mat-card-title>
-              <mat-card-subtitle>ID: {{merchant.merchantId}}</mat-card-subtitle>
-            </mat-card-header>
+              <mat-card-subtitle>ID: {{merchant.merchantid}}</mat-card-subtitle>
+            </mat-card-header> -->
             <mat-card-content class="mt-2">
-              <p><strong>Contact:</strong> {{merchant.contactNumber}}</p>
+              <p><strong>Merchant Name:</strong> {{merchant.merchantName}}</p>
+              <p><strong>Merchant Id:</strong> {{merchant.merchantid}}</p>
+              <p><strong>Contact:</strong> {{merchant.mobile}}</p>
             </mat-card-content>
             <mat-card-actions align="end">
               <button mat-button color="primary" (click)="editMerchant(merchant)">Edit</button>
-              <button mat-button color="warn" (click)="deleteMerchant(merchant)">Delete</button>
+              <button mat-button color="warn" (click)="deleteMerchant(merchant.id)">Delete</button>
             </mat-card-actions>
           </mat-card>
         </div>
@@ -146,11 +149,11 @@
           </mat-panel-title>
         </mat-expansion-panel-header>
   
-        <div class="pt-3 h-[350px] overflow-auto">
+        <div class="pt-3 h-[350px] overflow-auto overflow-x-hidden">
           <div class="flex items-center gap-2 w-full mb-4">
             <mat-form-field class="w-full">
               <mat-label>Search Agents</mat-label>
-              <input matInput placeholder="Search by name">
+              <input matInput placeholder="Search by name" (input)="searchAgents($event)">
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
             
@@ -161,14 +164,14 @@
   
           <!-- Agent Cards -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <mat-card *ngFor="let agent of agents" class="bg-gray-50">
-              <mat-card-header>
-                <mat-card-title class="text-lg font-medium">{{agent.name}}</mat-card-title>
-                <mat-card-subtitle>{{agent.role}}</mat-card-subtitle>
-              </mat-card-header>
+            <mat-card *ngFor="let agent of filteredAgents" class="bg-gray-50">
               <mat-card-content class="mt-2">
-                <p><strong>Email:</strong> {{agent.email}}</p>
-                <p><strong>Branch:</strong> {{agent.branch}}</p>
+                <p><strong>Name :</strong> {{agent.name}}</p>
+                <p><strong>Role :</strong> {{agent.role}}</p>
+                <p><strong>Username :</strong> {{agent.username}}</p>
+                <p><strong>Password :</strong> {{agent.password}}</p>
+                <p><strong>Branch :</strong> {{agent.branch}}</p>
+                <p><strong>Merchant Id :</strong> {{agent.merchantId}}</p>
               </mat-card-content>
               <mat-card-actions align="end">
                 <button mat-button color="primary" (click)="editAgent(agent)">Edit</button>
@@ -187,7 +190,7 @@
 
     <!-- Dialog Templates -->
     <ng-template #agentDialog>
-      <h2 mat-dialog-title>Add New Agent</h2>
+      <h2 mat-dialog-title>{{isEdit ? 'Edit Agent' : 'Add New Agent'}}</h2>
       <mat-dialog-content>
         <form [formGroup]="agentForm" class="flex flex-col gap-4">
           <mat-form-field>
@@ -196,11 +199,19 @@
           </mat-form-field>
           <mat-form-field>
             <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email">
+            <input matInput formControlName="username" type="email">
           </mat-form-field>
           <mat-form-field>
             <mat-label>Password</mat-label>
             <input matInput formControlName="password" type="password">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Merchant Id</mat-label>
+            <input matInput formControlName="merchantId" type="text">
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Mobile</mat-label>
+            <input matInput formControlName="mobile" type="text">
           </mat-form-field>
           <mat-form-field>
             <mat-label>Role</mat-label>
@@ -217,8 +228,9 @@
         </form>
       </mat-dialog-content>
       <mat-dialog-actions align="end">
-        <button mat-button mat-dialog-close>Cancel</button>
-        <button mat-raised-button color="primary" (click)="saveAgent()">Save</button>
+        <button mat-button mat-dialog-close (click)="close()">Cancel</button>
+        <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveAgent()">Save</button>
+        <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateAgent()">Update</button>
       </mat-dialog-actions>
     </ng-template>
   
@@ -251,8 +263,9 @@
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="primary" (click)="saveBranch()">Save</button>
+      <button mat-button mat-dialog-close (click)="close()">Cancel</button>
+      <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveBranch()">Save</button>
+      <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateAgent()">Update</button>
     </mat-dialog-actions>
   </ng-template>
   
@@ -278,8 +291,9 @@
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="primary" (click)="saveLender()">Save</button>
+      <button mat-button mat-dialog-close (click)="close()">Cancel</button>
+      <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveLender()">Save</button>
+      <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateAgent()">Update</button>
     </mat-dialog-actions>
   </ng-template>
   
@@ -289,22 +303,23 @@
     <mat-dialog-content>
       <form [formGroup]="merchantForm" class="flex flex-col gap-4">
         <mat-form-field>
-          <mat-label>Merchant ID</mat-label>
-          <input matInput formControlName="merchantId">
-        </mat-form-field>
-        <mat-form-field>
           <mat-label>Name</mat-label>
           <input matInput formControlName="merchantName">
         </mat-form-field>
         <mat-form-field>
+          <mat-label>Merchant ID</mat-label>
+          <input matInput formControlName="merchantid">
+        </mat-form-field>        
+        <mat-form-field>
           <mat-label>Contact Number</mat-label>
-          <input matInput formControlName="contactNumber">
+          <input matInput formControlName="mobile">
         </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="primary" (click)="saveMerchant()">Save</button>
+      <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveMerchant()">Save</button>
+      <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateAgent()">Update</button>
     </mat-dialog-actions>
   </ng-template>
 

@@ -1,40 +1,9 @@
 <main class="p-4 md:p-6">
   <!-- Header Section -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
-    <div>
-      <h2 class="text-xl font-poppins font-bold">Welcome, Admin User</h2>
-    </div>
+   
     <!-- Filter Section -->
-    <div class="bg-white rounded-lg">
-      <div class="flex flex-col sm:flex-row gap-4">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Select Time Period</mat-label>
-          <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
-            <mat-option value="today">Today</mat-option>
-            <mat-option value="yesterday">Yesterday</mat-option>
-            <mat-option value="week">Last Week</mat-option>
-            <mat-option value="month">Last Month</mat-option>
-            <mat-option value="custom">Custom Range</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <div *ngIf="selectedPeriod === 'custom'" class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <mat-form-field appearance="outline" class="w-full sm:w-40">
-            <mat-label>Start Date</mat-label>
-            <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" (dateChange)="onDateChange()">
-            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="w-full sm:w-40">
-            <mat-label>End Date</mat-label>
-            <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="onDateChange()">
-            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
-            <mat-datepicker #endPicker></mat-datepicker>
-          </mat-form-field>
-        </div>
-      </div>
-    </div>
+   
   </div>
 
 
@@ -42,18 +11,108 @@
   <!-- Charts Grid -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:mb-2 mb-6">
     <!-- Agent Distribution Chart -->
-    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
-      <h3 class="text-lg font-semibold mb-4">Loans By Agent's</h3>
-      <div class="h-[calc(100%-4rem)]">
-        <canvas id="goldDistributionChart"></canvas>
+    <div>
+      <div>
+        <h2 class="text-xl font-poppins font-bold">Welcome</h2>
+      </div>
+      <div class="bg-white rounded-lg">
+        <div class="flex flex-col sm:flex-row gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Select Time Period</mat-label>
+            <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+              <mat-option value="all">All</mat-option>
+              <mat-option value="today">Today</mat-option>
+              <mat-option value="yesterday">Yesterday</mat-option>
+              <mat-option value="week">Last Week</mat-option>
+              <mat-option value="month">Last Month</mat-option>
+              <mat-option value="custom">Custom Range</mat-option>
+            </mat-select>
+          </mat-form-field>
+  
+          <div *ngIf="selectedPeriod === 'custom'" class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <mat-form-field appearance="outline" class="w-full sm:w-40">
+              <mat-label>Start Date</mat-label>
+              <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" (dateChange)="onDateChange()">
+              <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline" class="w-full sm:w-40">
+              <mat-label>End Date</mat-label>
+              <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="onDateChange()">
+              <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
+        <h3 class="text-lg font-semibold mb-4">Agent Report</h3>
+        <div class="h-full">
+          <canvas id="goldDistributionChart"></canvas>
+        </div>
       </div>
     </div>
 
-    <!-- Time Distribution Chart -->
-    <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
-      <h3 class="text-lg font-semibold mb-4">Loans By Time</h3>
-      <div class="h-[calc(100%-2rem)]">
-        <canvas id="timeDistributionChart"></canvas>
+    <div>
+      <div class="flex flex-col">
+        <!-- Radio Button Selection -->
+        <mat-radio-group [(ngModel)]="selectedType" (change)="onTypeChange($event.value)" class="flex gap-4 mb-1">
+          <mat-radio-button value="merchants">Merchants</mat-radio-button>
+          <mat-radio-button value="lenders">Lenders</mat-radio-button>
+        </mat-radio-group>
+
+        
+        
+        <div class="flex gap-2 items-center w-full">
+          <!-- Merchant Dropdown -->
+          <mat-form-field appearance="outline" class="w-full" *ngIf="selectedType === 'merchants'">
+            <mat-label>Select Merchant</mat-label>
+            <mat-select [(ngModel)]="selectedMerchant" (selectionChange)="onMerchantChange()">
+              <mat-option [value]="null">All Merchants</mat-option>
+              <mat-option *ngFor="let merchant of merchants" [value]="merchant.merchantid">
+                {{merchant.merchantName}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+    
+          <!-- Lender Dropdown -->
+          <mat-form-field appearance="outline" class="w-full" *ngIf="selectedType === 'lenders'">
+            <mat-label>Select Lender</mat-label>
+            <mat-select [(ngModel)]="selectedLender" (selectionChange)="onLenderChange()">
+              <mat-option [value]="null">All Lenders</mat-option>
+              <mat-option *ngFor="let lender of lenders" [value]="lender.id">
+                {{lender.lenderName}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+    
+          <button mat-icon-button color="primary" class="flex-shrink-0"  [matMenuTriggerFor]="downloadMenu" matTooltip="Download Report">
+            <mat-icon>download</mat-icon>
+          </button>
+
+          <mat-menu #downloadMenu="matMenu">
+            <button mat-menu-item (click)="downloadData('excel')">
+              <mat-icon>table_view</mat-icon>
+              <span>Download as Excel</span>
+            </button>
+            <button mat-menu-item (click)="downloadData('pdf')">
+              <mat-icon>picture_as_pdf</mat-icon>
+              <span>Download as PDF</span>
+            </button>
+          </mat-menu>
+
+          
+        </div>
+      </div>
+    
+      <!-- Time Distribution Chart -->
+      <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
+        <h3 class="text-lg sm:text-sm font-semibold">{{selectedType === 'merchants' ? 'Merchant' : 'Lender'}} Report</h3>
+        
+        <div class="h-full">
+          <canvas id="merchantDistributionChart"></canvas>
+      </div>
       </div>
     </div>
   </div>
@@ -61,30 +120,56 @@
   <!-- Recent Loans Section -->
   <div class="bg-white rounded-lg">
     <h3 class="text-lg font-semibold mb-4">Recent Loans</h3>
-    <mat-accordion class="grid grid-cols-1 gap-4 app-accordion-bg">
-      <mat-expansion-panel *ngFor="let loan of recentLoans">
+    <mat-accordion class="grid grid-cols-1 gap-2 app-accordion-bg">
+      <mat-expansion-panel *ngFor="let loan of filteredLoans">
         <mat-expansion-panel-header>
           <mat-panel-title class="flex items-center gap-4 w-full">
             <div class="flex items-center gap-2 flex-1">
-              <span class="font-medium text-white">{{loan.Name}}</span>
+              <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
             </div>
-            <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
-              <div class="progress-bar w-16 sm:w-24 h-[15px] bg-gray-200 rounded-sm overflow-hidden relative">
-                <div class="h-full transition-all duration-300"
-                  [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
-                  [style.width.%]="100">
-                </div>
-              </div>
-              <span class="text-sm text-white w-10">
-                {{loan.progress | number:'1.0-0'}}%
-              </span>
+            <div class="flex items-center">
+              <button mat-icon-button [matMenuTriggerFor]="loanMenu" (click)="$event.stopPropagation()">
+                <mat-icon class="text-white">more_vert</mat-icon>
+              </button>
+              <mat-menu #loanMenu="matMenu">
+                <button mat-menu-item (click)="editLoan(loan)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit</span>
+                </button>
+                <button mat-menu-item *ngIf="currentUser?.role === 'admin'" (click)="deleteLoan(loan)">
+                  <mat-icon>delete</mat-icon>
+                  <span>Delete</span>
+                </button>
+                <button mat-menu-item (click)="downloadLoan(loan)">
+                  <mat-icon class="text-xl">download</mat-icon>
+                  <span>Download as XL</span>
+                </button>
+                <button mat-menu-item (click)="downloadData('pdf')">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  <span>Download as PDF</span>
+                </button>
+              </mat-menu>
             </div>
           </mat-panel-title>
         </mat-expansion-panel-header>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 pt-4">
+          <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
+            <div class="progress-bar w-16 sm:w-24 h-[15px] bg-gray-200 rounded-sm overflow-hidden relative">
+              <div class="h-full transition-all duration-300"
+                [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
+                [style.width.%]="100">
+              </div>
+            </div>
+            <span class="text-sm text-white w-10">
+              {{loan.progress | number:'1.0-0'}}%
+            </span>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
           <!-- Personal Details -->
-          <div class="bg-gray-200 p-4 rounded">
+          <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Personal Details</h3>
             <p><strong>Lender :</strong> {{loan.Lender}}</p>
             <p><strong>LeadId :</strong> {{loan.LeadId}}</p>
@@ -94,7 +179,7 @@
           </div>
 
           <!-- Loan Details -->
-          <div class="bg-gray-200 p-4 rounded">
+          <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
             <p><strong>Amount :</strong> {{loan.Amount}}</p>
             <p><strong>Issue Date :</strong> {{loan.IssuedDate | date}}</p>
@@ -104,7 +189,7 @@
           </div>
 
           <!-- Revenue Details -->
-          <div class="bg-gray-200 p-4 rounded" *ngIf="currentUser?.role === 'admin'">
+          <div class="p-4 rounded" *ngIf="currentUser?.role === 'admin'">
             <h3 class="mb-2 text-amber-500 font-bold relative">Revenue
               <span class="absolute right-0 top-0">
                 <!-- <button mat-icon-button color="primary" class="focus-visible:outline-2 focus-visible:outline-offset-2">
@@ -118,7 +203,7 @@
           </div>
 
           <!-- Payment Details -->
-          <div class="bg-gray-200 p-4 rounded">
+          <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
             <p><strong>Payment Date :</strong> {{loan.PaymentDate | date}}</p>
             <p><strong>Payment Type :</strong> {{loan.MerchantId}}</p>
@@ -137,7 +222,7 @@
           </div>
 
           <!-- Refund Details -->
-          <div class="bg-gray-200 p-4 rounded">
+          <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
             <p><strong>Refund Date :</strong> {{loan.PaymentDate | date}}</p>
             <p><strong>Account Name :</strong> {{loan.AccountName}}</p>
@@ -147,5 +232,7 @@
         </div>
       </mat-expansion-panel>
     </mat-accordion>
+
+    <p *ngIf="filteredLoans.length == 0">{{datefilterResult}}</p>
   </div>
 </main>

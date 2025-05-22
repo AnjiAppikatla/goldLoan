@@ -1,43 +1,135 @@
-<div class="p-4 md:p-6">
-  <div class="flex justify-between items-center mb-6">
-    <h2 class="text-md sm:text-2xl font-poppins font-semibold mb-0 app-theme-color">Gold Loans</h2>
+<div class="p-4 md:p-6" *ngIf="goldloansDiv">
+  <div class="mb-6 grid grid-cols-1 md:grid-cols-2">
+    <div>
+      <h2 class="text-md sm:text-2xl font-poppins font-semibold mb-3 app-theme-color">Gold Loans</h2>
+    </div>
 
-       <!-- Only show filter for admin -->
-       <button *ngIf="currentUser?.role === 'admin'" 
-       mat-raised-button 
-       (click)="filterDialong()" 
-       class="app-theme-btn text-white text-center">
- <mat-icon class="mr-2">filter_alt</mat-icon>
- <span class="hidden lg:inline">Filter</span>
-</button>
+    <div class="flex justify-evenly">
+          <!-- Only show filter for admin -->
+    <button *ngIf="currentUser?.role === 'admin'" mat-raised-button (click)="filterDialong()"
+    class="app-theme-btn text-white text-center">
+    <mat-icon class="mr-2">filter_alt</mat-icon>
+    <span class="hidden lg:inline">Filter</span>
+  </button>
 
-    <button mat-raised-button (click)="openNewLoanDialog()" class="app-theme-btn text-white text-center">
-      <mat-icon class="mr-2">add</mat-icon>
-      <span class="hidden lg:inline">New Loan</span>
-    </button>
+  <button mat-raised-button class="" class="app-theme-btn text-white" (click)="IndentLoans()">
+    
+    <mat-icon>arrow_forward</mat-icon>
+    <mat-icon>event</mat-icon>
+    <span class="hidden lg:inline">Indent Loans</span>
+  </button>
+
+  <button mat-raised-button (click)="openNewLoanDialog()" class="app-theme-btn text-white text-center">
+    <mat-icon class="mr-2">add</mat-icon>
+    <span class="hidden lg:inline">New Loan</span>
+  </button>
+    </div>
+
+
   </div>
 
-  <mat-accordion class="grid grid-cols-1 gap-4 app-accordion-bg">
+  <!-- Chart Section -->
+  <div class="bg-white mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6 sm:mb-2">
+    <div class=" mb-4 cm-shadow p-4 rounded-lg">
+      <h3 class="text-lg font-semibold app-theme-color">Loan Distribution by {{chartType === 'merchant' ? 'Merchant' : 'Lender'}}</h3>
+      <p class="text-sm text-gray-600 mb-2" *ngIf="selectedFilter">
+        Selected {{chartType === 'merchant' ? 'Merchant' : 'Lender'}}: 
+        {{chartType === 'merchant' ? 
+  (merchants | find:'merchantid':selectedFilter)?.merchantName : 
+  (lenders | find:'id':selectedFilter)?.lenderName}}
+      </p>
+      <div class="h-[300px]">
+        <canvas id="goldLoansChart"></canvas>
+      </div>
+    </div>
+    <div class="">
+      <div>
+        <mat-radio-group [(ngModel)]="chartType" (change)="onChartTypeChange($event.value)" class="flex gap-4">
+          <mat-radio-button value="merchant">Merchant</mat-radio-button>
+          <mat-radio-button value="lender">Lender</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <div class="flex gap-2 items-center w-full">
+        <!-- Dynamic Dropdown -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ chartType === 'merchant' ? 'Select Merchant' : 'Select Lender' }}</mat-label>
+          <mat-select [(ngModel)]="selectedFilter"
+                      name="filterSelect"
+                      (selectionChange)="applyFilters()">
+            <mat-option [value]="null">All</mat-option>
+            <mat-option class="text-md sm:text-[11px]" *ngFor="let item of chartType === 'merchant' ? merchants : lenders"
+                        [value]="chartType === 'merchant' ? item.merchantid : item.id">
+              {{ chartType === 'merchant' ? item.merchantName : item.lenderName }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+
+      <!-- Download Buttons -->
+      <button mat-icon-button [matMenuTriggerFor]="downloadMenu">
+        <mat-icon>download</mat-icon>
+      </button>
+      <mat-menu #downloadMenu="matMenu">
+        <button mat-menu-item (click)="downloadData('excel', 'filtered')">
+          <mat-icon>table_view</mat-icon>
+          <span>Download as Excel</span>
+        </button>
+        <button mat-menu-item (click)="downloadData('pdf', 'filtered')">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <span>Download as PDF</span>
+        </button>
+      </mat-menu>
+      </div>
+      
+    </div>
+  </div>
+
+  <mat-accordion class="grid grid-cols-1 gap-2 app-accordion-bg">
     <mat-expansion-panel *ngFor="let loan of filteredLoans">
       <mat-expansion-panel-header>
         <mat-panel-title class="flex items-center gap-4 w-full">
           <div class="flex items-center gap-2 flex-1">
-            <span class="font-medium text-white">{{loan.Name}}</span>
-            <!-- <span class="text-sm text-gray-500">(ID: {{loan.leadId}})</span> -->
+            <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
           </div>
-          <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
-            <div class="progress-bar w-16 sm:w-24 h-[15px] bg-gray-200 rounded-sm overflow-hidden relative">
-              <div class="h-full transition-all duration-300" 
-                   [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
-                   [style.width.%]="100">
-              </div>
-            </div>
-            <span class="text-sm text-white w-10">
-              {{loan.progress | number:'1.0-0'}}%
-            </span>
+          <div class="flex items-center">
+            <button mat-icon-button [matMenuTriggerFor]="loanMenu" (click)="$event.stopPropagation()">
+              <mat-icon class="text-white">more_vert</mat-icon>
+            </button>
+            <mat-menu #loanMenu="matMenu">
+              <button mat-menu-item (click)="editLoan(loan)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit</span>
+              </button>
+              <button mat-menu-item *ngIf="currentUser?.role === 'admin'" (click)="deleteLoan(loan)">
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+              <button mat-menu-item (click)="downloadDataSingle('excel', loan)">
+                <mat-icon>table_view</mat-icon>
+                <span>Download as Excel</span>
+              </button>
+              <button mat-menu-item (click)="downloadDataSingle('pdf',loan)">
+                <mat-icon>picture_as_pdf</mat-icon>
+                <span>Download as PDF</span>
+              </button>
+            </mat-menu>
           </div>
         </mat-panel-title>
       </mat-expansion-panel-header>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2 pt-4">
+        <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
+          <div class="progress-bar w-full h-[15px] bg-gray-200 rounded-sm overflow-hidden relative">
+            <div class="h-full transition-all duration-300"
+              [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
+              [style.width.%]="100">
+            </div>
+          </div>
+          <span class="text-sm text-white w-10">
+            {{loan.progress | number:'1.0-0'}}%
+          </span>
+        </div>
+      </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
         <div class="bg-gray-200 p-4 rounded">
@@ -73,16 +165,16 @@
           <p><strong>Total Revenew :</strong> {{loan.CommissionAmount}}</p>
           <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
           <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
-          
+
         </div>
 
-   
+
 
         <div class="bg-gray-200 p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
           <p><strong>Payment Date :</strong> {{loan.PaymentDate | date}}</p>
-          <p><strong>Payment Type :</strong> {{loan.MerchantId}}</p>
-          
+          <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
+
 
           <ng-container *ngIf="loan.paymentType == 'Cash'">
             <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
@@ -96,9 +188,9 @@
             <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
             <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
           </ng-container>
-          
-          
-          
+
+
+
         </div>
 
         <div class="bg-gray-200 p-4 rounded">
@@ -112,6 +204,17 @@
       </div>
     </mat-expansion-panel>
   </mat-accordion>
+</div>
+
+<div class="p-4 md:p-6" *ngIf="!goldloansDiv">
+  <div class="mb-6 flex justify-between items-center">
+      <h2 class="text-md sm:text-2xl font-poppins font-semibold mb-3 app-theme-color">Indent Loans</h2>
+      <button mat-raised-button (click)="toggleView()" class="app-theme-btn text-white text-center">
+          <mat-icon>arrow_back</mat-icon>
+          <span class="hidden lg:inline">Back to Gold Loans</span>
+      </button>
+  </div>
+  <app-indent-loan></app-indent-loan>
 </div>
 
 
@@ -138,7 +241,8 @@
     </mat-dialog-content>
     <mat-dialog-actions align="end" class="mt-4">
       <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="primary" [disabled]="!commissionForm.valid" (click)="updateCommission()">Update </button>
+      <button mat-raised-button color="primary" [disabled]="!commissionForm.valid" (click)="updateCommission()">Update
+      </button>
     </mat-dialog-actions>
   </div>
 </ng-template>
@@ -153,9 +257,9 @@
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Filter by Agent</mat-label>
             <mat-select [(ngModel)]="selectedAgent" (selectionChange)="applyFilters()">
-              <mat-option value="">All Agents</mat-option>
-              <mat-option *ngFor="let agent of uniqueAgents" [value]="agent">
-                {{agent}}
+              <mat-option [value]="">All Agents</mat-option>
+              <mat-option *ngFor="let agent of uniqueAgents" [value]="agent.name">
+                {{agent.name}}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -164,25 +268,24 @@
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Date Filter</mat-label>
             <mat-select [(ngModel)]="selectedDateFilter" (selectionChange)="applyFilters()">
-              <mat-option value="">All Time</mat-option>
+              <mat-option [value]="">All Time</mat-option>
               <mat-option value="today">Today</mat-option>
-              <mat-option value="yesterday">Yesterday</mat-option>
-              <mat-option value="thisWeek">This Week</mat-option>
-              <mat-option value="thisMonth">This Month</mat-option>
+              <mat-option value="week">Last 7 Days</mat-option>
+              <mat-option value="month">Last 30 Days</mat-option>
               <mat-option value="custom">Custom Range</mat-option>
             </mat-select>
           </mat-form-field>
 
           <!-- Custom Date Range -->
-          <div *ngIf="selectedDateFilter === 'custom'" class="flex flex-col gap-4">
-            <mat-form-field appearance="outline" class="w-full">
+          <div *ngIf="selectedDateFilter === 'custom'" class="flex gap-4">
+            <mat-form-field appearance="outline">
               <mat-label>From Date</mat-label>
               <input matInput [matDatepicker]="fromPicker" [(ngModel)]="fromDate" (dateChange)="applyFilters()">
               <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
               <mat-datepicker #fromPicker></mat-datepicker>
             </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w-full">
+          
+            <mat-form-field appearance="outline">
               <mat-label>To Date</mat-label>
               <input matInput [matDatepicker]="toPicker" [(ngModel)]="toDate" (dateChange)="applyFilters()">
               <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>

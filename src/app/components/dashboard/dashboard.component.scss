@@ -1,3 +1,17 @@
+.chart-container {
+    position: relative;
+    height: 300px;  /* Responsive height based on viewport */
+    width: 100%;
+    max-width: 800px;  /* Maximum width on larger screens */
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 60vh;  /* Taller on mobile to accommodate legend at bottom */
+    }
+}
+
 .loan-progress {
   margin-top: 1rem;
   

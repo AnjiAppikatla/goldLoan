@@ -2,7 +2,7 @@
   <div id="new-loan-dialog-description" class="sr-only">New Gold Loan Application Form</div>
   <div class="sticky top-0 bg-white z-10 p-2 sm:p-4 border-b">
     <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-poppins font-semibold text-amber-800">New Gold Loan</h2>
+      <h2 class="text-2xl font-poppins font-semibold text-amber-800 mb-0 ml-5">{{isEdit ? 'Edit' : 'New'}} Gold Loan</h2>
       <button mat-icon-button (click)="dialogRef.close()">
         <mat-icon>close</mat-icon>
       </button>
@@ -233,8 +233,7 @@
           </div>
 
           <div class="flex justify-center mt-4">
-            <button mat-raised-button color="primary" type="submit" [disabled]="!loanForm.valid">
-              Save Loan
+            <button mat-raised-button color="primary" type="submit" [disabled]="!loanForm.valid">{{isEdit ? 'Update' : 'Save'}} Loan
             </button>
           </div>
         </form>

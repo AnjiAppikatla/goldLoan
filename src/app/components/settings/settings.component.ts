@@ -22,7 +22,7 @@ import { ControllersService } from '../../services/controllers.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { CityService } from '../../services/city.service';
-import { debounceTime, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { debounceTime, map, Observable, of, startWith, switchMap, take } from 'rxjs';
 import { AddressService } from '../../services/address.service';
 
 
@@ -80,75 +80,7 @@ export class SettingsComponent {
   filteredMerchants: any[] = [];
   filteredAgents: any[] = [];
 
-  filteredLoans: any[] = [
-    // {
-    //   aadharNumber: "123456789012",
-    //   accountName: "Anji",
-    //   accountNumber: "312321323121",
-    //   amount: 30000,
-    //   amountReceived: 30000,
-    //   branchId: "123",
-    //   cashAmount: 0,
-    //   city: "Guntur - Arundelpet",
-    //   commission: 0.006,
-    //   commissionAmount: "180.00",
-    //   commissionPercentage: 0.006,
-    //   createdAt: "2025-04-24T17:52:12.924Z",
-    //   ifscCode: "",
-    //   issuedDate: "2025-04-24T17:52:03.289Z",
-    //   leadId: "13213213",
-    //   lender: "Bajaj",
-    //   loanProgress: 0.00024766880293326235,
-    //   maturityDate: "2025-06-08T18:29:59.289Z",
-    //   merchantId: "147224577",
-    //   mobileNo: "1233444444",
-    //   name: "testing name 2",
-    //   onlineAmount: 0,
-    //   onlinePaymentType: "",
-    //   panNumber: "",
-    //   paymentDate: "2025-04-24T17:52:03.225Z",
-    //   paymentReference: "",
-    //   paymentType: "Cash",
-    //   receivableCommission: "180.00",
-    //   receivedBy: "Manikanta - savings",
-    //   receivedCommissions: [],
-    //   totalReceivedCommission: 0
-    // },
-    // {
-    //   aadharNumber: "123456789012",
-    //   accountName: "Anji",
-    //   accountNumber: "312321323121",
-    //   amount: 30000,
-    //   amountReceived: 30000,
-    //   branchId: "123",
-    //   cashAmount: 0,
-    //   city: "Guntur - Arundelpet",
-    //   commission: 0.006,
-    //   commissionAmount: "180.00",
-    //   commissionPercentage: 0.006,
-    //   createdAt: "2025-04-24T17:52:12.924Z",
-    //   ifscCode: "",
-    //   issuedDate: "2025-04-24T17:52:03.289Z",
-    //   leadId: "13213213",
-    //   lender: "Bajaj",
-    //   loanProgress: 0.00024766880293326235,
-    //   maturityDate: "2025-06-08T18:29:59.289Z",
-    //   merchantId: "147224577",
-    //   mobileNo: "1233444444",
-    //   name: "testing name 2",
-    //   onlineAmount: 0,
-    //   onlinePaymentType: "",
-    //   panNumber: "",
-    //   paymentDate: "2025-04-24T17:52:03.225Z",
-    //   paymentReference: "",
-    //   paymentType: "Cash",
-    //   receivableCommission: "180.00",
-    //   receivedBy: "Manikanta - savings",
-    //   receivedCommissions: [],
-    //   totalReceivedCommission: 0
-    // }
-
-  ];
+  filteredLoans: any[] = [];
   filteredCities!: Observable<string[]>;
 
   constructor(
@@ -165,47 +97,73 @@ export class SettingsComponent {
 
   ngOnInit(){
     this.loadData();
-    this.filteredBranches = this.branches;
-    this.filteredLenders = this.lenders;
-    this.filteredMerchants = this.merchants;
-    this.filteredAgents = this.agents;
 
     this.GetAllAgents();
     this.GetAllBranches();
     this.GetAllLenders();
     this.GetAllMerchants();
+
+   setTimeout(() => {
+    this.filteredBranches = this.branches;
+    this.filteredLenders = this.lenders;
+    this.filteredMerchants = this.merchants;
+    this.filteredAgents = this.agents;
+   }, 1000);
     
   }
 
   searchAgents(event: any) {
     const searchTerm = (event.target.value || '').toLowerCase();
     this.filteredAgents = this.agents.filter(agent => 
-      (agent.name || '').toLowerCase().includes(searchTerm) ||
-      (agent.email || '').toLowerCase().includes(searchTerm) ||
-      (agent.branch || '').toLowerCase().includes(searchTerm)
+      (agent.name || '').toLowerCase().includes(searchTerm)
+      // (agent.name || '').toLowerCase().includes(searchTerm) ||
+      // (agent.email || '').toLowerCase().includes(searchTerm) ||
+      // (agent.branch || '').toLowerCase().includes(searchTerm)
     );
+  }
+
+  updateAgent(){
+    this.dialog.closeAll();
   }
 
   editAgent(agent: any) {
     this.isEdit = true;
     this.agentForm.patchValue({
       name: agent.name,
-      email: agent.email,
+      username: agent.username,
       branch: agent.branch,
-      password: '' // Password field is cleared for security
+      role:agent.role,
+      password: agent.password,
+      mobile: agent.mobile,
+      merchantId: agent.merchantId
     });
     this.dialog.open(this.agentDialog, {
       width: '400px',
       disableClose: true
     });
+    this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+      this.controllersService.UpdateAgent(this.agentForm.value, agent.userId).subscribe(x => {
+        if(x){
+          this.toast.success('Agent updated successfully');
+          this.GetAllAgents();
+          this.dialog.closeAll();
+        }
+      });
+      
+    })
+    this.isEdit = false;
   }
 
-  deleteAgent(email: string) {
+  deleteAgent(data: any) {
     if (confirm('Are you sure you want to delete this agent?')) {
-      this.authService.deleteUser(email);
+      this.controllersService.DeleteAgent(data.id);
       this.loadData();
       this.toast.success('Agent deleted successfully');
     }
+  }
+
+  close() {
+    this.dialog.closeAll();
   }
 
   saveAgent() {
@@ -215,15 +173,14 @@ export class SettingsComponent {
         role: 'agent' // Explicitly setting the role to 'agent'
       };
       
-      if (this.isEdit) {
-        this.authService.updateUser(agentData);
-        this.toast.success('Agent updated successfully');
-      } else {
-        this.authService.addUser(agentData);
-        this.toast.success('Agent added successfully');
-      }
+     
+        this.controllersService.CreateAgent(agentData).pipe().subscribe(x => {
+         if(x){
+         this.toast.success('Agent added successfully');
       this.closeDialog();
-      this.loadData();
+         }
+        });
+        
     }
   }
 
@@ -277,13 +234,20 @@ export class SettingsComponent {
       width: '400px',
       disableClose: true
     });
+    this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+      this.controllersService.UpdateBranch(this.branchForm.value, Number(branch.id));
+      this.toast.success('Branch updated successfully');
+      this.GetAllBranches();
+      this.dialog.closeAll()
+    });
   }
 
   deleteBranch(branchId: string) {
     if (confirm('Are you sure you want to delete this branch?')) {
-      this.goldLoanService.deleteBranch(branchId);
-      this.loadData();
-      this.toast.success('Branch deleted successfully');
+      this.controllersService.DeleteBranch(Number(branchId)).subscribe(res => {
+        this.toast.success('Branch deleted successfully');
+        this.loadData();
+      });      
     }
   }
 
@@ -294,13 +258,24 @@ export class SettingsComponent {
       width: '400px',
       disableClose: true
     });
+    this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+      this.controllersService.UpdateLender(this.lenderForm.value, Number(lender.id)).subscribe(res => {
+        if(res){
+          this.toast.success('Lender Updated Successfully');
+          this.GetAllLenders();
+        }
+      })
+    })
   }
 
-  deleteLender(name: string) {
+  deleteLender(id: string) {
     if (confirm('Are you sure you want to delete this lender?')) {
-      this.goldLoanService.deleteLender(name);
-      this.loadData();
-      this.toast.success('Lender deleted successfully');
+      this.controllersService.DeleteLender(Number(id)).subscribe(res => {
+        if(res){
+          this.toast.success('Lender Deleted Successfully');
+          this.GetAllLenders();
+        }
+      })
     }
   }
 
@@ -311,13 +286,24 @@ export class SettingsComponent {
       width: '400px',
       disableClose: true
     });
+    this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+      this.controllersService.UpdateMerchant(this.merchantForm.value, Number(merchant.id)).subscribe(res => {
+        if(res){
+         this.toast.success('Merchant Updated Successfully')
+         this.GetAllMerchants();
+        }
+      })
+    })
   }
 
-  deleteMerchant(merchantId: string) {
+  deleteMerchant(merchantid: string) {
     if (confirm('Are you sure you want to delete this merchant?')) {
-      this.goldLoanService.deleteMerchant(merchantId);
-      this.loadData();
-      this.toast.success('Merchant deleted successfully');
+      this.controllersService.DeleteMerchant(Number(merchantid)).subscribe(res => {
+        if(res){
+          this.toast.success('Merchant deleted successfully');
+          this.GetAllMerchants();
+        }
+      });
     }
   }
 
@@ -372,10 +358,12 @@ export class SettingsComponent {
   private initializeForms() {
     this.agentForm = this.fb.group({
       name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
       branch: ['', Validators.required],
-      role: ['', Validators.required]
+      role: ['', Validators.required],
+      merchantId: ['', Validators.required],
+      mobile: ['', Validators.required]
     });
 
     this.branchForm = this.fb.group({
@@ -390,11 +378,12 @@ export class SettingsComponent {
     });
 
     this.merchantForm = this.fb.group({
-      merchantId: ['', Validators.required],
+      merchantid: ['', Validators.required],
       merchantName: ['', Validators.required],
-      contactNumber: ['', Validators.required]
+      mobile: ['', Validators.required]
     });
   }
+
 
   // saveAgent() {
   //   if (this.agentForm.valid) {
@@ -412,52 +401,75 @@ export class SettingsComponent {
   saveBranch() {
     if (this.branchForm.valid) {
       const branchData = this.branchForm.value;
-      const dialogRef = this.dialog.getDialogById('branchDialog');
-      const isEdit = dialogRef?.componentInstance?.data?.isEdit;
 
-      if (isEdit) {
-        this.goldLoanService.updateBranch(branchData);
-        this.toast.success('Branch updated successfully');
-      } else {
-        this.goldLoanService.addBranch(branchData);
-        this.toast.success('Branch added successfully');
-      }
-      this.closeDialog();
-      this.loadData();
+      this.controllersService.CreateBranch(branchData).subscribe(res => {
+        if(res){
+          this.toast.success('Branch Added Successfully');
+          this.GetAllBranches();
+          this.dialog.closeAll()
+        }
+      })
+      // const dialogRef = this.dialog.getDialogById('branchDialog');
+      // const isEdit = dialogRef?.componentInstance?.data?.isEdit;
+
+      // if (isEdit) {
+      //   this.goldLoanService.updateBranch(branchData);
+      //   this.toast.success('Branch updated successfully');
+      // } else {
+      //   this.goldLoanService.addBranch(branchData);
+      //   this.toast.success('Branch added successfully');
+      // }
+      // this.closeDialog();
+      // this.loadData();
     }
   }
 
   saveLender() {
     if (this.lenderForm.valid) {
       const lenderData = this.lenderForm.value;
-      const dialogRef = this.dialog.getDialogById('lenderDialog');
-      const isEdit = dialogRef?.componentInstance?.data?.isEdit;
 
-      if (isEdit) {
-        this.goldLoanService.updateLender(lenderData);
-        this.toast.success('Lender updated successfully');
-      } else {
-        this.goldLoanService.addLender(lenderData);
-        this.toast.success('Lender added successfully');
-      }
-      this.closeDialog();
-      this.loadData();
+      this.controllersService.CreateLender(lenderData).subscribe(res => {
+        if(res){
+          this.toast.success("Lender Added Successfully.");
+          this.GetAllLenders();
+          this.dialog.closeAll()
+        }
+      })
+      // const dialogRef = this.dialog.getDialogById('lenderDialog');
+      // const isEdit = dialogRef?.componentInstance?.data?.isEdit;
+
+      // if (isEdit) {
+      //   this.goldLoanService.updateLender(lenderData);
+      //   this.toast.success('Lender updated successfully');
+      // } else {
+      //   this.goldLoanService.addLender(lenderData);
+      //   this.toast.success('Lender added successfully');
+      // }
+      // this.closeDialog();
+      // this.loadData();
     }
   }
 
   saveMerchant() {
     if (this.merchantForm.valid) {
       const merchantData = this.merchantForm.value;
-      const dialogRef = this.dialog.getDialogById('merchantDialog');
-      const isEdit = dialogRef?.componentInstance?.data?.isEdit;
+      // const dialogRef = this.dialog.getDialogById('merchantDialog');
 
-      if (isEdit) {
-        this.goldLoanService.updateMerchant(merchantData);
-        this.toast.success('Merchant updated successfully');
-      } else {
-        this.goldLoanService.addMerchant(merchantData);
-        this.toast.success('Merchant added successfully');
-      }
+      this.controllersService.CreateMerchant(merchantData).subscribe(res => {
+        if(res){
+          this.toast.success('Merchant Added Successfully');
+          this.GetAllMerchants();
+          this.dialog.closeAll();
+        }
+      })
+
+      // if (isEdit) {
+      //   this.goldLoanService.updateMerchant(merchantData);
+      //   this.toast.success('Merchant updated successfully');
+      // } else {
+      //   this.goldLoanService.addMerchant(merchantData);
+      //   this.toast.success('Merchant added successfully');
+      // }
       this.closeDialog();
       this.loadData();
     }
@@ -467,6 +479,7 @@ export class SettingsComponent {
     this.controllersService.GetAllBranches().subscribe((data: any) => {
       if(data){
         this.branches = data;
+        this.filteredBranches = [...this.branches]
       }
     })
   }
@@ -475,6 +488,8 @@ export class SettingsComponent {
     this.controllersService.GetAllLenders().subscribe((data: any) => {
       if(data){
         this.lenders = data;
+
+        this.filteredLenders = this.lenders
       }
     })
   }
@@ -483,6 +498,7 @@ export class SettingsComponent {
     this.controllersService.GetAllMerchants().subscribe((data: any) => {
       if(data){
         this.merchants = data;
+        this.filteredMerchants = this.merchants
       }
     })
   }
@@ -491,6 +507,7 @@ export class SettingsComponent {
     this.controllersService.GetAllAgents().subscribe((data: any) => {
       if(data){
         this.agents = data;
+        this.filteredAgents = [...this.agents]
       }
     })
   }

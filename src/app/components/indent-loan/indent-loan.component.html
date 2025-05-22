@@ -1,0 +1,49 @@
+<div class="">
+  <div class="flex justify-between items-center mb-4">
+    <button mat-raised-button color="primary" class="sm:w-full" (click)="openNewIndentDialog()">
+      <mat-icon>add</mat-icon>
+      New Indent
+    </button>
+  </div>
+
+  <mat-accordion class="mat-cs-body">
+    <mat-expansion-panel *ngFor="let loan of indentLoans" class="cm-shadow">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          {{loan.name}}
+        </mat-panel-title>
+        <!-- <mat-panel-description>
+          Amount: ₹{{loan.amount}} | Date: {{loan.date | date}}
+        </mat-panel-description>  -->
+      </mat-expansion-panel-header>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-sm">
+        <div>
+          <p><strong>Status:</strong> {{loan.status}}</p>
+          <p><strong>Customer Name:</strong> {{loan.name}}</p>
+          <p><strong>Amount:</strong> {{loan.amount}}</p>
+          <p><strong>Date:</strong> {{loan.created_at | date:'medium'}}</p>
+        </div>
+
+        <div>
+          <p><strong>Agent Name:</strong> {{loan.agent}}</p>
+          <p><strong>Merchant ID:</strong> {{loan.merchantid}}</p>
+          <p><strong>Lender :</strong> {{loan.lender}}</p>
+          <p><strong>City :</strong> {{loan.city}}</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-1 gap-1">
+          <button mat-raised-button color="primary" (click)="CreateNewLoan(loan)">
+            <mat-icon>add</mat-icon> Create Loan
+          </button>
+          <button mat-raised-button color="primary" (click)="editIndentLoan(loan)">
+            <mat-icon>edit</mat-icon> Edit
+          </button>
+          <button mat-raised-button color="warn" (click)="deleteIndentLoan(loan.id)">
+            <mat-icon>delete</mat-icon> Delete
+          </button>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

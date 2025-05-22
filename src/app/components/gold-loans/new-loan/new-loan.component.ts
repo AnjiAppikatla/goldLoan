@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +23,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { ToastService } from '../../../services/toastr.service';
 import { AuthService } from '../../../services/auth.service';
 import { ControllersService } from '../../../services/controllers.service';
+import { AbstractControl, ValidationErrors } from '@angular/forms';
 
 @Component({
   selector: 'app-new-loan',
@@ -48,27 +49,20 @@ import { ControllersService } from '../../../services/controllers.service';
   templateUrl: './new-loan.component.html'
 })
 export class NewLoanComponent implements OnInit {
+  editLoan: any;
+  isEdit = false;
   loanForm!: FormGroup;
-  filteredCities!: Observable<any[]>;
+  
 
   commissionPercentages: number[] = [5, 7, 9, 11, 13, 15];
   paymentTypes: string[] = ['Cash', 'Online', 'Both'];
   onlinePaymentTypes: string[] = ['UPI', 'Phone pay', 'GooglePay', 'Bank Transfer'];
   receivedByList: string[] = ['Manikanta - savings', 'Revathi - savings', 'Manikanta - current', 'Revathi - current'];
 
-  lenders: any[] = [
-    // { lenderName: 'Bajaj', id: 1, percentage: 0.006 },
-    // { lenderName: 'HDFC', id: 2, percentage: 0.006 },
-    // { lenderName: 'ICICI', id: 3, percentage: 0.006 },
-    // { lenderName: 'SBI', id: 4, percentage: 0.006 }
-  ];
-  merchants: any[] = [
-    // { merchantName: 'Mani', merchantid: '147224577' },
-    // { merchantName: 'Revathi', merchantid: '147224578' },
-    // { merchantName: 'Tomasri', merchantid: '147224579' },
-    // { merchantName: 'Kanta', merchantid: '147224580' }
-  ];
-  cities: any[] = []
+  lenders: any[] = [];
+  merchants: any[] = [];
+  cities: any[] = [];
+  filteredCities: any = [];
 
   Agents: any = []
   currentUser: any;
@@ -77,13 +71,18 @@ export class NewLoanComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<NewLoanComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private goldLoanService: GoldLoanService,
     private toast: ToastService,
     private authService: AuthService,
     private controllersService: ControllersService
   ) {
-    
+    this.isEdit = data?.isEdit || false;
+    if (this.isEdit && data.loan) {
+      this.editLoan = data.loan;
+    }
   }
+
   ngOnInit() {
     this.GetAllAgents();
     this.GetAllMerchants();
@@ -152,6 +151,47 @@ export class NewLoanComponent implements OnInit {
         }
       });
     }
+
+    if (this.isEdit && this.editLoan) {
+      setTimeout(() => {
+        const cities = this.cities
+        cities.map((city: any) => {
+          if (city.name === this.editLoan.City) {
+            this.loanForm.patchValue({
+              branchId: city.branchId,
+              city: city
+            });
+          }
+        });
+        // console.log(city)
+        this.loanForm.patchValue({
+          lender: this.editLoan.Lender,
+          agentname: this.editLoan.AgentName,
+          leadId: this.editLoan.LeadId,
+          name: this.editLoan.Name,
+          mobileNo: this.editLoan.MobileNo,
+          merchantId: this.editLoan.MerchantId,
+          amount: this.editLoan.Amount,
+          issuedDate: new Date(this.editLoan.IssuedDate),
+          maturityDate: new Date(this.editLoan.MaturityDate),
+          // city: city.name || null,
+          // branchId: city.branchId || null,
+          paymentType: this.editLoan.PaymentType,
+          cashAmount: this.editLoan.CashAmount,
+          onlineAmount: this.editLoan.OnlineAmount,
+          onlinePaymentType: this.editLoan.OnlinePaymentType,
+          paymentDate: new Date(this.editLoan.PaymentDate),
+          paymentReference: this.editLoan.PaymentReference,
+          receivedBy: this.editLoan.ReceivedBy,
+          accountName: this.editLoan.AccountName,
+          accountNumber: this.editLoan.AccountNumber,
+          ifscCode: this.editLoan.IfscCode,
+          aadharNumber: this.editLoan.AadharNumber,
+          panNumber: this.editLoan.PanNumber
+        });
+      }, 1000); // Delay for 1 second to ensure data is availabl
+    
+    }
   }
 
   GetAllAgents() {
@@ -204,22 +244,6 @@ export class NewLoanComponent implements OnInit {
     );
   }
 
-  // private calculateCommissionAmount() {
-  //   const amount = parseFloat(this.loanForm.get('amount')?.value) || 0;
-  //   const commissionPercentage = parseFloat(this.loanForm.get('commission')?.value) || 0;
-
-  //   if (amount && commissionPercentage) {
-  //     const commissionAmount = (amount * commissionPercentage) / 100;
-  //     this.loanForm.patchValue({
-  //       commissionAmount: commissionAmount.toFixed(2)
-  //     }, { emitEvent: false });
-  //   } else {
-  //     this.loanForm.patchValue({
-  //       commissionAmount: 0
-  //     }, { emitEvent: false });
-  //   }
-  // }
-
   private updatePaymentAmounts(totalAmount: number, paymentType: string) {
     switch (paymentType) {
       case 'Cash':
@@ -243,43 +267,78 @@ export class NewLoanComponent implements OnInit {
 
   private initForm() {
     this.loanForm = this.fb.group({
-      lender: ['Bajaj', Validators.required],
-      leadId: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
+      lender: ['', [Validators.required]],
+      leadId: [''],
       agentname: [{
         value: this.currentUser?.name || '',
         disabled: this.currentUser?.role === 'agent'
-      }, Validators.required],
-      name: ['', Validators.required],
+      }, [Validators.required]],
+      name: ['', [Validators.required]],
+      merchantId: ['', [Validators.required]],
       // mobileNo: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
-      merchantId: [Validators.required],
-      mobileNo: ['', [Validators.required]],
-      amount: ['', [Validators.required, Validators.min(0)]],
-      commission: [0.006, Validators.required],
+      mobileNo: [''],
+      amount: [''],
+      commission: [''],
       commissionAmount: [''],
       branchId: ['', [Validators.required]],
-      city: ['', Validators.required],
-      panNumber: [''],
+      city: ['', [Validators.required]],
+      panNumber: ['',[this.panValidator]],
       aadharNumber: [''],
       issuedDate: [new Date().toISOString(), Validators.required],
       maturityDate: ['', Validators.required],
       loanProgress: [0],
-      paymentType: ['Cash', Validators.required],
+      paymentType: ['Cash'],
       cashAmount: [0],
       onlineAmount: [0],
       onlinePaymentType: [''],
-      paymentDate: [new Date().toISOString(), Validators.required],
+      paymentDate: [new Date().toISOString()],
       paymentReference: [''],
       agentId: [{
         value: this.currentUser?.id || '',
         disabled: this.currentUser?.role === 'agent'
       }],
-      receivedBy: ['', Validators.required],
-      accountName: ['', Validators.required],
-      accountNumber: ['', [Validators.required, Validators.pattern('^[0-9]{9,18}$')]],
+      receivedBy: [''],
+      accountName: [''],
+      accountNumber: ['', [Validators.pattern('^[0-9]{9,18}$')]],
       ifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
-      amountReceived: ['', [Validators.required, Validators.min(0)]]
+      amountReceived: ['']
     });
+
+      // // Add form status listener
+      // this.loanForm.statusChanges.subscribe(status => {
+      //   if (status === 'INVALID') {
+      //     this.highlightInvalidControls();
+      //   }
+      // });
 }
+
+
+
+  panValidator(control: AbstractControl): ValidationErrors | null {
+  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/; // Valid PAN format
+
+  return panRegex.test(control.value) ? null : { invalidPan: true };
+}
+
+// private highlightInvalidControls() {
+//   Object.keys(this.loanForm.controls).forEach(key => {
+//       const control = this.loanForm.get(key);
+//       if (control?.invalid && (control?.dirty || control?.touched)) {
+//           const errors = control.errors;
+//           if (errors) {
+//               let errorMessage = '';
+//               if (errors['required']) {
+//                   errorMessage = `${key} is required`;
+//               } else if (errors['pattern']) {
+//                   errorMessage = `Invalid ${key} format`;
+//               } else if (errors['min']) {
+//                   errorMessage = `${key} must be greater than ${errors['min'].min}`;
+//               }
+//               this.toast.error(errorMessage);
+//           }
+//       }
+//   });
+// }
 
   private validateForm(): boolean {
     // Check if form is valid
@@ -360,10 +419,11 @@ export class NewLoanComponent implements OnInit {
     const selectedCity = event.option.value;
     if (selectedCity) {
       this.loanForm.patchValue({
-        branchId: selectedCity.branchId
-      });
+        branchId: selectedCity.branchId,
+        city: selectedCity
+    });
     }
-  }
+}
 
 
   calculateLoanProgress() {
@@ -382,54 +442,180 @@ export class NewLoanComponent implements OnInit {
     });
   }
 
+  // private prepareLoanData() {
+  //   const formData = this.loanForm.value;
+    
+  //   const loanData: {
+  //     id?: string; // Make id optional with '?'
+  //     Lender: any;
+  //     AgentName: any;
+  //     LeadId: any;
+  //     Name: any;
+  //     MobileNo: any;
+  //     MerchantId: any;
+  //     Amount: any;
+  //     IssuedDate: string;
+  //     MaturityDate: string;
+  //     City: any;
+  //     PaymentType: any;
+  //     CashAmount: any;
+  //     OnlineAmount: any;
+  //     OnlinePaymentType: any;
+  //     PaymentDate: string | null;
+  //     PaymentReference: any;
+  //     ReceivedBy: any;
+  //     AccountName: any;
+  //     AccountNumber: any;
+  //     IfscCode: any;
+  //     AadharNumber: any;
+  //     PanNumber: any;
+  //     Progress: number;
+  //     CreatedAt: string;
+  //     UpdatedAt: string;
+  //   } = {
+  //     Lender: formData.lender,
+  //     AgentName: formData.agentname,
+  //     LeadId: formData.leadId,
+  //     Name: formData.name,
+  //     MobileNo: formData.mobileNo,
+  //     MerchantId: formData.merchantId,
+  //     Amount: formData.amount,
+  //     IssuedDate: new Date(formData.issuedDate).toISOString(),
+  //     MaturityDate: new Date(formData.maturityDate).toISOString(),
+  //     City: formData.city,
+  //     PaymentType: formData.paymentType,
+  //     CashAmount: formData.cashAmount || 0,
+  //     OnlineAmount: formData.onlineAmount || 0,
+  //     OnlinePaymentType: formData.onlinePaymentType,
+  //     PaymentDate: formData.paymentDate ? new Date(formData.paymentDate).toISOString() : null,
+  //     PaymentReference: formData.paymentReference,
+  //     ReceivedBy: formData.receivedBy,
+  //     AccountName: formData.accountName,
+  //     AccountNumber: formData.accountNumber,
+  //     IfscCode: formData.ifscCode,
+  //     AadharNumber: formData.aadharNumber,
+  //     PanNumber: formData.panNumber,
+  //     Progress: formData.loanProgress || 0,
+  //     CreatedAt: this.isEdit ? this.editLoan.CreatedAt : new Date().toISOString(),
+  //     UpdatedAt: new Date().toISOString()
+  //   };
+
+  //   return loanData;
+  // }
+
+  // onSubmit() {
+  //   if (this.validateForm()) {
+  //     const loanData = this.prepareLoanData();
+
+  //     if (this.isEdit) {
+  //       loanData.id = this.editLoan.id;
+  //       this.controllersService.UpdateLoan(loanData).subscribe({
+  //         next: (response) => {
+  //           if (response) {
+  //             this.toast.success('Loan updated successfully');
+  //             this.dialogRef.close(true);
+  //           }
+  //         },
+  //         error: (error) => {
+  //           this.toast.error('Error updating loan');
+  //         }
+  //       });
+  //     } else {
+  //       this.controllersService.CreateLoan(loanData).subscribe({
+  //         next: (response) => {
+  //           if (response) {
+  //             this.toast.success('Loan created successfully');
+  //             this.dialogRef.close(true);
+  //           }
+  //         },
+  //         error: (error) => {
+  //           this.toast.error('Error creating loan');
+  //         }
+  //       });
+  //     }
+  //   }
+  // }
+
+
   onSubmit() {
     
     if (this.validateForm()) {
-      const formData = this.loanForm.value;
 
-      // Format dates
-      formData.createdAt = new Date().toISOString();
-      formData.issuedDate = new Date(formData.issuedDate).toISOString();
-      formData.maturityDate = new Date(formData.maturityDate).toISOString();
-      formData.paymentDate = new Date(formData.paymentDate).toISOString();
+      // const loanData = this.prepareLoanData();
 
-      // Format numbers
-      formData.amount = parseFloat(formData.amount);
-      formData.cashAmount = parseFloat(formData.cashAmount) || 0;
-      formData.onlineAmount = parseFloat(formData.onlineAmount) || 0;
-      formData.amountReceived = parseFloat(formData.amountReceived);
+      const loanData = this.loanForm.value;
 
-      // Calculate commission
-      const selectedLender = this.lenders.find(l => l.lenderName === formData.lender);
-      formData.commissionPercentage = selectedLender?.percentage || 0.006;
-      formData.commissionAmount = (formData.amount * formData.commissionPercentage).toFixed(2);
+      console.log(loanData, this.loanForm.value.city.name);
 
-      // Initialize commission tracking
-      // formData.receivedCommissions = [];
-      // formData.receivableCommission = formData.commissionAmount;
-      // formData.totalReceivedCommission = 0;
-      formData.agentname = this.loanForm.get('agentname')?.value;
+      if (this.isEdit) {
+        loanData.id = this.editLoan.Id;
+        loanData.city = this.loanForm.value.city.name;
+        this.controllersService.UpdateLoan(loanData, Number(loanData.id)).subscribe({
+          next: (response) => {
+            if (response) {
+              this.toast.success('Loan updated successfully');
+              this.dialogRef.close(true);
+            }
+          },
+          error: (error) => {
+            this.toast.error('Error updating loan');
+          }
+        });
+        this.dialogRef.close(loanData);
+      }
+      else{
+        const formData = this.loanForm.value;
 
-      // Calculate loan progress
-      this.calculateLoanProgress();
-      // formData.loanProgress = this.loanForm.get('loanProgress')?.value;
+        console.log(formData);
 
-      // Add to service and close dialog
-      // this.goldLoanService.loans.push(formData);
-      // this.toast.success('Loan created successfully');
-      this.controllersService.CreateLoan(formData).subscribe(
-        (response) => {
-          // console.log('Loan created successfully:', response);
-          this.toast.success(response);
-          this.goldLoanService.GetAllLoans();
-          // Handle success, e.g., show a success message
-        },
-        (error) => {
-          console.error('Error creating loan:', error);
-          // Handle error, e.g., show an error message
-        }
-      );
-      this.dialogRef.close(formData);
+        // Format dates
+        formData.createdAt = new Date().toISOString();
+        formData.issuedDate = new Date(formData.issuedDate).toISOString();
+        formData.maturityDate = new Date(formData.maturityDate).toISOString();
+        formData.paymentDate = new Date(formData.paymentDate).toISOString();
+        formData.city = formData.city.name;
+  
+        // Format numbers
+        formData.amount = parseFloat(formData.amount);
+        formData.cashAmount = parseFloat(formData.cashAmount) || 0;
+        formData.onlineAmount = parseFloat(formData.onlineAmount) || 0;
+        formData.amountReceived = parseFloat(formData.amountReceived) || 0;
+  
+        // Calculate commission
+        const selectedLender = this.lenders.find(l => l.lenderName === formData.lender);
+        formData.commissionPercentage = selectedLender?.percentage || 0.006;
+        formData.commissionAmount = (formData.amount * formData.commissionPercentage).toFixed(2);
+  
+        // Initialize commission tracking
+        // formData.receivedCommissions = [];
+        // formData.receivableCommission = formData.commissionAmount;
+        // formData.totalReceivedCommission = 0;
+        formData.agentname = this.loanForm.get('agentname')?.value;
+        formData.agentId = this.Agents.filter((a:any) => a.name === formData.agentname).userId;
+  
+        // Calculate loan progress
+        // this.calculateLoanProgress();
+        // formData.loanProgress = this.loanForm.get('loanProgress')?.value;
+  
+        // Add to service and close dialog
+        // this.goldLoanService.loans.push(formData);
+        // this.toast.success('Loan created successfully');
+        this.controllersService.CreateLoan(formData).subscribe(
+          (response) => {
+            // console.log('Loan created successfully:', response);
+            this.toast.success(response);
+            // Handle success, e.g., show a success message
+          },
+          (error) => {
+            console.error('Error creating loan:', error);
+            // Handle error, e.g., show an error message
+          }
+        );
+        this.dialogRef.close(formData);
+      }
+
+
+      
     }
   }
 

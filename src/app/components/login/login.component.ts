@@ -16,6 +16,7 @@ import { Observable } from 'rxjs';
   selector: 'app-login',
   templateUrl: './login.component.html',
   standalone: true,
+  styleUrls: ['./login.component.scss'],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -44,16 +45,22 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      
-      this.controllers.GetAgentById(email, password).subscribe({
+  
+      const loginData = {
+        username: email,
+        password: password
+      };
+  
+      this.controllers.LoginAgent(loginData).subscribe({
         next: (data) => {
           if (data) {
-            this.toast.success('Welcome' + " " + data[0].name);
-              this.authService.currentUserSubject.next(data);
-              localStorage.setItem('currentUser', JSON.stringify(data));
-              this.router.navigate(['/layout']);
+            this.toast.success('Welcome ' + data.name);
+            this.authService.currentUserSubject.next(data);
+            localStorage.setItem('currentUser', JSON.stringify(data));
+            this.router.navigate(['/layout']);
           } else {
             this.toast.error('Invalid credentials');
+            this.router.navigate(['/login']);
           }
         },
         error: (error) => {
@@ -61,14 +68,14 @@ export class LoginComponent {
           this.toast.error('Invalid credentials');
           localStorage.removeItem('currentUser');
           this.authService.currentUserSubject.next(null);
+          this.router.navigate(['/login']);
         }
       });
-
-
-
+  
     } else {
       this.toast.warning('Please fill in all required fields');
     }
   }
+  
 
 }

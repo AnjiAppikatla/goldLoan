@@ -7,6 +7,7 @@ import { LayoutComponent } from './components/layout/layout.component';
 import { LoginComponent } from './components/login/login.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { PersonalloansComponent } from './components/personalloans/personalloans.component';
+import { IndentLoanComponent } from './components/indent-loan/indent-loan.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -20,7 +21,8 @@ export const routes: Routes = [
       { path: 'gold-loans', component: GoldLoansComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'sidenav', component: SidenavComponent },
-      { path: 'personalloans', component: PersonalloansComponent }
+      { path: 'personalloans', component: PersonalloansComponent },
+      { path: 'indent', component: IndentLoanComponent }
     ]
   },
   { path: '**', redirectTo: 'login' }

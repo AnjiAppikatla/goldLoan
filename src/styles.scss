@@ -67,3 +67,113 @@ body { margin: 0; }
         }
       }
 }
+
+/* Global Mobile Styles */
+@media screen and (max-width: 768px) {
+    /* Typography */
+    body {
+      font-size: 14px;
+    }
+  
+    h1 {
+      font-size: 1.5rem !important;
+    }
+  
+    h2 {
+      font-size: 1.25rem !important;
+    }
+  
+    h3 {
+      font-size: 1.1rem !important;
+    }
+  
+    p, span, div {
+      font-size: 0.875rem;
+    }
+  
+    /* Material Input Fields */
+    .mat-mdc-form-field {
+      font-size: 14px;
+  
+      .mat-mdc-form-field-infix {
+        min-height: 40px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+      }
+  
+      .mat-mdc-text-field-wrapper {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+  
+      .mat-mdc-form-field-label {
+        font-size: 14px;
+      }
+    }
+  
+    /* Material Buttons */
+    .mat-mdc-button,
+    .mat-mdc-raised-button,
+    .mat-mdc-outlined-button,
+    .mat-mdc-flat-button {
+      font-size: 14px;
+      padding: 0 12px;
+      min-height: 36px;
+      line-height: 36px;
+    }
+  
+    /* Material Select */
+    .mat-mdc-select {
+      font-size: 14px;
+    }
+  
+    .mat-mdc-select-value-text {
+      font-size: 14px;
+    }
+  
+    /* Material Option */
+    .mat-mdc-option {
+      font-size: 14px;
+      height: 36px;
+      line-height: 36px;
+    }
+  
+    /* Material Dialog */
+    .mat-mdc-dialog-container {
+      .mat-mdc-dialog-title {
+        font-size: 1.25rem !important;
+      }
+  
+      .mat-mdc-dialog-content {
+        font-size: 14px;
+      }
+  
+      .mat-mdc-dialog-actions button {
+        font-size: 14px;
+      }
+    }
+  
+    /* Material Table */
+    .mat-mdc-table {
+      .mat-mdc-header-cell,
+      .mat-mdc-cell {
+        font-size: 14px;
+        padding: 8px;
+      }
+    }
+  
+    /* Material Tabs */
+    .mat-mdc-tab-label {
+      font-size: 14px;
+      height: 40px !important;
+    }
+  
+    /* Material Cards */
+    .mat-mdc-card-title {
+      font-size: 1.1rem !important;
+    }
+  
+    .mat-mdc-card-content {
+      font-size: 14px;
+    }
+  }
