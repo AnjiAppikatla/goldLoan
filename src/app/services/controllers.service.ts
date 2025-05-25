@@ -139,15 +139,19 @@ export class ControllersService {
   }
 
   CreateIndentLoan(body: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/indentloan/CreateIndentLoan`, body)
+    return this.http.post(`${this.baseUrl}/indentloans/CreateIndentLoan`, body)
   }
 
   UpdateIndentLoan(body: any, id: number): Observable<any> {
-    return this.http.put(`${this.baseUrl}/indentloan/UpdateIndentLoan/${id}`, body)
+    return this.http.put(`${this.baseUrl}/indentloans/UpdateIndentLoan/${id}`, body)
   }
 
   DeleteIndentLoan(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/indentloan/DeleteIndentLoan/${id}`)
+    return this.http.delete(`${this.baseUrl}/indentloans/DeleteIndentLoan/${id}`)
+  }
+
+  UpdateCommission(body: any, id: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/goldloan/UpdateCommission/${id}`, body)
   }
 
 

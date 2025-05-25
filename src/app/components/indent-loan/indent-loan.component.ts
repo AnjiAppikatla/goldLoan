@@ -13,6 +13,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { IndentLoanDialogComponent } from '../indent-loan/indent-loan-dialog/indent-loan-dialog.component';
 import { ControllersService } from '../../services/controllers.service';
 import { ToastrService } from 'ngx-toastr';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-indent-loan',
@@ -47,18 +48,6 @@ export class IndentLoanComponent implements OnInit {
   }
 
   loadIndentLoans() {
-    // this.indentLoans = [
-    //   {
-    //     id: 1,
-    //     customerName: 'John Doe',
-    //     amount: 50000,
-    //     date: new Date(),
-    //     status: 'Pending',
-    //     agent: 'Agent 1',
-    //     merchantid: '1231213'
-    //   }
-    // ];
-
     this.controllerService.GetAllIndentLoans().subscribe((res:any) => {
       if(res){
         this.indentLoans = res;
@@ -76,13 +65,6 @@ export class IndentLoanComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Add the new indent loan to the list
-        // this.indentLoans.push({
-        //   id: this.indentLoans.length + 1,
-        //   ...result,
-        //   status: 'Pending'
-        // });
-
         this.controllerService.CreateIndentLoan(result).subscribe((res:any) => {
           if(res){
             this.toast.success("Indent loan created successfully");
@@ -105,17 +87,37 @@ export class IndentLoanComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Update the loan in the list
-        const index = this.indentLoans.findIndex(l => l.id === loan.id);
-        if (index !== -1) {
-          this.indentLoans[index] = { ...loan, ...result };
-        }
+        this.controllerService.UpdateIndentLoan(result, Number(loan.id)).subscribe((res:any) => {
+          if(res){
+            this.toast.success("Indent loan updated successfully");
+            this.loadIndentLoans();
+          }
+        });
       }
     });
   }
 
-  deleteIndentLoan(id: number) {
-    // TODO: Implement delete logic
+  deleteIndentLoan(id: any) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: 'Confirm Delete',
+        message: 'Are you sure you want to delete this loan?'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.controllerService.DeleteIndentLoan(Number(id)).subscribe({
+          next: (response) => {
+            if (response) {
+              this.toast.success("Indent loan deleted successfully");
+              this.loadIndentLoans(); // Refresh the list
+            }
+          }
+        });
+      }
+    });
   }
 
   CreateNewLoan(loan:any){

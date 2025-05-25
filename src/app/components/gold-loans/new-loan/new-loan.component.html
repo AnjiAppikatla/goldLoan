@@ -47,7 +47,7 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Login User Mobile No</mat-label>
+              <mat-label>Mobile No</mat-label>
               <input matInput formControlName="mobileNo" placeholder="Enter 10-digit mobile number" minlength="10" maxlength="10">
               <mat-error *ngIf="loanForm.get('mobileNo')?.hasError('pattern')">
                 Please enter a valid 10-digit mobile number
@@ -118,7 +118,7 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Aadhar Number</mat-label>
-              <input matInput formControlName="aadharNumber" placeholder="Enter Aadhar number">
+              <input matInput formControlName="aadharNumber" placeholder="Enter Aadhar number" [maxlength]="12" [minlength]="12">
               <mat-error *ngIf="loanForm.get('aadharNumber')?.hasError('pattern')">
                 Please enter a valid 12-digit Aadhar number
               </mat-error>
@@ -177,14 +177,8 @@
           <div class="col-span-2">
             <h3 class="text-amber-500 font-semibold mb-3">Refund Details</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <mat-form-field appearance="outline">
-                <mat-label>Received By</mat-label>
-                <mat-select formControlName="receivedBy">
-                  <mat-option *ngFor="let person of receivedByList" [value]="person">
-                    {{person}}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
+
+              
   
               <mat-form-field appearance="outline">
                 <mat-label>Account Holder Name</mat-label>
@@ -226,6 +220,15 @@
                 <mat-error *ngIf="loanForm.get('amountReceived')?.hasError('min')">
                   Amount must be greater than 0
                 </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Received By</mat-label>
+                <mat-select formControlName="receivedBy">
+                  <mat-option *ngFor="let person of receivedByList" [value]="person">
+                    {{person}}
+                  </mat-option>
+                </mat-select>
               </mat-form-field>
             </div>
 

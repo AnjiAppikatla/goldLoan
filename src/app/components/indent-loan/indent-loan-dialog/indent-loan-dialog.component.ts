@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, Inject } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -6,6 +6,10 @@ import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { GoldLoanService } from '../../../services/gold-loan.service';
+import { AuthService } from '../../../services/auth.service';
+import { ControllersService } from '../../../services/controllers.service';
 
 @Component({
   selector: 'app-indent-loan-dialog',
@@ -19,8 +23,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     MatButtonModule,
     MatInputModule,
     MatFormFieldModule,
-    MatDialogModule
-    // Add other necessary imports
+    MatDialogModule,
+    MatSelectModule
   ],
   template: `
     <h2 mat-dialog-title>{{data ? 'Edit' : 'New'}} Indent Loan</h2>
@@ -29,7 +33,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         <div class="grid grid-cols-1 gap-4">
           <mat-form-field appearance="outline">
             <mat-label>Customer Name</mat-label>
-            <input matInput formControlName="customerName" required>
+            <input matInput formControlName="name" required>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -39,22 +43,38 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 
           <mat-form-field appearance="outline">
             <mat-label>Agent</mat-label>
-            <input matInput type="text" formControlName="agent" required>
+            <mat-select formControlName="agent" required>
+              <mat-option *ngFor="let agent of agents" [value]="agent.name">
+                {{agent.name}}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Merchant Id</mat-label>
-            <input matInput type="text" formControlName="merchantid" required>
+            <mat-label>Merchant</mat-label>
+            <mat-select formControlName="merchantid" required>
+              <mat-option *ngFor="let merchant of merchants" [value]="merchant.merchantid">
+                {{merchant.merchantName}}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Lender</mat-label>
-            <input matInput type="text" formControlName="lender" required>
+            <mat-select formControlName="lender" required>
+              <mat-option *ngFor="let lender of lenders" [value]="lender.lenderName">
+                {{lender.lenderName}}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>City</mat-label>
-            <input matInput type="text" formControlName="city">
+            <mat-select formControlName="city" required>
+              <mat-option *ngFor="let city of cities" [value]="city.name">
+                {{city.name}}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -75,16 +95,22 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     </form>
   `
 })
-export class IndentLoanDialogComponent {
+export class IndentLoanDialogComponent implements OnInit {
   indentForm: FormGroup;
+  agents: any[] = [];
+  merchants: any[] = [];
+  lenders: any[] = [];
+  cities: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<IndentLoanDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private ControllersService: ControllersService,
+    private authService: AuthService
   ) {
     this.indentForm = this.fb.group({
-      customerName: ['', Validators.required],
+      name: ['', Validators.required],
       amount: ['', [Validators.required, Validators.min(0)]],
       date: ['', Validators.required],
       agent: ['', Validators.required],
@@ -92,10 +118,72 @@ export class IndentLoanDialogComponent {
       lender: ['', Validators.required],
       city: ['', Validators.required],
     });
+  }
 
-    if (data) {
-      this.indentForm.patchValue(data);
+  ngOnInit() {
+
+    this.GetAllAgents();
+    this.GetAllMerchants();
+    this.GetAllLenders();
+    this.GetAllCities();
+
+    console.log(this.agents);
+    console.log(this.merchants);
+    console.log(this.lenders);
+    console.log(this.cities);
+
+    // If editing, patch form with existing data
+    if (this.data) {
+      this.indentForm.patchValue({
+        name: this.data.name,
+        amount: this.data.amount,
+        date: new Date(this.data.created_at),
+        agent: this.data.agent,
+        merchantid: this.data.merchantid,
+        lender: this.data.lender,
+        city: this.data.city
+      });
     }
+  }
+
+  GetAllAgents(){
+    this.ControllersService.GetAllAgents().subscribe((res:any) => {
+      if(res){
+        this.agents = res;
+      }else{
+        this.agents = [];
+      }
+    });
+  }
+
+  GetAllMerchants(){
+    this.ControllersService.GetAllMerchants().subscribe((res:any) => {
+      if(res){
+        this.merchants = res;
+      }else{
+        this.merchants = [];
+      }
+    });
+  }
+
+  GetAllLenders(){
+    this.ControllersService.GetAllLenders().subscribe((res:any) => {
+      if(res){
+        this.lenders = res;
+      }else{
+        this.lenders = [];
+      }
+    })
+  }
+
+  GetAllCities(){
+    this.ControllersService.GetAllBranches().subscribe((res:any) => {
+      if(res){
+        this.cities = res;
+      }else{
+        this.cities = [];
+      }
+    })
   }
 
   onSubmit() {

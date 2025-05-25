@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -152,6 +152,18 @@ export class NewLoanComponent implements OnInit {
       });
     }
 
+    this.loanForm.get('panNumber')?.valueChanges.subscribe(value => {
+      if (value && value !== value.toUpperCase()) {
+        this.loanForm.get('pan')?.setValue(value.toUpperCase(), { emitEvent: false });
+      }
+    });
+
+    this.loanForm.get('ifscCode')?.valueChanges.subscribe(value => {
+      if (value && value !== value.toUpperCase()) {
+        this.loanForm.get('pan')?.setValue(value.toUpperCase(), { emitEvent: false });
+      }
+    });
+
     if (this.isEdit && this.editLoan) {
       setTimeout(() => {
         const cities = this.cities
@@ -283,7 +295,10 @@ export class NewLoanComponent implements OnInit {
       branchId: ['', [Validators.required]],
       city: ['', [Validators.required]],
       panNumber: ['',[this.panValidator]],
-      aadharNumber: [''],
+      aadharNumber: ['', [
+        Validators.required,
+        Validators.pattern(/^[2-9]{1}[0-9]{11}$/)
+      ]],
       issuedDate: [new Date().toISOString(), Validators.required],
       maturityDate: ['', Validators.required],
       loanProgress: [0],

@@ -24,6 +24,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { CityService } from '../../services/city.service';
 import { debounceTime, map, Observable, of, startWith, switchMap, take } from 'rxjs';
 import { AddressService } from '../../services/address.service';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
 
 
 @Component({
@@ -82,6 +83,11 @@ export class SettingsComponent {
 
   filteredLoans: any[] = [];
   filteredCities!: Observable<string[]>;
+
+  searchBranchinput: string = '';
+  serchLenderinput: string = '';
+  serchMerchantinput: string = '';
+  serchAgentinput: string = '';
 
   constructor(
     private dialog: MatDialog,
@@ -151,15 +157,28 @@ export class SettingsComponent {
       });
       
     })
-    this.isEdit = false;
   }
 
-  deleteAgent(data: any) {
-    if (confirm('Are you sure you want to delete this agent?')) {
-      this.controllersService.DeleteAgent(data.id);
-      this.loadData();
-      this.toast.success('Agent deleted successfully');
-    }
+  deleteAgent(id: any) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: 'Confirm Delete',
+        message: 'Are you sure you want to delete this Merchant?'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.controllersService.DeleteAgent(Number(id)).subscribe(res => {
+          if(res){
+            this.toast.success('Agent deleted successfully');
+            this.GetAllAgents();
+            this.serchAgentinput = '';
+            this.loadData();
+          }
+        });
+      }
+    })
   }
 
   close() {
@@ -235,20 +254,38 @@ export class SettingsComponent {
       disableClose: true
     });
     this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
-      this.controllersService.UpdateBranch(this.branchForm.value, Number(branch.id));
-      this.toast.success('Branch updated successfully');
-      this.GetAllBranches();
-      this.dialog.closeAll()
+      this.controllersService.UpdateBranch(this.branchForm.value, Number(branch.id)).subscribe(res => {
+        if(res){
+          this.toast.success('Branch updated successfully');
+          this.GetAllBranches();
+          this.searchBranchinput = '';
+          this.dialog.closeAll();
+        }
+      });      
     });
   }
 
   deleteBranch(branchId: string) {
-    if (confirm('Are you sure you want to delete this branch?')) {
-      this.controllersService.DeleteBranch(Number(branchId)).subscribe(res => {
-        this.toast.success('Branch deleted successfully');
-        this.loadData();
-      });      
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: 'Confirm Delete',
+        message: 'Are you sure you want to delete this Branch?'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.controllersService.DeleteBranch(Number(branchId)).subscribe(res => {
+          if(res){
+            this.toast.success('Branch deleted successfully');
+            this.GetAllBranches();
+            this.searchBranchinput = '';
+            this.loadData();
+            this.dialog.closeAll();
+          }
+        });
+      }
+    })
   }
 
   editLender(lender: any) {
@@ -262,21 +299,37 @@ export class SettingsComponent {
       this.controllersService.UpdateLender(this.lenderForm.value, Number(lender.id)).subscribe(res => {
         if(res){
           this.toast.success('Lender Updated Successfully');
+          this.serchLenderinput = '';
           this.GetAllLenders();
+          this.dialog.closeAll();
         }
       })
     })
   }
 
   deleteLender(id: string) {
-    if (confirm('Are you sure you want to delete this lender?')) {
-      this.controllersService.DeleteLender(Number(id)).subscribe(res => {
-        if(res){
-          this.toast.success('Lender Deleted Successfully');
-          this.GetAllLenders();
-        }
-      })
-    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: 'Confirm Delete',
+        message: 'Are you sure you want to delete this Lender?'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.controllersService.DeleteLender(Number(id)).subscribe(res => {
+          if(res){
+            this.toast.success('Lender Deleted Successfully');
+            this.GetAllLenders();
+            this.serchLenderinput = '';
+            this.loadData();
+            this.dialog.closeAll();
+          }
+        })
+      }
+    });
   }
 
   editMerchant(merchant: any) {
@@ -291,20 +344,36 @@ export class SettingsComponent {
         if(res){
          this.toast.success('Merchant Updated Successfully')
          this.GetAllMerchants();
+         this.serchMerchantinput = '';
+         this.dialog.closeAll();
         }
       })
     })
   }
 
   deleteMerchant(merchantid: string) {
-    if (confirm('Are you sure you want to delete this merchant?')) {
-      this.controllersService.DeleteMerchant(Number(merchantid)).subscribe(res => {
-        if(res){
-          this.toast.success('Merchant deleted successfully');
-          this.GetAllMerchants();
-        }
-      });
-    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: 'Confirm Delete',
+        message: 'Are you sure you want to delete this Merchant?'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.controllersService.DeleteMerchant(Number(merchantid)).subscribe(res => {
+          if(res){
+            this.toast.success('Merchant deleted successfully');
+            this.GetAllMerchants();
+            this.serchMerchantinput = '';
+            this.loadData();
+            this.dialog.closeAll();
+          }
+        }); 
+      }
+    })
+
   }
 
   private loadData() {
@@ -373,8 +442,8 @@ export class SettingsComponent {
     });
 
     this.lenderForm = this.fb.group({
-      name: ['', Validators.required],
-      commission: ['', [Validators.required, Validators.min(0), Validators.max(100)]]
+      lenderName: ['', Validators.required],
+      percentage: ['', [Validators.required, Validators.min(0), Validators.max(100)]]
     });
 
     this.merchantForm = this.fb.group({

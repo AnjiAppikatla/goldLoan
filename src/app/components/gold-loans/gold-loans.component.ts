@@ -149,12 +149,13 @@ export class GoldLoansComponent {
     this.selectedFilter = null;
     this.selectedAgent = '';
     this.selectedDateFilter = '',
-      this.GetAllLoans();
+     
     // this.GetAllBranches();
     this.GetAllMerchants();
     this.GetAllLenders()
     this.loadLoans();
     this.GetAllAgents();
+    //  this.GetAllLoans();
     this.currentUser = this.authService.currentUserValue;
     // Get loans from service
     // this.loans = this.loanService.getLoans() || [];
@@ -163,7 +164,9 @@ export class GoldLoansComponent {
     // this.filteredLoans = [...this.loans];
 
     // this.uniqueAgents = [...new Set(this.authService.users.map(loan => loan.name))].filter(agent => agent);
+    this.loans = [...this.loans].reverse();
     this.filteredLoans = [...this.loans];
+    // this.filteredLoans = [...this.filteredLoans].reverse();
     // Initialize and calculate progress for each loan
     this.loans = this.loans.map(loan => {
       if (!loan) return null; // Skip if loan is undefined
@@ -209,16 +212,55 @@ export class GoldLoansComponent {
   }
 
   loadLoans() {
-    this.controllers.GetAllLoans().subscribe(
-      (response) => {
-        this.loans = response;
-        this.filteredLoans = [...this.loans];
-        this.createChart(); // Initialize chart after loading data
-      },
-      (error) => {
-        console.error('Error fetching loans:', error);
+    // ... existing code ...
+    this.controllers.GetAllLoans().subscribe({
+      next: (response) => {
+        if (response) {
+          this.loans = response;
+          this.loans = [...this.loans].reverse();
+          this.loans.forEach(loan => this.calculateCommissionValues(loan));
+          this.filteredLoans = [...this.loans];
+          // ... rest of the code ...
+        }
       }
-    );
+    });
+  }
+
+  calculateCommissionValues(loan: any) {
+    try {
+      let commissionReceived;
+      if (loan.CommissionReceived) {
+        try {
+          commissionReceived = JSON.parse(loan.CommissionReceived);
+          // Handle both array and single object cases
+          if (!Array.isArray(commissionReceived)) {
+            commissionReceived = [commissionReceived];
+          }
+        } catch (e) {
+          // If parsing fails, assume it's a direct number
+          commissionReceived = [{ Received: parseFloat(loan.CommissionReceived) || 0 }];
+        }
+      } else {
+        commissionReceived = [];
+      }
+  
+      // Calculate total received commission
+      loan.totalReceivedCommission = commissionReceived.reduce(
+        (sum: number, entry: any) => sum + (parseFloat(entry.Received) || 0),
+        0
+      );
+  
+      // Calculate receivable commission
+      loan.receivableCommission = parseFloat(loan.CommissionAmount || 0) - loan.totalReceivedCommission;
+  
+      // Ensure values are not negative
+      loan.totalReceivedCommission = Math.max(0, loan.totalReceivedCommission);
+      loan.receivableCommission = Math.max(0, loan.receivableCommission);
+    } catch (e) {
+      console.error('Error calculating commission values:', e);
+      loan.totalReceivedCommission = 0;
+      loan.receivableCommission = parseFloat(loan.CommissionAmount || 0);
+    }
   }
 
   GetAllAgents() {
@@ -273,7 +315,7 @@ export class GoldLoansComponent {
     this.ngOnInit();
   }
 
-  async downloadData(format: 'excel' | 'pdf', type: 'all' | 'filtered') {
+  downloadData(format: 'excel' | 'pdf', type: 'all' | 'filtered') {
     let filteredLoans = this.chartType === 'merchant'
       ? (this.selectedMerchant
         ? this.loans.filter((loan: any) => loan.MerchantId === this.selectedMerchant)
@@ -285,21 +327,23 @@ export class GoldLoansComponent {
     if (format === 'excel') {
       this.exportToExcel(filteredLoans);
     } else {
-      await this.exportToPDF(filteredLoans);
+       this.exportToPDF(filteredLoans);
     }
-  }
+}
 
-  downloadDataSingle(type: string, loan: any) {
-    // Create an array with single loan
-    const loanData = [loan];
-    
-    if (type === 'excel') {
-      this.exportToExcel(loanData);
-      this.createChart();
-    } else {
-      this.exportToPDF(loanData);
-    }
+downloadDataSingle(type: string, loan: any) {
+  const loanData = [{
+      ...loan,
+      MerchantId: loan.MerchantId,
+      Lender: loan.Lender
+  }];
+  
+  if (type === 'excel') {
+      this.exportToExcel(loanData, true);
+  } else {
+      this.exportToPDF(loanData, true);
   }
+}
 
   private exportToExcel(data: any[], isSingleEntry: boolean = false) {
     try {
@@ -360,14 +404,19 @@ export class GoldLoansComponent {
     // Add chart image
     if (chartCanvas) {
       const chartImage = await html2canvas(chartCanvas);
-      pdf.addImage(chartImage.toDataURL('image/png'), 'PNG', 15, 25, 120, 80);
+      const imgWidth = 80;
+      const imgHeight = (chartImage.height * imgWidth) / chartImage.width;
+      pdf.addImage(chartImage.toDataURL('image/png'), 'PNG', 15, 25, imgWidth, imgHeight);
     }
 
     // Add summary section
-    const totalAmount = loans.reduce((sum, loan) => sum + (loan.Amount || 0), 0);
+    const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
     pdf.setFontSize(12);
     pdf.text(`Total Loans: ${loans.length}`, 150, 40);
-    pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN')}`, 150, 50);
+    pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`, 150, 50);
 
     // Prepare table data with expanded information
     const tableData = loans.map(loan => [
@@ -378,9 +427,9 @@ export class GoldLoansComponent {
       new Date(loan.IssuedDate).toLocaleDateString(),
       new Date(loan.MaturityDate).toLocaleDateString(),
       loan.City || 'N/A',
-      loan.AgentName || 'N/A',
-      `${loan.progress}%`,
-      loan.status || 'N/A'
+      loan.AgentName || 'N/A'
+      // `${loan.progress}%`,
+      // loan.status || 'N/A'
     ]);
 
     const headers = [
@@ -391,10 +440,12 @@ export class GoldLoansComponent {
       'Issue Date',
       'Maturity Date',
       'City',
-      'Agent',
-      'Progress',
-      'Status'
+      'Agent'
+      // 'Progress',
+      // 'Status'
     ];
+
+
 
     // Add the table
     autoTable(pdf, {
@@ -402,7 +453,7 @@ export class GoldLoansComponent {
       body: tableData,
       startY: 110,
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [255, 99, 132] },
+      headStyles: { fillColor: [6, 99, 89] },
       columnStyles: {
         1: { halign: 'right' }, // Align amounts to the right
         8: { halign: 'center' }, // Center progress percentage
@@ -451,25 +502,77 @@ export class GoldLoansComponent {
   applyFilters() {
     let tempLoans = [...this.loans];
 
-    // Apply merchant/lender filter
+    // Agent filter
+    if (this.selectedAgent) {
+        tempLoans = tempLoans.filter(loan => loan.AgentName === this.selectedAgent);
+    }
+
+    // Date filter
+    if (this.selectedDateFilter) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        switch (this.selectedDateFilter) {
+            case 'today':
+                tempLoans = tempLoans.filter(loan => {
+                    const loanDate = new Date(loan.IssuedDate);
+                    return loanDate.toDateString() === today.toDateString();
+                });
+                break;
+            case 'thisWeek':
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay());
+                tempLoans = tempLoans.filter(loan => {
+                    const loanDate = new Date(loan.IssuedDate);
+                    return loanDate >= weekStart && loanDate <= today;
+                });
+                break;
+            case 'thisMonth':
+                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                tempLoans = tempLoans.filter(loan => {
+                    const loanDate = new Date(loan.IssuedDate);
+                    return loanDate >= monthStart && loanDate <= today;
+                });
+                break;
+            case 'custom':
+                if (this.fromDate && this.toDate) {
+                    tempLoans = tempLoans.filter(loan => {
+                        const loanDate = new Date(loan.IssuedDate);
+                        return loanDate >= this.fromDate! && loanDate <= this.toDate!;
+                      });
+                      this.filterDialogClose();
+                }
+                break;
+        }
+    }
+
+    // Merchant/Lender filter
     if (this.selectedFilter) {
-      tempLoans = tempLoans.filter(loan => {
-        const compareId = this.chartType === 'merchant' ? loan.MerchantId : loan.LenderId;
-        return compareId === this.selectedFilter;
-      });
+        tempLoans = tempLoans.filter(loan => {
+            const compareId = this.chartType === 'merchant' ? loan.MerchantId : loan.LenderId;
+            return compareId === this.selectedFilter;
+        });
+    }
+
+    if(this.selectedDateFilter === 'custom'){
+      
+    }
+    else{
+      this.filterDialogClose();
     }
 
     this.filteredLoans = tempLoans;
     this.createChart();
     this.cdr.detectChanges();
-  }
+}
 
-  filterDialogClose() {
-    const dialogRef = this.dialog.getDialogById('filterDialog');
-    if (dialogRef) {
+filterDialogClose() {
+  const dialogRef = this.dialog.getDialogById('filterDialog');
+  if (dialogRef) {
       dialogRef.close();
-    }
+      this.dialog.closeAll(); // Ensure all dialogs are closed
   }
+}
 
   // Add this method to reset all filters
   resetFilters(): void {
@@ -478,28 +581,30 @@ export class GoldLoansComponent {
     this.fromDate = null;
     this.toDate = null;
     this.filteredLoans = [...this.loans];
-  }
+}
 
-  GetAllLoans() {
-    this.filteredLoans = [];
-    this.controllers.GetAllLoans().subscribe({
-      next: (response) => {
-        if (response) {
-          this.filteredLoans = response;
-          this.filteredLoans.map((loan: any) => {
-            const { progress, status } = this.loanService.calculateProgress(loan);
-            loan.progress = progress;
-            loan.status = status;
-          });
-          console.log(this.filteredLoans);
-        }
-      },
-      error: (error) => {
-        console.error('Error fetching loans:', error);
-      }
-    });
+  // GetAllLoans() {
+  //   this.filteredLoans = [];
+  //   this.controllers.GetAllLoans().subscribe({
+  //     next: (response) => {
+  //       if (response) {
+  //         this.filteredLoans = response;
+  //         this.createChart();
+  //         this.filteredLoans = [...this.filteredLoans].reverse();
+  //         this.filteredLoans.map((loan: any) => {
+  //           const { progress, status } = this.loanService.calculateProgress(loan);
+  //           loan.progress = progress;
+  //           loan.status = status;
+  //         });
+  //         console.log(this.filteredLoans);
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error fetching loans:', error);
+  //     }
+  //   });
 
-  }
+  // }
 
   // GetAllBranches() {
   //   this.loanService.cities = [];
@@ -556,7 +661,7 @@ export class GoldLoansComponent {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         // Reload loans data
-        this.GetAllLoans();
+        this.loadLoans();
 
         // Initialize progress for new loans
         this.loans = this.loans.map(loan => {
@@ -858,16 +963,16 @@ export class GoldLoansComponent {
     this.selectedLoan = { ...loan };
 
     // Calculate total received commission from the array
-    const totalReceived = Array.isArray(loan.receivedCommissions)
+    const totalReceived = Array.isArray(loan.CommissionReceived)
       ? loan.receivedCommissions.reduce((sum: number, commission: any) =>
-        sum + (parseFloat(commission.receivedCommission) || 0), 0)
-      : loan.totalReceivedCommission || 0;
+        sum + (parseFloat(commission.CommissionReceived) || 0), 0)
+      : loan.CommissionReceived || 0;
 
     // Initialize form with latest values
     this.commissionForm.patchValue({
-      commissionTotal: parseFloat(loan.commissionAmount || 0),
+      commissionTotal: parseFloat(loan.CommissionAmount || 0),
       received: totalReceived, // Show current received amount instead of 0
-      receivable: parseFloat(loan.commissionAmount || 0) - totalReceived
+      receivable: parseFloat(loan.CommissionAmount || 0) - totalReceived
     });
 
     const dialogRef = this.dialog.open(this.editDialog, {
@@ -897,52 +1002,64 @@ export class GoldLoansComponent {
     if (this.commissionForm.valid) {
       try {
         const newCommission = parseFloat(this.commissionForm.value.received);
-        const totalCommission = parseFloat(this.selectedLoan.commissionAmount);
-
+        const totalCommission = parseFloat(this.selectedLoan.CommissionAmount);
+  
+        // Get existing commission entries or initialize empty array
+        let existingCommissions:any = [];
+        try {
+          if (this.selectedLoan.CommissionReceived) {
+            const parsed = JSON.parse(this.selectedLoan.CommissionReceived);
+            // Ensure we have an array
+            existingCommissions = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch (e) {
+          console.error('Error parsing commission data:', e);
+          existingCommissions = [];
+        }
+  
+        // Calculate total received commission
+        const totalReceived = existingCommissions.length > 0 
+          ? existingCommissions.reduce((sum:any, entry:any) => 
+              sum + (parseFloat(entry.Received) || 0), 0)
+          : 0;
+        const remainingCommission = totalCommission - totalReceived;
+  
         // Validate commission amount
-        if (newCommission > totalCommission) {
-          this.toast.warning(`Commission cannot exceed total amount of ${totalCommission}`)
+        if (newCommission > remainingCommission) {
+          this.toast.warning(`Commission cannot exceed remaining amount of ${remainingCommission}`);
           return;
         }
+  
+        // Prepare commission data for API
+        const commissionData = {
+          received: newCommission,
+          date: new Date().toISOString().split('T')[0],
+          remaining: remainingCommission - newCommission
+        };
+  
+        // Call UpdateCommission controller
+        this.controllers.UpdateCommission(commissionData, Number(this.selectedLoan.Id)).subscribe({
+          next: (response) => {
+            if (response) {
 
-        // Update commission in service
-        this.loanService.updateCommission(this.selectedLoan.leadId, {
-          received: newCommission
-        });
-
-        // Update local data with progress calculation
-        this.loans = this.loans.map(loan => {
-          if (loan.leadId === this.selectedLoan.leadId) {
-            // Calculate progress
-            const progress = this.loanService.calculateProgress(loan);
-
-            return {
-              ...loan,
-              progress: progress,
-              totalReceivedCommission: newCommission,
-              receivableCommission: totalCommission - newCommission
-            };
+              const dialogRef = this.dialog.getDialogById('editDialog');
+              if (dialogRef) {
+                dialogRef.close();
+              }
+  
+              this.toast.success('Commission updated successfully');
+              this.cdr.detectChanges();
+            }
+          },
+          error: (error) => {
+            console.error('Error updating commission:', error);
+            this.toast.error(error.message || 'Error updating commission');
           }
-          // Preserve existing loan data including progress
-          return {
-            ...loan,
-            progress: loan.progress // Keep existing progress
-          };
         });
-
-        // Close only the dialog, not the expansion panel
-        const dialogRef = this.dialog.getDialogById('editDialog');
-        if (dialogRef) {
-          dialogRef.close();
-        }
-
-        // Show success message
-        this.toast.success('Commission updated successfully');
-
-        // Force change detection to update the view
-        this.cdr.detectChanges();
+  
       } catch (error: any) {
-        this.toast.error(error.message);
+        console.error('Error updating commission:', error);
+        this.toast.error(error.message || 'Error updating commission');
       }
     }
   }
@@ -956,7 +1073,7 @@ export class GoldLoansComponent {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.GetAllLoans(); // Refresh the list
+        this.loadLoans(); // Refresh the list
       }
     });
   }
@@ -1000,7 +1117,7 @@ export class GoldLoansComponent {
           next: (response) => {
             if (response) {
               this.toast.success('Loan deleted successfully');
-              this.GetAllLoans(); // Refresh the list
+              this.loadLoans(); // Refresh the list
             }
           }
         });

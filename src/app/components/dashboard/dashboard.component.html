@@ -39,16 +39,16 @@
   
             <mat-form-field appearance="outline" class="w-full sm:w-40">
               <mat-label>End Date</mat-label>
-              <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="onDateChange()">
+              <input matInput [matDatepicker]="endPicker" [max]="today" [(ngModel)]="endDate" (dateChange)="onDateChange()">
               <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
               <mat-datepicker #endPicker></mat-datepicker>
             </mat-form-field>
           </div>
         </div>
       </div>
-      <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
+      <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow">
         <h3 class="text-lg font-semibold mb-4">Agent Report</h3>
-        <div class="h-full">
+        <div class="h-[400px]">
           <canvas id="goldDistributionChart"></canvas>
         </div>
       </div>
@@ -107,10 +107,10 @@
       </div>
     
       <!-- Time Distribution Chart -->
-      <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow h-[400px]">
+      <div class="bg-white p-4 md:p-6 rounded-lg cm-shadow">
         <h3 class="text-lg sm:text-sm font-semibold">{{selectedType === 'merchants' ? 'Merchant' : 'Lender'}} Report</h3>
         
-        <div class="h-full">
+        <div class="h-[400px]">
           <canvas id="merchantDistributionChart"></canvas>
       </div>
       </div>
@@ -140,11 +140,11 @@
                   <mat-icon>delete</mat-icon>
                   <span>Delete</span>
                 </button>
-                <button mat-menu-item (click)="downloadLoan(loan)">
+                <button mat-menu-item (click)="downloadLoan(loan, 'excel')">
                   <mat-icon class="text-xl">download</mat-icon>
                   <span>Download as XL</span>
                 </button>
-                <button mat-menu-item (click)="downloadData('pdf')">
+                <button mat-menu-item (click)="downloadLoan(loan,'pdf')">
                   <mat-icon>picture_as_pdf</mat-icon>
                   <span>Download as PDF</span>
                 </button>
@@ -182,8 +182,8 @@
           <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
             <p><strong>Amount :</strong> {{loan.Amount}}</p>
-            <p><strong>Issue Date :</strong> {{loan.IssuedDate | date}}</p>
-            <p><strong>Maturity Date :</strong> {{loan.MaturityDate | date}}</p>
+            <p><strong>Issue Date :</strong> {{loan.IssuedDate | date: 'dd/MM/yyyy'}}</p>
+            <p><strong>Maturity Date :</strong> {{loan.MaturityDate | date: 'dd/MM/yyyy'}}</p>
             <p><strong>Aadhar:</strong> {{loan.AadharNumber}}</p>
             <p><strong>PAN:</strong> {{loan.PanNumber}}</p>
           </div>
@@ -205,8 +205,8 @@
           <!-- Payment Details -->
           <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
-            <p><strong>Payment Date :</strong> {{loan.PaymentDate | date}}</p>
-            <p><strong>Payment Type :</strong> {{loan.MerchantId}}</p>
+            <p><strong>Payment Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
+            <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
             <ng-container [ngSwitch]="loan.paymentType">
               <ng-container *ngSwitchCase="'Cash'">
                 <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
@@ -224,7 +224,7 @@
           <!-- Refund Details -->
           <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
-            <p><strong>Refund Date :</strong> {{loan.PaymentDate | date}}</p>
+            <p><strong>Refund Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
             <p><strong>Account Name :</strong> {{loan.AccountName}}</p>
             <p><strong>Account Number :</strong> {{loan.AccountNumber}}</p>
             <p><strong>IFSC Code :</strong> {{loan.IfscCode}}</p>

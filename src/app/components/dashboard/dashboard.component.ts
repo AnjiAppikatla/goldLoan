@@ -13,7 +13,7 @@ import { AuthService } from '../../services/auth.service';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { ControllersService } from '../../services/controllers.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -89,6 +89,7 @@ export class DashboardComponent implements OnInit {
   lenders: any[] = [];
 
   datefilterResult: string = '';
+  today = new Date();
 
   @ViewChild('editLoanDialog') editLoanDialog!: TemplateRef<any>;
   
@@ -174,12 +175,17 @@ private initializeCharts() {
   }
 
   onLenderChange() {
-    this.filteredLoans = this.selectedLender
-      ? this.recentLoans.filter((loan: any) => loan.Lender === this.selectedLender)
-      : this.recentLoans;
+    // Get the selected lender's name from the lenders array
+    const selectedLenderName = this.selectedLender
+        ? this.lenders.find(l => l.id === this.selectedLender)?.lenderName
+        : null;
+
+    this.filteredLoans = selectedLenderName
+        ? this.recentLoans.filter((loan: any) => loan.Lender === selectedLenderName)
+        : this.recentLoans;
 
     this.createChart();
-  }
+}
 
   GetAllLenders() {
     this.controllers.GetAllLenders().subscribe({
@@ -255,13 +261,17 @@ private initializeCharts() {
   }
 
   updateChart() {
-    // Update chart based on selected type and value
+    // Clear previous selection when switching types
     if (this.selectedType === 'merchants') {
-      this.onMerchantChange();
+        this.selectedLender = null;
     } else {
-      this.onLenderChange()
+        this.selectedMerchant = null;
     }
-  }
+    
+    // Reset filtered loans to all loans when switching types
+    this.filteredLoans = this.recentLoans;
+    this.createChart();
+}
 
 
 
@@ -287,27 +297,13 @@ private initializeCharts() {
     });
   }
 
-  downloadLoan(loan: any) {
-    const loanData = {
-      Name: loan.Name,
-      Amount: loan.Amount,
-      MobileNo: loan.MobileNo,
-      City: loan.City,
-      IssuedDate: loan.IssuedDate,
-      MaturityDate: loan.MaturityDate,
-      Lender: loan.Lender,
-      AgentName: loan.AgentName
-    };
-
-    const csvData = this.convertToCSV([loanData]);
-    const blob = new Blob([csvData], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `loan_${loan.Name}_${new Date().getTime()}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
+  async downloadLoan(loan: any, type: 'excel' | 'pdf') {
+    if (type === 'excel') {
+        this.exportToExcel([loan]);
+    } else {
+        await this.exportToPDF([loan]);
+    }
+}
 
 
   GetAllMerchants() {
@@ -322,9 +318,13 @@ private initializeCharts() {
   }
 
   onMerchantChange() {
+    this.filteredLoans = this.selectedMerchant
+        ? this.recentLoans.filter((loan: any) => loan.MerchantId === this.selectedMerchant)
+        : this.recentLoans;
+
     this.updateMerchantStats();
     this.createChart();
-  }
+}
 
   updateMerchantStats() {
     const filteredLoans = this.selectedMerchant
@@ -338,96 +338,139 @@ private initializeCharts() {
   }
 
   async downloadData(type: 'excel' | 'pdf') {
-    const filteredLoans = this.selectedType === 'merchants'
-      ? (this.selectedMerchant
-        ? this.recentLoans.filter((loan: any) => loan.MerchantId === this.selectedMerchant)
-        : this.recentLoans)
-      : (this.selectedLender
-        ? this.recentLoans.filter((loan: any) => loan.Lender === this.selectedLender)
-        : this.recentLoans);
+    let filteredLoans;
+    
+    if (this.selectedType === 'merchants') {
+        const selectedMerchantName = this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName;
+        filteredLoans = this.selectedMerchant
+            ? this.recentLoans.filter((loan: any) => loan.MerchantId === this.selectedMerchant)
+            : this.recentLoans;
+    } else {
+        const selectedLenderName = this.lenders.find(l => l.id === this.selectedLender)?.lenderName;
+        filteredLoans = this.selectedLender
+            ? this.recentLoans.filter((loan: any) => loan.Lender === selectedLenderName)
+            : this.recentLoans;
+    }
 
     if (type === 'excel') {
-      this.exportToExcel(filteredLoans);
+        this.exportToExcel(filteredLoans);
     } else {
-      await this.exportToPDF(filteredLoans);
+        await this.exportToPDF(filteredLoans);
     }
+}
+
+private async exportToPDF(loans: any[]) {
+  const pdf = new jsPDF('landscape');
+  const chartCanvas = document.getElementById('merchantDistributionChart') as HTMLCanvasElement;
+
+  // Add title - handle single loan case differently
+  const title = loans.length === 1
+      ? `Loan Details - ${loans[0].Name}`
+      : this.selectedType === 'merchants'
+          ? `Merchant Report - ${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All Merchants'}`
+          : `Lender Report - ${this.selectedLender ? this.lenders.find(l => l.id === this.selectedLender)?.lenderName : 'All Lenders'}`;
+
+  pdf.setFontSize(16);
+  pdf.text(title, 15, 15);
+
+  // Only add chart for multiple loans
+  if (chartCanvas && loans.length > 1) {
+      const chartImage = await html2canvas(chartCanvas);
+      const imgWidth = 80;
+      const imgHeight = (chartImage.height * imgWidth) / chartImage.width;
+      pdf.addImage(chartImage.toDataURL('image/png'), 'PNG', 15, 25, imgWidth, imgHeight);
+
+      // Add summary for multiple loans
+      const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
+      pdf.setFontSize(12);
+      pdf.text(`Total Loans: ${loans.length}`, 150, 40);
+      pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN')}`, 150, 50);
   }
 
-  private async exportToPDF(loans: any[]) {
-    const pdf = new jsPDF('landscape');
-    const chartCanvas = document.getElementById('merchantDistributionChart') as HTMLCanvasElement;
+  const headers = [
+    'Name',
+    'Amount',
+    'Lender',
+    'Merchant',
+    'Issue Date',
+    'Maturity Date',
+    'City',
+    'Agent'
+    // 'Progress',
+    // 'Status'
+  ];
 
-    // Add title
-    const title = this.selectedType === 'merchants'
-      ? `Merchant Report - ${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All Merchants'}`
-      : `Lender Report - ${this.selectedLender ? this.lenders.find(l => l.id === this.selectedLender)?.lenderName : 'All Lenders'}`;
+  const tableData = loans.map(loan => [
+    loan.Name,
+    this.formatIndianAmount(Number(loan.Amount || 0)),
+    loan.Lender,
+    this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
+    new Date(loan.IssuedDate).toLocaleDateString(),
+    new Date(loan.MaturityDate).toLocaleDateString(),
+    loan.City || 'N/A',
+    loan.AgentName || 'N/A'
+]);
 
-    pdf.setFontSize(16);
-    pdf.text(title, 15, 15);
+const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
+pdf.setFontSize(12);
+pdf.text(`Total Loans: ${loans.length}`, 150, 40);
+pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+})}`, 150, 50);
 
-    // Add chart image
-    if (chartCanvas) {
-      const chartImage = await html2canvas(chartCanvas);
-      pdf.addImage(chartImage.toDataURL('image/png'), 'PNG', 15, 25, 120, 80);
-    }
 
-    // Add summary section
-    const totalAmount = loans.reduce((sum, loan) => sum + (loan.Amount || 0), 0);
-    pdf.setFontSize(12);
-    pdf.text(`Total Loans: ${loans.length}`, 150, 40);
-    pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN')}`, 150, 50);
-
-    // Prepare table data with expanded information
-    const tableData = loans.map(loan => [
-      loan.Name,
-      `₹${loan.Amount.toLocaleString('en-IN')}`,
-      loan.Lender,
-      this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'Unknown',
-      new Date(loan.IssuedDate).toLocaleDateString(),
-      new Date(loan.MaturityDate).toLocaleDateString(),
-      loan.City || 'N/A',
-      loan.AgentName || 'N/A',
-      `${loan.progress}%`,
-      loan.status || 'N/A'
-    ]);
-
-    const headers = [
-      'Name',
-      'Amount',
-      'Lender',
-      'Merchant',
-      'Issue Date',
-      'Maturity Date',
-      'City',
-      'Agent',
-      'Progress',
-      'Status'
-    ];
-
-    // Add the table
-    autoTable(pdf, {
-      head: [headers],
-      body: tableData,
-      startY: 110,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [255, 99, 132] },
-      columnStyles: {
-        1: { halign: 'right' }, // Align amounts to the right
-        8: { halign: 'center' }, // Center progress percentage
-      },
-      didDrawPage: (data) => {
-        // Add footer
+// Add the table with adjusted start position
+autoTable(pdf, {
+    head: [headers],
+    body: tableData,
+    startY: loans.length === 1 ? 30 : 110,
+    styles: { 
+        fontSize: 8,
+        cellPadding: 2 // Reduce cell padding
+    },
+    headStyles: { 
+        fillColor: [255, 99, 132],
+        fontSize: 8,
+        fontStyle: 'bold',
+        halign: 'left'
+    },
+    columnStyles: {
+        0: { cellWidth: 'auto' }, // Name column
+        1: { 
+            halign: 'right',
+            cellWidth: 'auto',
+            font: 'helvetica', // Use consistent font
+            fontSize: 8 // Ensure consistent font size
+        },
+        8: { halign: 'center' }
+    },
+    margin: { top: 10, right: 10, bottom: 10, left: 10 }, // Add margins
+    didDrawPage: (data) => {
         pdf.setFontSize(8);
         pdf.text(
-          `Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
-          pdf.internal.pageSize.getWidth() - 60,
-          pdf.internal.pageSize.getHeight() - 10
+            `Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+            pdf.internal.pageSize.getWidth() - 60,
+            pdf.internal.pageSize.getHeight() - 10
         );
-      }
-    });
+    }
+});
 
-    pdf.save(`${title}_${new Date().toISOString().split('T')[0]}.pdf`);
-  }
+  pdf.save(`${title}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+formatIndianAmount(amount: number): string {
+  const parts = amount.toFixed(2).split(".");
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+
+  // Indian format with commas (lakhs/crores)
+  const lastThree = integerPart.slice(-3);
+  const otherNumbers = integerPart.slice(0, -3);
+  const formattedInteger = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + (otherNumbers ? "," : "") + lastThree;
+
+  return "₹" + formattedInteger + "." + decimalPart;
+}
 
 
   // private exportToExcel(loans: any[]) {
@@ -460,39 +503,38 @@ private initializeCharts() {
   //   XLSX.writeFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
   // }
 
-  private exportToExcel(data: any[]) {
+  private exportToExcel(loans: any[]) {
     try {
-      // Format data based on selected filter
-      const formattedData = data.map(loan => ({
-        'Name': loan.Name || 'N/A',
-        'Amount': loan.Amount || 0,
-        'Merchant': this.merchants.find(m => m.merchantId === loan.MerchantId)?.merchantName || 'N/A',
-        'Lender': this.lenders.find((l:any) => l.lenderId === loan.LenderId)?.lenderName || 'N/A',
-        'Mobile': loan.MobileNo || 'N/A',
-        'City': loan.City || 'N/A',
-        'Agent Name': loan.AgentName || 'N/A',
-        'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
-        'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
-        'Status': this.goldLoanService.calculateProgress(loan).status || 'N/A',
-        'Commission Amount': loan.CommissionAmount || 0,
-        'Commission Status': loan.CommissionStatus || 'N/A',
-        'Payment Type': loan.PaymentType || 'N/A',
-        'Online Payment Type': loan.OnlinePaymentType || 'N/A',
-        'Received By': loan.ReceivedBy || 'N/A'
-      }));
-  
-      const worksheet = XLSX.utils.json_to_sheet(formattedData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Loans');
-  
-      const fileName = `Loans_Report_${this.getFilterName()}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-      this.toast.success('Excel file downloaded successfully');
+        const formattedData = loans.map(loan => ({
+            'Name': loan.Name || 'N/A',
+            'Amount': loan.Amount || 0,
+            'Merchant': this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
+            'Lender': loan.Lender || 'N/A', // Use loan.Lender directly instead of looking up in lenders array
+            'Mobile': loan.MobileNo || 'N/A',
+            'City': loan.City || 'N/A',
+            'Agent Name': loan.AgentName || 'N/A',
+            'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
+            'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
+            'Payment Type': loan.PaymentType || 'N/A',
+            'Online Payment Type': loan.OnlinePaymentType || 'N/A',
+            'Received By': loan.ReceivedBy || 'N/A'
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(formattedData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Loans');
+
+        const title = loans.length === 1
+            ? `Loan_${loans[0].Name}`
+            : this.selectedType === 'merchants'
+                ? `Merchant_${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All'}`
+                : `Lender_${this.selectedLender ? loans[0].Lender : 'All'}`;
+
+        XLSX.writeFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
-      console.error('Error exporting to Excel:', error);
-      this.toast.error('Failed to download Excel file');
+        console.error('Error exporting to Excel:', error);
     }
-  }
+}
 
     private getFilterName() {
       if (!this.selectedType) return 'All';
@@ -507,85 +549,90 @@ private initializeCharts() {
     }
 
 
-  createChart() {
-    if (this.merchantChart) {
-      this.merchantChart.destroy();
-    }
-    const canvas = document.getElementById('merchantDistributionChart') as HTMLCanvasElement;
-    if (!canvas) {
-      setTimeout(() => this.createChart(), 100);
-      return;
-    }
-
-    const chartData = this.selectedType === 'merchants'
-      ? this.calculateMerchantDistribution()
-      : this.calculateLenderDistribution();
-
-      console.log( "chartData" ,chartData)
-
-    const colors = [
-      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-      '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF9F40'
-    ];
-
-    this.merchantChart = new Chart(canvas, {
-      type: 'pie',
-      data: {
-          labels: chartData.labels,
-          datasets: [{
-              data: chartData.values,
-              backgroundColor: colors,
-              borderWidth: 1,
-              borderColor: '#fff'
-          }]
-      },
-      options: {
-          responsive: true,
-          maintainAspectRatio: true,  // Allow custom dimensions
-          layout: {
-              padding: {
-                  left: 0,
-                  right: 0,  // Space for legend
-                  top: 0,
-                  bottom: 0
-              }
+    createChart() {
+      if (this.merchantChart) {
+          this.merchantChart.destroy();
+      }
+      const canvas = document.getElementById('merchantDistributionChart') as HTMLCanvasElement;
+      if (!canvas) {
+          setTimeout(() => this.createChart(), 100);
+          return;
+      }
+  
+      const chartData = this.selectedType === 'merchants'
+          ? this.calculateMerchantDistribution()
+          : this.calculateLenderDistribution();
+  
+      const colors = [
+          '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+          '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF9F40'
+      ];
+  
+      // Format labels to include loan count
+      const formattedLabels = chartData.labels.map((label, index) => {
+          const count = this.selectedType === 'merchants'
+              ? this.recentLoans.filter((loan:any) => this.merchants.find(m => m.merchantName === label)?.merchantid === loan.MerchantId).length
+              : this.recentLoans.filter((loan:any) => loan.Lender === label).length;
+          return `${label} (${count})`;
+      });
+  
+      this.merchantChart = new Chart(canvas, {
+          type: 'pie',
+          data: {
+              labels: formattedLabels,
+              datasets: [{
+                  data: chartData.values,
+                  backgroundColor: colors,
+                  borderWidth: 1,
+                  borderColor: '#fff'
+              }]
           },
-          plugins: {
-              legend: {
-                  position: 'bottom',
-                  align: 'center',
-                  labels: {
-                      color: '#333',
-                      padding: 10,
-                      boxWidth: 15,
-                      boxHeight: 15
+          options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              layout: {
+                  padding: {
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0
                   }
               },
-              tooltip: {
-                  callbacks: {
-                      label: (context) => {
-                          const value = context.raw as number;
-                          return `${context.label}: ₹${value.toLocaleString('en-IN')}`;
+              plugins: {
+                  legend: {
+                      position: 'bottom',
+                      align: 'center',
+                      labels: {
+                          color: '#333',
+                          padding: 10,
+                          boxWidth: 15,
+                          boxHeight: 15,
+                          font: {
+                              size: 11 // Smaller font size for legend
+                          }
+                      }
+                  },
+                  tooltip: {
+                      callbacks: {
+                          label: (context) => {
+                              const value = context.raw as number;
+                              return `Amount: ₹${value.toLocaleString('en-IN')}`;
+                          }
                       }
                   }
+              },
+              animation: {
+                  duration: 800,
+                  easing: 'easeInOutQuart',
+                  animateRotate: true,
+                  animateScale: true
               }
-          },
-          animation: {
-              duration: 800,
-              easing: 'easeInOutQuart',
-              animateRotate: true,
-              animateScale: true
           }
-      }
-  });
-    
+      });
   }
 
   getFilteredLoans() {
     let filteredLoans = [...this.recentLoans];
-
-   
-
     // Apply merchant/lender filter
     if (this.selectedMerchant) {
       if (this.selectedMerchant == 'merchant') {
@@ -600,11 +647,17 @@ private initializeCharts() {
 
   calculateMerchantDistribution() {
     const merchantData = new Map<string, { count: number, amount: number }>();
-    const filteredLoans = this.recentLoans;
+    // Filter loans based on selected merchant
+    const filteredLoans = this.selectedMerchant
+        ? this.recentLoans.filter((loan:any) => loan.MerchantId === this.selectedMerchant)
+        : this.recentLoans;
 
     // First ensure all merchants are initialized with zero values
     this.merchants.forEach(merchant => {
-        merchantData.set(merchant.merchantName, { count: 0, amount: 0 });
+        // Only initialize selected merchant or all merchants if none selected
+        if (!this.selectedMerchant || merchant.merchantid === this.selectedMerchant) {
+            merchantData.set(merchant.merchantName, { count: 0, amount: 0 });
+        }
     });
 
     // Then aggregate loan data
@@ -631,26 +684,34 @@ private initializeCharts() {
     };
 }
 
-  private calculateLenderDistribution() {
-    const lenderData = new Map<string, { count: number, amount: number }>();
+private calculateLenderDistribution() {
+  const lenderData = new Map<string, { count: number, amount: number }>();
 
-    let filteredLoans = this.getFilteredLoans();
+  // Filter loans based on selected lender
+  const filteredLoans = this.selectedLender
+      ? this.recentLoans.filter((loan:any) => loan.Lender === this.lenders.find(l => l.id === this.selectedLender)?.lenderName)
+      : this.recentLoans;
 
-    filteredLoans.forEach(loan => {
-      const lender = this.lenders.find((l: any) => l.lenderName === loan.Lender);
-      const lenderName = lender?.lenderName || 'Unknown';
-      const currentData = lenderData.get(lenderName) || { count: 0, amount: 0 };
-      lenderData.set(lenderName, {
-        count: currentData.count + 1,
-        amount: currentData.amount + (parseFloat(loan.Amount) || 0)
-      });
-    });
+  // Aggregate loan data directly from loans instead of initializing all lenders
+  filteredLoans.forEach((loan:any) => {
+      if (loan.Lender) {
+          const currentData = lenderData.get(loan.Lender) || { count: 0, amount: 0 };
+          lenderData.set(loan.Lender, {
+              count: currentData.count + 1,
+              amount: currentData.amount + (parseFloat(loan.Amount) || 0)
+          });
+      }
+  });
 
-    return {
-      labels: Array.from(lenderData.keys()),
-      values: Array.from(lenderData.values()).map(data => data.amount)
-    };
-  }
+  // Sort by amount
+  const sortedData = Array.from(lenderData.entries())
+      .sort(([_, a], [__, b]) => b.amount - a.amount);
+
+  return {
+      labels: sortedData.map(([name, _]) => name),
+      values: sortedData.map(([_, data]) => data.amount)
+  };
+}
   
   
 
@@ -691,6 +752,8 @@ private initializeCharts() {
         if (response) {
           this.recentLoans = response;
 
+          this.recentLoans = [...this.recentLoans].reverse(); // Reverse the array here
+
           this.recentLoans.map((loan: any) => {
             const { progress, status } = this.goldLoanService.calculateProgress(loan);
             loan.progress = progress;
@@ -712,97 +775,96 @@ private initializeCharts() {
     })
   }
 
+// ... existing code ...
 
+private createPieChart() {
+  try {
+      const agents = this.AllAgents;
+      if (!agents || agents.length === 0) {
+          console.warn('No agents found');
+          return;
+      }
 
+      // Calculate loans per agent and filter out agents with no loans
+      const agentLoans = agents
+          .filter((agent: any) => agent && agent.name) // Filter invalid agents
+          .map((agent: any) => {
+              const loans = this.recentLoans;
+              const agentLoans = loans ? loans.filter(
+                  (loan: any) => loan && loan.AgentName === agent.name
+              ) : [];
 
+              return {
+                  name: agent.name,
+                  loanCount: agentLoans.length,
+                  totalAmount: agentLoans.reduce((sum: number, loan: any) => 
+                      sum + (parseFloat(loan.Amount) || 0), 0)
+              };
+          })
+          .filter((agent:any) => agent.loanCount > 0) // Only include agents with loans
+          .sort((a:any, b:any) => b.totalAmount - a.totalAmount); // Sort by total amount
 
-  private createPieChart() {
-    try {
-        const agents = this.AllAgents;
-        if (!agents || agents.length === 0) {
-            console.warn('No agents found');
-            return;
-        }
+      // Destroy existing chart if it exists
+      if (this.chart) {
+          this.chart.destroy();
+          this.chart = null;
+      }
 
-        // Calculate loans per agent without filtering out zero loans
-        const agentLoans = agents
-            .filter((agent: any) => agent && agent.name) // Only filter invalid agents
-            .map((agent: any) => {
-                const loans = this.recentLoans;
-                const agentLoans = loans ? loans.filter(
-                    (loan: any) => loan && loan.AgentName === agent.name
-                ) : [];
+      const canvas = document.getElementById('goldDistributionChart');
+      if (!canvas) {
+          console.error('Chart canvas element not found');
+          return;
+      }
 
-                return {
-                    name: agent.name,
-                    loanCount: agentLoans.length
-                };
-            });
-
-        // Destroy existing chart if it exists
-        if (this.chart) {
-            this.chart.destroy();
-            this.chart = null;
-        }
-
-        const canvas = document.getElementById('goldDistributionChart');
-        if (!canvas) {
-            console.error('Chart canvas element not found');
-            return;
-        }
-
-        this.chart = new Chart(canvas as HTMLCanvasElement, {
-            type: 'pie',
-            data: {
-                labels: agentLoans.map((agent:any) => agent.name),
-                datasets: [{
-                    data: agentLoans.map((agent:any) => agent.loanCount),
-                    backgroundColor: [
-                        '#4CAF50',  // Green
-                        '#2196F3',  // Blue
-                        '#FFC107',  // Amber
-                        '#FF5722',  // Deep Orange
-                        '#9C27B0'   // Purple
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 0,
-                            boxWidth: 12,
-                            font: { size: 11 }
+      this.chart = new Chart(canvas as HTMLCanvasElement, {
+          type: 'pie',
+          data: {
+              labels: agentLoans.map((agent:any) => `${agent.name} (${agent.loanCount})`),
+              datasets: [{
+                  data: agentLoans.map((agent:any) => agent.totalAmount),
+                  backgroundColor: [
+                      '#4CAF50',  // Green
+                      '#2196F3',  // Blue
+                      '#FFC107',  // Amber
+                      '#FF5722',  // Deep Orange
+                      '#9C27B0'   // Purple
+                  ]
+              }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    align: 'center',
+                    labels: {
+                        color: '#333',
+                        padding: 8,
+                        boxWidth: 12,
+                        boxHeight: 12,
+                        font: {
+                            size: 10 // Smaller font size for legend
                         }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => {
-                                const dataset = context.dataset;
-                                const total = dataset.data.reduce((sum: number, val: number) => sum + (val || 0), 0);
-                                const value = context.raw as number;
-                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
-                                return `${context.label}: ${value} loans (${percentage}%)`;
-                            }
-                        },
-                    },
-                    
+                    }
                 },
-                animation: {
-                  duration: 800,
-                  easing: 'easeInOutQuart',
-                  animateRotate: true,
-                  animateScale: true
-              }
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const value = context.raw as number;
+                            return `Amount: ₹${value.toLocaleString('en-IN')}`;
+                        }
+                    }
+                }
             }
-        });
-    } catch (error) {
-        console.error('Error creating pie chart:', error);
-    }
+        }
+      });
+  } catch (error) {
+      console.error('Error creating pie chart:', error);
+  }
 }
+
+// ... existing code ...
 
   private createTimeDistributionChart() {
     try {

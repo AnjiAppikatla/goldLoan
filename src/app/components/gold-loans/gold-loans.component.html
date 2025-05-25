@@ -38,7 +38,7 @@
   (merchants | find:'merchantid':selectedFilter)?.merchantName : 
   (lenders | find:'id':selectedFilter)?.lenderName}}
       </p>
-      <div class="h-[300px]">
+      <div class="h-[400px]">
         <canvas id="goldLoansChart"></canvas>
       </div>
     </div>
@@ -117,9 +117,9 @@
           </div>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2 pt-4">
+      <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2 pt-4">
         <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
-          <div class="progress-bar w-full h-[15px] bg-gray-200 rounded-sm overflow-hidden relative">
+          <div class="progress-bar w-full h-[15px] rounded-sm overflow-hidden relative">
             <div class="h-full transition-all duration-300"
               [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
               [style.width.%]="100">
@@ -129,10 +129,10 @@
             {{loan.progress | number:'1.0-0'}}%
           </span>
         </div>
-      </div>
+      </div> -->
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
-        <div class="bg-gray-200 p-4 rounded">
+        <div class="p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Personal Details</h3>
           <p><strong>Lender :</strong> {{loan.Lender}}</p>
           <p><strong>LeadId :</strong> {{loan.LeadId}}</p>
@@ -141,18 +141,18 @@
           <p><strong>Agent Name :</strong> {{loan.AgentName}}</p>
         </div>
 
-        <div class="bg-gray-200 p-4 rounded">
+        <div class="p-4 rounded">
           <div class="">
             <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
             <p><strong>Amount :</strong> {{loan.Amount}}</p>
-            <p><strong>Issue Date :</strong> {{loan.IssuedDate | date}}</p>
-            <p><strong>Maturity Date :</strong> {{loan.MaturityDate | date}}</p>
+            <p><strong>Issue Date :</strong> {{loan.IssuedDate | date: 'dd/MM/yyyy'}}</p>
+            <p><strong>Maturity Date :</strong> {{loan.MaturityDate | date: 'dd/MM/yyyy'}}</p>
             <p><strong>Aadhar:</strong> {{loan.AadharNumber}}</p>
             <p><strong>PAN:</strong> {{loan.PanNumber}}</p>
           </div>
         </div>
 
-        <div class="bg-gray-200 p-4 rounded" *ngIf="currentUser?.role === 'admin'">
+        <div class="p-4 rounded" *ngIf="currentUser?.role === 'admin'">
           <h3 class="mb-2 text-amber-500 font-bold relative">Revenew
             <span class="absolute right-0 top-0">
               <button mat-icon-button color="primary" (click)="openEditDialog(loan)"
@@ -163,20 +163,22 @@
           </h3>
 
           <p><strong>Total Revenew :</strong> {{loan.CommissionAmount}}</p>
-          <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
-          <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
+<p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
+<p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
 
         </div>
 
 
 
-        <div class="bg-gray-200 p-4 rounded">
+        <div class="p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
-          <p><strong>Payment Date :</strong> {{loan.PaymentDate | date}}</p>
+          <p><strong>Payment Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
           <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
+          <p *ngIf="loan.PaymentType !== 'Online'"><strong>Amount In Cash :</strong> {{loan.CashAmount}}</p>
+          <p *ngIf="loan.PaymentType !== 'Cash'"><strong>Amount In online :</strong> {{loan.OnlineAmount}}</p>
 
 
-          <ng-container *ngIf="loan.paymentType == 'Cash'">
+          <!-- <ng-container *ngIf="loan.paymentType == 'Cash'">
             <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
           </ng-container>
           <ng-container *ngIf="loan.paymentType == 'Online'">
@@ -187,15 +189,15 @@
             <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
             <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
             <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
-          </ng-container>
+          </ng-container> -->
 
 
 
         </div>
 
-        <div class="bg-gray-200 p-4 rounded">
+        <div class="p-4 rounded">
           <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
-          <p><strong>Refund Date :</strong> {{loan.PaymentDate | date}}</p>
+          <p><strong>Refund Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
           <p><strong>Account Name :</strong> {{loan.AccountName}}</p>
           <p><strong>Account Number :</strong> {{loan.AccountNumber}}</p>
           <p><strong>IFSC Code :</strong> {{loan.IfscCode}}</p>
