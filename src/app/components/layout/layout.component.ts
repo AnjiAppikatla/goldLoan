@@ -13,6 +13,7 @@ import { SettingsComponent } from '../settings/settings.component';
 import { PersonalloansComponent } from '../personalloans/personalloans.component';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
+import { IndentLoanComponent } from "../indent-loan/indent-loan.component";
 
 
 @Component({
@@ -33,13 +34,16 @@ import { Subscription } from 'rxjs';
     GoldLoansComponent,
     SettingsComponent,
     PersonalloansComponent,
-  ]
+    IndentLoanComponent
+]
 })
 export class LayoutComponent {
   isDashboard = false;
   isGoldLoans = false;
   isSettings = false;
   personalloans = false;
+  indentloans = false;
+
 
   showSidenav = false;
   currentUser: any;
@@ -100,6 +104,9 @@ onScreenChange(screen: string) {
     case 'personalLoans':
       this.personalloans = true;
       break;
+    case 'indentloans':
+      this.indentloans = true;
+      break;
   }
 }
 
@@ -108,5 +115,6 @@ onScreenChange(screen: string) {
     this.isGoldLoans = false;
     this.isSettings = false;
     this.personalloans = false;
+    this.indentloans = false;
   }
 }

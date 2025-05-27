@@ -14,6 +14,8 @@ import { IndentLoanDialogComponent } from '../indent-loan/indent-loan-dialog/ind
 import { ControllersService } from '../../services/controllers.service';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
+import { NewLoanComponent } from '../gold-loans/new-loan/new-loan.component';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-indent-loan',
@@ -36,12 +38,17 @@ import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.
 })
 export class IndentLoanComponent implements OnInit {
   indentLoans: any[] = [];
-  
+  filteredIndentLoans: any[] = [];
+  currentUser: any;
+
   constructor(
-    private dialog: MatDialog,
+     private dialog: MatDialog,
     private toast: ToastrService,
-    private controllerService: ControllersService
-  ) {}
+    private controllerService: ControllersService,
+    private authService: AuthService
+  ) {
+    this.currentUser = this.authService.currentUserValue;
+  }
 
   ngOnInit() {
     this.loadIndentLoans();
@@ -51,10 +58,36 @@ export class IndentLoanComponent implements OnInit {
     this.controllerService.GetAllIndentLoans().subscribe((res:any) => {
       if(res){
         this.indentLoans = res;
+        this.filterIndentLoans();
       }else{
         this.toast.warning("Error found");
       }
     });
+  }
+
+  filterIndentLoans() {
+    if (this.currentUser?.role === 'admin') {
+      // Group loans by agent for admin view
+      const groupedLoans = this.indentLoans.reduce((acc, loan) => {
+        const agent = loan.agent || 'Unassigned';
+        if (!acc[agent]) {
+          acc[agent] = [];
+        }
+        acc[agent].push(loan);
+        return acc;
+      }, {});
+      
+      this.filteredIndentLoans = Object.entries(groupedLoans).map(([agent, loans]) => ({
+        agent,
+        loans
+      }));
+    } else {
+      // Filter loans for specific agent
+      this.filteredIndentLoans = [{
+        agent: this.currentUser.name,
+        loans: this.indentLoans.filter(loan => loan.agent === this.currentUser.name)
+      }];
+    }
   }
 
   openNewIndentDialog() {
@@ -65,6 +98,7 @@ export class IndentLoanComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        result.indentloan_status = "Pending";
         this.controllerService.CreateIndentLoan(result).subscribe((res:any) => {
           if(res){
             this.toast.success("Indent loan created successfully");
@@ -87,6 +121,7 @@ export class IndentLoanComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        result.indentloan_status = "Pending";
         this.controllerService.UpdateIndentLoan(result, Number(loan.id)).subscribe((res:any) => {
           if(res){
             this.toast.success("Indent loan updated successfully");
@@ -120,7 +155,27 @@ export class IndentLoanComponent implements OnInit {
     });
   }
 
-  CreateNewLoan(loan:any){
-    
+  CreateNewLoan(loan: any) {
+      const dialogRef = this.dialog.open(NewLoanComponent, {
+          width: '90%',
+          maxWidth: '1200px',
+          data: {
+              isEdit: false,
+              indentLoan: loan
+          }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+              // Update indent loan status
+              const updatedLoan = { ...loan, indentloan_status: 'Completed', date: loan.created_at };
+              this.controllerService.UpdateIndentLoan(updatedLoan, Number(loan.id)).subscribe((res: any) => {
+                  if (res) {
+                      this.toast.success("Loan created and indent status updated successfully");
+                      this.loadIndentLoans();
+                  }
+              });
+          }
+      });
   }
 }

@@ -85,8 +85,11 @@
     </div>
   </div>
 
-  <mat-accordion class="grid grid-cols-1 gap-2 app-accordion-bg">
-    <mat-expansion-panel *ngFor="let loan of filteredLoans">
+  <ng-container *ngIf="currentUser?.role === 'admin'; else agentView">
+    <div *ngFor="let agent of groupedLoans | keyvalue" class="mb-4">
+      <h3 class="text-lg font-semibold mb-2 text-amber-500">{{agent.key}}</h3>
+      <mat-accordion class="grid grid-cols-1 gap-2 app-accordion-bg">
+        <mat-expansion-panel *ngFor="let loan of agent.value">
       <mat-expansion-panel-header>
         <mat-panel-title class="flex items-center gap-4 w-full">
           <div class="flex items-center gap-2 flex-1">
@@ -163,7 +166,7 @@
           </h3>
 
           <p><strong>Total Revenew :</strong> {{loan.CommissionAmount}}</p>
-<p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
+<p><strong>Received :</strong> {{loan.receivedCommissions}}</p>
 <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
 
         </div>
@@ -206,6 +209,136 @@
       </div>
     </mat-expansion-panel>
   </mat-accordion>
+
+    </div>
+  </ng-container>
+
+  <ng-template #agentView>
+    <mat-accordion class="grid grid-cols-1 gap-2 app-accordion-bg">
+      <mat-expansion-panel *ngFor="let loan of filteredLoans">
+        <!-- Existing expansion panel content -->
+          <mat-expansion-panel-header>
+            <mat-panel-title class="flex items-center gap-4 w-full">
+              <div class="flex items-center gap-2 flex-1">
+                <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
+              </div>
+              <div class="flex items-center">
+                <button mat-icon-button [matMenuTriggerFor]="loanMenu" (click)="$event.stopPropagation()">
+                  <mat-icon class="text-white">more_vert</mat-icon>
+                </button>
+                <mat-menu #loanMenu="matMenu">
+                  <button mat-menu-item (click)="editLoan(loan)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                  <button mat-menu-item *ngIf="currentUser?.role === 'admin'" (click)="deleteLoan(loan)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                  <button mat-menu-item (click)="downloadDataSingle('excel', loan)">
+                    <mat-icon>table_view</mat-icon>
+                    <span>Download as Excel</span>
+                  </button>
+                  <button mat-menu-item (click)="downloadDataSingle('pdf',loan)">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                    <span>Download as PDF</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2 pt-4">
+            <div class="loan-progress-mini flex items-center gap-2" *ngIf="loan?.progress">
+              <div class="progress-bar w-full h-[15px] rounded-sm overflow-hidden relative">
+                <div class="h-full transition-all duration-300"
+                  [style.background]="'linear-gradient(to right, #22c55e ' + (100 - loan.progress) + '%, #ef4444 ' + loan.progress + '%)'"
+                  [style.width.%]="100">
+                </div>
+              </div>
+              <span class="text-sm text-white w-10">
+                {{loan.progress | number:'1.0-0'}}%
+              </span>
+            </div>
+          </div> -->
+    
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
+            <div class="p-4 rounded">
+              <h3 class="mb-2 text-amber-500 font-bold">Personal Details</h3>
+              <p><strong>Lender :</strong> {{loan.Lender}}</p>
+              <p><strong>LeadId :</strong> {{loan.LeadId}}</p>
+              <p><strong>Phone :</strong> {{loan.MobileNo}}</p>
+              <p><strong>City :</strong> {{loan.City}}</p>
+              <p><strong>Agent Name :</strong> {{loan.AgentName}}</p>
+            </div>
+    
+            <div class="p-4 rounded">
+              <div class="">
+                <h3 class="mb-2 text-amber-500 font-bold">Loan Details</h3>
+                <p><strong>Amount :</strong> {{loan.Amount}}</p>
+                <p><strong>Issue Date :</strong> {{loan.IssuedDate | date: 'dd/MM/yyyy'}}</p>
+                <p><strong>Maturity Date :</strong> {{loan.MaturityDate | date: 'dd/MM/yyyy'}}</p>
+                <p><strong>Aadhar:</strong> {{loan.AadharNumber}}</p>
+                <p><strong>PAN:</strong> {{loan.PanNumber}}</p>
+              </div>
+            </div>
+    
+            <div class="p-4 rounded" *ngIf="currentUser?.role === 'admin'">
+              <h3 class="mb-2 text-amber-500 font-bold relative">Revenew
+                <span class="absolute right-0 top-0">
+                  <button mat-icon-button color="primary" (click)="openEditDialog(loan)"
+                    class="focus-visible:outline-2 focus-visible:outline-offset-2">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </span>
+              </h3>
+    
+              <p><strong>Total Revenew :</strong> {{loan.CommissionAmount}}</p>
+    <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
+    <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
+    
+            </div>
+    
+    
+    
+            <div class="p-4 rounded">
+              <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
+              <p><strong>Payment Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
+              <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
+              <p *ngIf="loan.PaymentType !== 'Online'"><strong>Amount In Cash :</strong> {{loan.CashAmount}}</p>
+              <p *ngIf="loan.PaymentType !== 'Cash'"><strong>Amount In online :</strong> {{loan.OnlineAmount}}</p>
+    
+    
+              <!-- <ng-container *ngIf="loan.paymentType == 'Cash'">
+                <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
+              </ng-container>
+              <ng-container *ngIf="loan.paymentType == 'Online'">
+                <p><strong>Payment Type :</strong> {{loan.OnlinePaymentType}}</p>
+                <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
+              </ng-container>
+              <ng-container *ngIf="loan.paymentType == 'Both'">
+                <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
+                <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
+                <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
+              </ng-container> -->
+    
+    
+    
+            </div>
+    
+            <div class="p-4 rounded">
+              <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
+              <p><strong>Refund Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
+              <p><strong>Account Name :</strong> {{loan.AccountName}}</p>
+              <p><strong>Account Number :</strong> {{loan.AccountNumber}}</p>
+              <p><strong>IFSC Code :</strong> {{loan.IfscCode}}</p>
+            </div>
+    
+          </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </ng-template>
+
+
 </div>
 
 <div class="p-4 md:p-6" *ngIf="!goldloansDiv">
@@ -226,7 +359,7 @@
     <mat-dialog-content class="pt-4">
       <form [formGroup]="commissionForm" class="flex flex-col gap-4">
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Commission Total</mat-label>
+          <mat-label>Total Receivable</mat-label>
           <input matInput type="number" formControlName="commissionTotal" readonly>
         </mat-form-field>
 

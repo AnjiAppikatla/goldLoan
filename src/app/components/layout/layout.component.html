@@ -40,9 +40,10 @@
         <app-dashboard></app-dashboard>
       </div>
 
-      <!-- <div *ngIf="isCustomers">
-        <app-customers></app-customers>
-      </div> -->
+      <div *ngIf="indentloans" class="p-5">
+        <h2 class="text-md sm:text-2xl font-poppins font-semibold mb-3 app-theme-color">Indent Loans</h2>
+        <app-indent-loan></app-indent-loan>
+      </div>
 
       <div *ngIf="isGoldLoans">
         <app-gold-loans></app-gold-loans>

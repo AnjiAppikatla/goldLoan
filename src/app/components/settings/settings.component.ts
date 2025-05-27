@@ -89,6 +89,8 @@ export class SettingsComponent {
   serchMerchantinput: string = '';
   serchAgentinput: string = '';
 
+  hidePassword = true;
+
   constructor(
     private dialog: MatDialog,
     private fb: FormBuilder,
@@ -195,8 +197,9 @@ export class SettingsComponent {
      
         this.controllersService.CreateAgent(agentData).pipe().subscribe(x => {
          if(x){
-         this.toast.success('Agent added successfully');
-      this.closeDialog();
+          this.toast.success('Agent added successfully');
+          this.GetAllAgents();
+          this.closeDialog();
          }
         });
         
@@ -385,6 +388,7 @@ export class SettingsComponent {
   }
 
   openAgentDialog() {
+    this.isEdit = false;
     this.agentForm.reset();
     this.dialog.open(this.agentDialog, {
       width: '400px',
@@ -548,7 +552,7 @@ export class SettingsComponent {
     this.controllersService.GetAllBranches().subscribe((data: any) => {
       if(data){
         this.branches = data;
-        this.filteredBranches = [...this.branches]
+        this.filteredBranches = this.branches
       }
     })
   }

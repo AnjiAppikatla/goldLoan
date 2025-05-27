@@ -78,6 +78,21 @@ import { ControllersService } from '../../../services/controllers.service';
           </mat-form-field>
 
           <mat-form-field appearance="outline">
+            <mat-label>Account Name</mat-label>
+            <input matInput type="text" formControlName="accountName" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Account Number</mat-label>
+            <input matInput type="number" formControlName="accountNumber" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>IFSC Code</mat-label>
+            <input matInput type="text" formControlName="ifscCode" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
             <mat-label>Date</mat-label>
             <input matInput [matDatepicker]="picker" formControlName="date" required>
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
@@ -112,35 +127,35 @@ export class IndentLoanDialogComponent implements OnInit {
     this.indentForm = this.fb.group({
       name: ['', Validators.required],
       amount: ['', [Validators.required, Validators.min(0)]],
-      date: ['', Validators.required],
+      date: [new Date(), Validators.required],
       agent: ['', Validators.required],
       merchantid: ['', Validators.required],
       lender: ['', Validators.required],
+      accountName: ['', Validators.required],
+      accountNumber: ['', Validators.required],
+      ifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
       city: ['', Validators.required],
     });
   }
 
   ngOnInit() {
-
     this.GetAllAgents();
     this.GetAllMerchants();
     this.GetAllLenders();
     this.GetAllCities();
-
-    console.log(this.agents);
-    console.log(this.merchants);
-    console.log(this.lenders);
-    console.log(this.cities);
 
     // If editing, patch form with existing data
     if (this.data) {
       this.indentForm.patchValue({
         name: this.data.name,
         amount: this.data.amount,
-        date: new Date(this.data.created_at),
+        date: this.data.date || this.data.created_at, // Handle both date and created_at
         agent: this.data.agent,
         merchantid: this.data.merchantid,
         lender: this.data.lender,
+        accountName: this.data.accountName,
+        accountNumber: this.data.accountNumber,
+        ifscCode: this.data.ifscCode,
         city: this.data.city
       });
     }
@@ -188,7 +203,12 @@ export class IndentLoanDialogComponent implements OnInit {
 
   onSubmit() {
     if (this.indentForm.valid) {
-      this.dialogRef.close(this.indentForm.value);
+      const formData = this.indentForm.value;
+      // When updating, ensure date field is set from created_at
+      if (this.data && this.data.created_at) {
+        formData.date = this.data.created_at;
+      }
+      this.dialogRef.close(formData);
     }
   }
 }

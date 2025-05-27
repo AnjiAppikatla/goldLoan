@@ -1,5 +1,5 @@
 
-<div class="min-h-screen grid place-items-center bg-cover bg-center bg-fixed p-4 relative overflow-hidden">
+<div class="min-h-screen h-[100dvh] grid place-items-center bg-cover bg-center bg-fixed p-4 relative overflow-hidden">
   <!-- Animated SVG Background -->
   <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
     <svg class="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
@@ -28,7 +28,8 @@
     <div class="header-content mb-8">
       <div class="flex items-center justify-center app-theme-color">
         <h1 class="text-2xl font-bold mb-2">Tomasri</h1>
-        <span class="ml-4 text-lg text-gray-600">Gold Loans</span>
+        <!-- <span class="ml-4 text-lg text-gray-600">Gold Loans</span> -->
+        <span class="ml-4 text-lg text-gray-600">Digital Payments</span>
       </div>
     </div>
 
@@ -42,7 +43,10 @@
     
       <mat-form-field appearance="outline" class="w-full bg-white/80 rounded-lg">
         <mat-label class="text-gray-700">Password</mat-label>
-        <input matInput type="password" formControlName="password" required autocomplete="current-password" class="text-gray-800" />
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" required autocomplete="current-password" class="text-gray-800" />
+        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'" [attr.aria-pressed]="!hidePassword" type="button">
+          <mat-icon class="app-theme-color">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
         <mat-error *ngIf="loginForm.get('password')?.errors?.['required']" class="text-red-500">Password is required</mat-error>
       </mat-form-field>
     

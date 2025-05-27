@@ -79,7 +79,7 @@ export class GoldLoansComponent {
   toDate: Date | null = null;
   uniqueAgents: any[] = [];
   currentUser: any;
-  // filteredLoans: any[] = [];
+  groupedLoans: { [key: string]: any[] } = {};
 
   merchants: any[] = [];
   selectedMerchant: string | null = null;
@@ -153,10 +153,10 @@ export class GoldLoansComponent {
     // this.GetAllBranches();
     this.GetAllMerchants();
     this.GetAllLenders()
+    this.currentUser = this.authService.currentUserValue;
     this.loadLoans();
     this.GetAllAgents();
     //  this.GetAllLoans();
-    this.currentUser = this.authService.currentUserValue;
     // Get loans from service
     // this.loans = this.loanService.getLoans() || [];
 
@@ -212,19 +212,54 @@ export class GoldLoansComponent {
   }
 
   loadLoans() {
-    // ... existing code ...
-    this.controllers.GetAllLoans().subscribe({
-      next: (response) => {
-        if (response) {
-          this.loans = response;
-          this.loans = [...this.loans].reverse();
-          this.loans.forEach(loan => this.calculateCommissionValues(loan));
-          this.filteredLoans = [...this.loans];
-          // ... rest of the code ...
+    this.controllers.GetAllLoans().subscribe((res: any) => {
+      if (res) {
+        this.loans = res;
+        if (this.currentUser?.role === 'admin') {
+          // Group loans by agent
+          this.groupedLoans = this.loans.reduce((groups: { [key: string]: any[] }, loan: any) => {
+            const agent = loan.AgentName || 'Unassigned';
+            if (!groups[agent]) {
+              groups[agent] = [];
+            }
+            groups[agent].push(loan);
+            return groups;
+          }, {});
+        } else {
+          // For agents, only show their own loans
+          this.loans = this.loans.filter(loan => loan.AgentName === this.currentUser.name);
         }
+        this.filteredLoans = [...this.loans];
+        this.applyFilters();
+        this.filteredLoans.map(loan => {
+          this.CalculateCommission(loan);
+        });
       }
     });
   }
+
+  CalculateCommission(loan: any) {
+    if (loan.CommissionReceived) {
+      const parsed = JSON.parse(loan.CommissionReceived);
+      
+      // Normalize to array
+      const receivedCommissions = Array.isArray(parsed) ? parsed : [parsed];
+  
+      const totalReceivedCommission = receivedCommissions.reduce(
+        (sum: number, entry: any) => sum + (parseFloat(entry.received) || 0),
+        0
+      );
+  
+      const receivableCommission =
+        parseFloat(loan.CommissionAmount || 0) - totalReceivedCommission;
+  
+      loan.receivedCommissions = totalReceivedCommission;
+      loan.receivableCommission = receivableCommission;
+  
+      return { ...loan };
+    }
+  }
+  
 
   calculateCommissionValues(loan: any) {
     try {
@@ -502,9 +537,10 @@ downloadDataSingle(type: string, loan: any) {
   applyFilters() {
     let tempLoans = [...this.loans];
 
-    // Agent filter
-    if (this.selectedAgent) {
-        tempLoans = tempLoans.filter(loan => loan.AgentName === this.selectedAgent);
+    if (this.currentUser?.role !== 'admin') {
+      tempLoans = tempLoans.filter(loan => loan.AgentName === this.currentUser.name);
+    } else if (this.selectedAgent) {
+      tempLoans = tempLoans.filter(loan => loan.AgentName === this.selectedAgent);
     }
 
     // Date filter
@@ -717,10 +753,18 @@ filterDialogClose() {
       ? this.calculateMerchantDistribution()
       : this.calculateLenderDistribution();
 
+    // Format labels to include loan count
+    const formattedLabels = data.labels.map((label, index) => {
+      const count = this.chartType === 'merchant'
+        ? this.filteredLoans.filter(loan => this.merchants.find(m => m.merchantName === label)?.merchantid === loan.MerchantId).length
+        : this.filteredLoans.filter(loan => loan.Lender === label).length;
+      return `${label} (${count})`;
+    });
+
     this.chart = new Chart(ctx, {
-      type: 'pie',  // Changed to pie chart
+      type: 'pie',
       data: {
-        labels: data.labels,
+        labels: formattedLabels,
         datasets: [{
           data: data.values,
           backgroundColor: [
@@ -746,9 +790,11 @@ filterDialogClose() {
           },
           tooltip: {
             callbacks: {
-              label: function (context) {
+              label: function(context) {
                 const value = context.raw as number;
-                return '₹' + value.toLocaleString();
+                const label = context.label || '';
+                const count = label.match(/\((\d+)\)$/)?.[1] || '0';
+                return `${label}: ${value.toLocaleString()} loans`;
               }
             }
           }
@@ -757,38 +803,37 @@ filterDialogClose() {
     });
   }
 
-  // Helper methods for chart data
-  private getDataByMerchant(loans: any[]) {
-    const merchantData = loans.reduce((acc, loan) => {
-      const merchant = this.merchants.find(m => m.merchantId === loan.MerchantId);
-      const name = merchant ? merchant.merchantName : 'Unknown';
-      acc[name] = (acc[name] || 0) + 1;
-      return acc;
-    }, {});
+  // // Helper methods for chart data
+  // private getDataByMerchant(loans: any[]) {
+  //   const merchantData = loans.reduce((acc, loan) => {
+  //     const merchant = this.merchants.find(m => m.merchantId === loan.MerchantId);
+  //     const name = merchant ? merchant.merchantName : 'Unknown';
+  //     acc[name] = (acc[name] || 0) + 1;
+  //     return acc;
+  //   }, {});
 
-    return {
-      labels: Object.keys(merchantData),
-      values: Object.values(merchantData)
-    };
-  }
+  //   return {
+  //     labels: Object.keys(merchantData),
+  //     values: Object.values(merchantData)
+  //   };
+  // }
 
-  private getDataByLender(loans: any[]) {
-    const lenderData = loans.reduce((acc, loan) => {
-      const lender = this.lenders.find((l: any) => l.lenderId === loan.LenderId);
-      const name = lender ? lender.lenderName : 'Unknown';
-      acc[name] = (acc[name] || 0) + 1;
-      return acc;
-    }, {});
+  // private getDataByLender(loans: any[]) {
+  //   const lenderData = loans.reduce((acc, loan) => {
+  //     const lender = this.lenders.find((l: any) => l.lenderId === loan.LenderId);
+  //     const name = lender ? lender.lenderName : 'Unknown';
+  //     acc[name] = (acc[name] || 0) + 1;
+  //     return acc;
+  //   }, {});
 
-    return {
-      labels: Object.keys(lenderData),
-      values: Object.values(lenderData)
-    };
-  }
+  //   return {
+  //     labels: Object.keys(lenderData),
+  //     values: Object.values(lenderData)
+  //   };
+  // }
 
   private calculateMerchantDistribution() {
     const merchantData = new Map<string, { count: number, amount: number }>();
-
     let filteredLoans = this.getFilteredLoans();
 
     filteredLoans.forEach(loan => {
@@ -803,13 +848,12 @@ filterDialogClose() {
 
     return {
       labels: Array.from(merchantData.keys()),
-      values: Array.from(merchantData.values()).map(data => data.amount)
+      values: Array.from(merchantData.values()).map(data => data.count) // Use count instead of amount
     };
   }
 
   private calculateLenderDistribution() {
     const lenderData = new Map<string, { count: number, amount: number }>();
-
     let filteredLoans = this.getFilteredLoans();
 
     filteredLoans.forEach(loan => {
@@ -824,7 +868,7 @@ filterDialogClose() {
 
     return {
       labels: Array.from(lenderData.keys()),
-      values: Array.from(lenderData.values()).map(data => data.amount)
+      values: Array.from(lenderData.values()).map(data => data.count) // Use count instead of amount
     };
   }
 
@@ -930,23 +974,23 @@ filterDialogClose() {
     };
   }
 
-  getProgressClass(progress: number): string {
-    if (progress >= 90) {
-      return 'bg-red-500';
-    } else if (progress >= 75) {
-      return 'bg-yellow-500';
-    }
-    return 'bg-green-500';
-  }
+  // getProgressClass(progress: number): string {
+  //   if (progress >= 90) {
+  //     return 'bg-red-500';
+  //   } else if (progress >= 75) {
+  //     return 'bg-yellow-500';
+  //   }
+  //   return 'bg-green-500';
+  // }
 
-  getProgressTextClass(progress: number): string {
-    if (progress >= 90) {
-      return 'text-red-500';
-    } else if (progress >= 75) {
-      return 'text-yellow-500';
-    }
-    return 'text-green-500';
-  }
+  // getProgressTextClass(progress: number): string {
+  //   if (progress >= 90) {
+  //     return 'text-red-500';
+  //   } else if (progress >= 75) {
+  //     return 'text-yellow-500';
+  //   }
+  //   return 'text-green-500';
+  // }
 
 
   commissionEnterClick(id: any) {
@@ -962,17 +1006,17 @@ filterDialogClose() {
   openEditDialog(loan: any) {
     this.selectedLoan = { ...loan };
 
-    // Calculate total received commission from the array
-    const totalReceived = Array.isArray(loan.CommissionReceived)
-      ? loan.receivedCommissions.reduce((sum: number, commission: any) =>
-        sum + (parseFloat(commission.CommissionReceived) || 0), 0)
-      : loan.CommissionReceived || 0;
+    // // Calculate total received commission from the array
+    // const totalReceived = Array.isArray(loan.CommissionReceived)
+    //   ? loan.receivedCommissions.reduce((sum: number, commission: any) =>
+    //     sum + (parseFloat(commission.CommissionReceived) || 0), 0)
+    //   : loan.CommissionReceived || 0;
 
     // Initialize form with latest values
     this.commissionForm.patchValue({
-      commissionTotal: parseFloat(loan.CommissionAmount || 0),
-      received: totalReceived, // Show current received amount instead of 0
-      receivable: parseFloat(loan.CommissionAmount || 0) - totalReceived
+      commissionTotal: loan.receivableCommission,
+      received: 0, // Show current received amount instead of 0
+      receivable: loan.receivableCommission
     });
 
     const dialogRef = this.dialog.open(this.editDialog, {
@@ -1004,58 +1048,61 @@ filterDialogClose() {
         const newCommission = parseFloat(this.commissionForm.value.received);
         const totalCommission = parseFloat(this.selectedLoan.CommissionAmount);
   
-        // Get existing commission entries or initialize empty array
-        let existingCommissions:any = [];
+        // Parse existing commission JSON safely
+        let existingCommissions: any[] = [];
         try {
           if (this.selectedLoan.CommissionReceived) {
             const parsed = JSON.parse(this.selectedLoan.CommissionReceived);
-            // Ensure we have an array
-            existingCommissions = Array.isArray(parsed) ? parsed : [];
+            existingCommissions = Array.isArray(parsed) ? parsed : [parsed];
           }
         } catch (e) {
           console.error('Error parsing commission data:', e);
           existingCommissions = [];
         }
   
-        // Calculate total received commission
-        const totalReceived = existingCommissions.length > 0 
-          ? existingCommissions.reduce((sum:any, entry:any) => 
-              sum + (parseFloat(entry.Received) || 0), 0)
-          : 0;
+        // Calculate total already received
+        const totalReceived = existingCommissions.reduce((sum, entry) =>
+          sum + (parseFloat(entry.received) || 0), 0);
+  
         const remainingCommission = totalCommission - totalReceived;
   
-        // Validate commission amount
         if (newCommission > remainingCommission) {
-          this.toast.warning(`Commission cannot exceed remaining amount of ${remainingCommission}`);
+          this.toast.warning(`Commission cannot exceed remaining amount of ₹${remainingCommission}`);
           return;
         }
   
-        // Prepare commission data for API
-        const commissionData = {
+        // Create new commission entry
+        const newEntry = {
           received: newCommission,
-          date: new Date().toISOString().split('T')[0],
+          date: new Date().toISOString().split('T')[0], // yyyy-mm-dd format
           remaining: remainingCommission - newCommission
         };
   
-        // Call UpdateCommission controller
-        this.controllers.UpdateCommission(commissionData, Number(this.selectedLoan.Id)).subscribe({
-          next: (response) => {
-            if (response) {
-
-              const dialogRef = this.dialog.getDialogById('editDialog');
-              if (dialogRef) {
-                dialogRef.close();
-              }
+        // Add new entry
+        existingCommissions.push(newEntry);
   
-              this.toast.success('Commission updated successfully');
-              this.cdr.detectChanges();
+        // Update the local loan model - keep as array here, backend will encode
+        this.selectedLoan.CommissionReceived = existingCommissions;
+  
+        // Call backend update API
+        this.controllers.UpdateCommission({ CommissionReceived: this.selectedLoan.CommissionReceived }, Number(this.selectedLoan.Id))
+          .subscribe({
+            next: (response) => {
+              if (response) {
+                const dialogRef = this.dialog.getDialogById('editDialog');
+                if (dialogRef) dialogRef.close();
+  
+                this.loadLoans(); // reload updated list
+                this.toast.success('Commission updated successfully');
+                this.cdr.detectChanges();
+                this.commissionForm.reset();
+              }
+            },
+            error: (error) => {
+              console.error('Error updating commission:', error);
+              this.toast.error(error.message || 'Error updating commission');
             }
-          },
-          error: (error) => {
-            console.error('Error updating commission:', error);
-            this.toast.error(error.message || 'Error updating commission');
-          }
-        });
+          });
   
       } catch (error: any) {
         console.error('Error updating commission:', error);

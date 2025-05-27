@@ -204,6 +204,34 @@ export class NewLoanComponent implements OnInit {
       }, 1000); // Delay for 1 second to ensure data is availabl
     
     }
+
+    if (this.data?.indentLoan) {
+      setTimeout(() => {
+      const loanData = this.data.indentLoan;
+      const cities = this.cities
+        cities.map((city: any) => {
+          if (city.name === loanData.city) {
+            this.loanForm.patchValue({
+              branchId: city.branchId,
+              city: city
+            });
+          }
+        });
+      this.loanForm.patchValue({
+        name: loanData.name,
+        amount: loanData.amount,
+        agentname: this.Agents.find((agent:any) => agent.name === loanData.agent)?.name,
+        merchantId: loanData.merchantid,
+        lender: loanData.lender,
+        // city: loanData.City,
+        issuedDate: new Date(loanData.created_at),
+        accountName: loanData.accountName,
+        accountNumber: loanData.accountNumber,
+        ifscCode: loanData.ifscCode
+          // Add other fields as needed
+      });
+      },1000)
+    }
   }
 
   GetAllAgents() {
@@ -559,6 +587,7 @@ export class NewLoanComponent implements OnInit {
       // const loanData = this.prepareLoanData();
 
       const loanData = this.loanForm.value;
+      // loanData.commission = loanData.commission ? loanData.commission : {};
 
       console.log(loanData, this.loanForm.value.city.name);
 
@@ -618,7 +647,7 @@ export class NewLoanComponent implements OnInit {
         this.controllersService.CreateLoan(formData).subscribe(
           (response) => {
             // console.log('Loan created successfully:', response);
-            this.toast.success(response);
+            this.toast.success('Loan Created Successfully');
             // Handle success, e.g., show a success message
           },
           (error) => {

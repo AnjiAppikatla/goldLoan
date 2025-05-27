@@ -201,9 +201,12 @@
             <mat-label>Email</mat-label>
             <input matInput formControlName="username" type="email">
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Password</mat-label>
-            <input matInput formControlName="password" type="password">
+            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'" [attr.aria-pressed]="!hidePassword" type="button">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
           </mat-form-field>
           <mat-form-field>
             <mat-label>Merchant Id</mat-label>
@@ -211,7 +214,7 @@
           </mat-form-field>
           <mat-form-field>
             <mat-label>Mobile</mat-label>
-            <input matInput formControlName="mobile" type="text">
+            <input matInput formControlName="mobile" type="text" maxlength="10">
           </mat-form-field>
           <mat-form-field>
             <mat-label>Role</mat-label>
@@ -312,7 +315,7 @@
         </mat-form-field>        
         <mat-form-field>
           <mat-label>Contact Number</mat-label>
-          <input matInput formControlName="mobile">
+          <input matInput type="number" formControlName="mobile" maxlength="10">
         </mat-form-field>
       </form>
     </mat-dialog-content>

@@ -2,38 +2,51 @@
   <div class="flex justify-between items-center mb-4">
     <button mat-raised-button color="primary" class="sm:w-full" (click)="openNewIndentDialog()">
       <mat-icon>add</mat-icon>
-      New Indent
+      New Indent Loan
     </button>
   </div>
 
-  <mat-accordion class="mat-cs-body">
-    <mat-expansion-panel *ngFor="let loan of indentLoans" class="cm-shadow">
+  <div *ngFor="let agentGroup of filteredIndentLoans">
+    <h3 *ngIf="currentUser?.role === 'admin'" class="text-lg font-semibold my-3 text-amber-500 pl-3">{{agentGroup.agent}}</h3>
+
+    <mat-accordion class="mat-cs-body">
+      <mat-expansion-panel *ngFor="let loan of agentGroup.loans" class="cm-shadow mb-2 bg-gray-200 rounded-md">
       <mat-expansion-panel-header>
-        <mat-panel-title>
-          {{loan.name}}
+        <mat-panel-title class="flex items-center justify-between w-full">
+            <span>{{loan.name}}</span>
+            <span *ngIf="loan.indentloan_status === 'Completed'" 
+                  class="flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
+                <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
+                Completed
+            </span>
+            <span *ngIf="loan.indentloan_status === 'Pending'" 
+                  class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm">
+                  <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
+                Pending
+            </span>
         </mat-panel-title>
-        <!-- <mat-panel-description>
-          Amount: ₹{{loan.amount}} | Date: {{loan.date | date}}
-        </mat-panel-description>  -->
-      </mat-expansion-panel-header>
+    </mat-expansion-panel-header>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-sm">
         <div>
-          <p><strong>Status:</strong> {{loan.status}}</p>
+          <p><strong>Status:</strong> {{loan.indentloan_status}}</p>
           <p><strong>Customer Name:</strong> {{loan.name}}</p>
-          <p><strong>Amount:</strong> {{loan.amount}}</p>
-          <p><strong>Date:</strong> {{loan.created_at | date:'medium'}}</p>
+          <p><strong>Amount :</strong> {{loan.amount}}</p>
+          <p><strong>Date :</strong> {{loan.created_at | date:'dd/MM/yyyy'}}</p>
+          <p><strong>Agent Name :</strong> {{loan.agent}}</p>
+          <p><strong>Merchant ID :</strong> {{loan.merchantid}}</p>
         </div>
 
         <div>
-          <p><strong>Agent Name:</strong> {{loan.agent}}</p>
-          <p><strong>Merchant ID:</strong> {{loan.merchantid}}</p>
           <p><strong>Lender :</strong> {{loan.lender}}</p>
           <p><strong>City :</strong> {{loan.city}}</p>
+          <p><strong>Account Name :</strong> {{loan.accountName}}</p>
+          <p><strong>Account Number :</strong> {{loan.accountNumber}}</p>
+          <p><strong>IFSC Code :</strong> {{loan.ifscCode}}</p>
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-1 gap-1">
-          <button mat-raised-button color="primary" (click)="CreateNewLoan(loan)">
+          <button mat-raised-button color="primary" [disabled]="loan.indentloan_status === 'Completed'" (click)="CreateNewLoan(loan)">
             <mat-icon>add</mat-icon> Create Loan
           </button>
           <button mat-raised-button color="primary" (click)="editIndentLoan(loan)">
@@ -46,4 +59,5 @@
       </div>
     </mat-expansion-panel>
   </mat-accordion>
+</div>
 </div>

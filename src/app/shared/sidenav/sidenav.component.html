@@ -17,6 +17,13 @@
     </a>
 
     <a class="text-left flex items-center mt-0" 
+       [class.active]="activeClass === 'indentloans'" 
+       (click)="changeScreen('indentloans')">
+       <mat-icon class="mr-2">event</mat-icon>
+      <span>Indent Loans</span>
+    </a>
+
+    <a class="text-left flex items-center mt-0" 
        [class.active]="activeClass === 'personalLoans'" 
        (click)="changeScreen('personalLoans')">
       <mat-icon class="mr-2">person</mat-icon> 

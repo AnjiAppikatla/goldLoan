@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
@@ -11,23 +11,26 @@ import { ToastService } from '../../services/toastr.service';
 import { ControllersService } from '../../services/controllers.service';
 import { GoldLoanService } from '../../services/gold-loan.service';
 import { Observable } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   standalone: true,
   styleUrls: ['./login.component.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     MatInputModule,
     MatButtonModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatIconModule
   ]
 })
 export class LoginComponent {
   loginForm: FormGroup;
-
+  hidePassword = true;
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -54,7 +57,7 @@ export class LoginComponent {
       this.controllers.LoginAgent(loginData).subscribe({
         next: (data) => {
           if (data) {
-            this.toast.success('Welcome ' + data.name);
+            this.toast.success('Welcome ' + data[0].name);
             this.authService.currentUserSubject.next(data);
             localStorage.setItem('currentUser', JSON.stringify(data));
             this.router.navigate(['/layout']);
