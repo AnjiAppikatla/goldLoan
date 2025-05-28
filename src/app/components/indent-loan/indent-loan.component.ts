@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -16,6 +16,8 @@ import { ToastrService } from 'ngx-toastr';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
 import { NewLoanComponent } from '../gold-loans/new-loan/new-loan.component';
 import { AuthService } from '../../services/auth.service';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-indent-loan',
@@ -32,7 +34,8 @@ import { AuthService } from '../../services/auth.service';
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatCheckboxModule
   ],
   templateUrl: './indent-loan.component.html'
 })
@@ -40,9 +43,11 @@ export class IndentLoanComponent implements OnInit {
   indentLoans: any[] = [];
   filteredIndentLoans: any[] = [];
   currentUser: any;
+  isApproved = new FormControl(false);
+  @ViewChild('Approval') Approval!: TemplateRef<any>;
 
   constructor(
-     private dialog: MatDialog,
+    private dialog: MatDialog,
     private toast: ToastrService,
     private controllerService: ControllersService,
     private authService: AuthService
@@ -111,6 +116,34 @@ export class IndentLoanComponent implements OnInit {
 
   closeDialog() {
     this.dialog.closeAll();
+  }
+
+  ApprovalClick(event: any, loan: any) {
+    if (event.checked) {
+      this.dialog.open(this.Approval, {
+        width: '400px',
+        disableClose: true
+      });
+
+      this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+        loan.indentloan_status = 'Approved';
+        loan.date = loan.created_at; // Set date to current dat
+        this.controllerService.UpdateIndentLoan(loan, Number(loan.id)).subscribe((res:any) => {
+          if(res){
+            this.toast.success('Loan approved successfully');
+            this.loadIndentLoans();
+          }
+        });
+      });
+    }
+  }
+
+  updateAgent(){
+    this.dialog.closeAll();
+  }
+
+  close(){
+    this.dialog.closeAll()
   }
 
   editIndentLoan(loan: any) {

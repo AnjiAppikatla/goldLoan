@@ -192,12 +192,12 @@
     <ng-template #agentDialog>
       <h2 mat-dialog-title>{{isEdit ? 'Edit Agent' : 'Add New Agent'}}</h2>
       <mat-dialog-content>
-        <form [formGroup]="agentForm" class="flex flex-col gap-4">
-          <mat-form-field>
+        <form [formGroup]="agentForm" class="flex flex-col gap-1">
+          <mat-form-field appearance="outline">
             <mat-label>Name</mat-label>
             <input matInput formControlName="name">
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Email</mat-label>
             <input matInput formControlName="username" type="email">
           </mat-form-field>
@@ -208,19 +208,23 @@
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Merchant Id</mat-label>
             <input matInput formControlName="merchantId" type="text">
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Mobile</mat-label>
             <input matInput formControlName="mobile" type="text" maxlength="10">
           </mat-form-field>
-          <mat-form-field>
+          <!-- <mat-form-field appearance="outline">
             <mat-label>Role</mat-label>
             <input matInput formControlName="role" type="text">
-          </mat-form-field>
-          <mat-form-field>
+          </mat-form-field> -->
+          <mat-radio-group formControlName="role" class="flex gap-4">
+            <mat-radio-button value="agent">Agent</mat-radio-button>
+            <mat-radio-button value="admin">Admin</mat-radio-button>
+          </mat-radio-group>
+          <mat-form-field appearance="outline">
             <mat-label>Branch</mat-label>
             <mat-select formControlName="branch">
               <mat-option *ngFor="let branch of branches" [value]="branch.name">
@@ -241,16 +245,16 @@
   <ng-template #branchDialog>
     <h2 mat-dialog-title>{{isEdit ? 'Edit Branch' : 'Add New Branch'}}</h2>
     <mat-dialog-content>
-      <form [formGroup]="branchForm" class="flex flex-col gap-4">
-        <mat-form-field>
+      <form [formGroup]="branchForm" class="flex flex-col gap-1">
+        <mat-form-field appearance="outline">
           <mat-label>Branch ID</mat-label>
           <input matInput formControlName="branchId">
         </mat-form-field>
-        <!-- <mat-form-field>
+        <!-- <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
           <input matInput formControlName="name">
         </mat-form-field> -->
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
           <input matInput
                  (input)="onCityInput($event)"
@@ -276,12 +280,12 @@
   <ng-template #lenderDialog>
     <h2 mat-dialog-title>{{isEdit ? 'Edit Lender' : 'Add New Lender'}}</h2>
     <mat-dialog-content>
-      <form [formGroup]="lenderForm" class="flex flex-col gap-4">
-        <mat-form-field>
+      <form [formGroup]="lenderForm" class="flex flex-col gap-1">
+        <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
           <input matInput formControlName="lenderName">
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Commission (%)</mat-label>
           <input matInput type="number" formControlName="percentage">
           <mat-error *ngIf="lenderForm.get('commission')?.hasError('min')">
@@ -304,16 +308,16 @@
   <ng-template #merchantDialog>
     <h2 mat-dialog-title>{{isEdit ? 'Edit Merchant' : 'Add New Merchant'}}</h2>
     <mat-dialog-content>
-      <form [formGroup]="merchantForm" class="flex flex-col gap-4">
-        <mat-form-field>
+      <form [formGroup]="merchantForm" class="flex flex-col gap-1">
+        <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
           <input matInput formControlName="merchantName">
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Merchant ID</mat-label>
           <input matInput formControlName="merchantid">
         </mat-form-field>        
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>Contact Number</mat-label>
           <input matInput type="number" formControlName="mobile" maxlength="10">
         </mat-form-field>

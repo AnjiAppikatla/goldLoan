@@ -32,12 +32,12 @@
   <div class="bg-white mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6 sm:mb-2">
     <div class=" mb-4 cm-shadow p-4 rounded-lg">
       <h3 class="text-lg font-semibold app-theme-color">Loan Distribution by {{chartType === 'merchant' ? 'Merchant' : 'Lender'}}</h3>
-      <p class="text-sm text-gray-600 mb-2" *ngIf="selectedFilter">
+      <!-- <p class="text-sm text-gray-600 mb-2" *ngIf="selectedFilter">
         Selected {{chartType === 'merchant' ? 'Merchant' : 'Lender'}}: 
         {{chartType === 'merchant' ? 
   (merchants | find:'merchantid':selectedFilter)?.merchantName : 
   (lenders | find:'id':selectedFilter)?.lenderName}}
-      </p>
+      </p> -->
       <div class="h-[400px]">
         <canvas id="goldLoansChart"></canvas>
       </div>
@@ -58,7 +58,7 @@
                       name="filterSelect"
                       (selectionChange)="applyFilters()">
             <mat-option [value]="null">All</mat-option>
-            <mat-option class="text-md sm:text-[11px]" *ngFor="let item of chartType === 'merchant' ? merchants : lenders"
+            <mat-option class="text-sm" *ngFor="let item of chartType === 'merchant' ? merchants : lenders"
                         [value]="chartType === 'merchant' ? item.merchantid : item.id">
               {{ chartType === 'merchant' ? item.merchantName : item.lenderName }}
             </mat-option>
@@ -282,7 +282,7 @@
               </div>
             </div>
     
-            <div class="p-4 rounded" *ngIf="currentUser?.role === 'admin'">
+            <!-- <div class="p-4 rounded" *ngIf="currentUser?.role === 'admin'">
               <h3 class="mb-2 text-amber-500 font-bold relative">Revenew
                 <span class="absolute right-0 top-0">
                   <button mat-icon-button color="primary" (click)="openEditDialog(loan)"
@@ -296,7 +296,7 @@
     <p><strong>Received :</strong> {{loan.totalReceivedCommission}}</p>
     <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
     
-            </div>
+            </div> -->
     
     
     

@@ -359,105 +359,100 @@ private initializeCharts() {
     }
 }
 
-private async exportToPDF(loans: any[]) {
-  const pdf = new jsPDF('landscape');
+private async exportToPDF(loans: any[]): Promise<void> {
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4'
+  });
   const chartCanvas = document.getElementById('merchantDistributionChart') as HTMLCanvasElement;
 
-  // Add title - handle single loan case differently
+  // Generate Title
   const title = loans.length === 1
-      ? `Loan Details - ${loans[0].Name}`
-      : this.selectedType === 'merchants'
-          ? `Merchant Report - ${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All Merchants'}`
-          : `Lender Report - ${this.selectedLender ? this.lenders.find(l => l.id === this.selectedLender)?.lenderName : 'All Lenders'}`;
+    ? `Loan Details - ${loans[0].Name}`
+    : this.selectedType === 'merchants'
+      ? `Merchant Report - ${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All Merchants'}`
+      : `Lender Report - ${this.selectedLender ? this.lenders.find(l => l.id === this.selectedLender)?.lenderName : 'All Lenders'}`;
 
   pdf.setFontSize(16);
-  pdf.text(title, 15, 15);
+  const titleWidth = pdf.getStringUnitWidth(title) * 16 / pdf.internal.scaleFactor;
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const titleX = (pageWidth - titleWidth) / 2;
+  pdf.text(title, titleX, 15);
 
-  // Only add chart for multiple loans
+  let startY = 25;
+
+  // Insert Chart (if exists and multiple loans)
   if (chartCanvas && loans.length > 1) {
-      const chartImage = await html2canvas(chartCanvas);
-      const imgWidth = 80;
-      const imgHeight = (chartImage.height * imgWidth) / chartImage.width;
-      pdf.addImage(chartImage.toDataURL('image/png'), 'PNG', 15, 25, imgWidth, imgHeight);
+    const canvasImage = await html2canvas(chartCanvas);
+    const imgData = canvasImage.toDataURL('image/png');
+    const imgProps = pdf.getImageProperties(imgData);
+    const imgWidth = 70; // Reduced chart size
+    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-      // Add summary for multiple loans
+    // Add chart
+    pdf.addImage(imgData, 'PNG', 15, startY, imgWidth, imgHeight);
+
+    // Add summary to the right of the chart
+    if (loans.length > 1) {
       const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
       pdf.setFontSize(12);
-      pdf.text(`Total Loans: ${loans.length}`, 150, 40);
-      pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN')}`, 150, 50);
+      pdf.text(`Total Loans : ${loans.length}`, imgWidth + 25, startY + 10);
+      pdf.text(
+        `Total Amount : ${totalAmount.toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}`,
+        imgWidth + 25,
+        startY + 20
+      );
+    }
+
+    startY += imgHeight + 15; // Added more spacing after chart
   }
 
+  // Table Headers and Body remain the same
   const headers = [
-    'Name',
-    'Amount',
-    'Lender',
-    'Merchant',
-    'Issue Date',
-    'Maturity Date',
-    'City',
-    'Agent'
-    // 'Progress',
-    // 'Status'
+    ['Name', 'Amount', 'Lender', 'Merchant', 'Issue Date', 'Maturity Date', 'City', 'Agent']
   ];
 
-  const tableData = loans.map(loan => [
-    loan.Name,
-    this.formatIndianAmount(Number(loan.Amount || 0)),
-    loan.Lender,
+  const tableData = loans.map(loan => ([
+    loan.Name || 'N/A',
+    `${loan.Amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    loan.Lender || 'N/A',
     this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
-    new Date(loan.IssuedDate).toLocaleDateString(),
-    new Date(loan.MaturityDate).toLocaleDateString(),
+    loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
+    loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
     loan.City || 'N/A',
     loan.AgentName || 'N/A'
-]);
+  ]));
 
-const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
-pdf.setFontSize(12);
-pdf.text(`Total Loans: ${loans.length}`, 150, 40);
-pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-})}`, 150, 50);
-
-
-// Add the table with adjusted start position
-autoTable(pdf, {
-    head: [headers],
+  autoTable(pdf, {
+    head: headers,
     body: tableData,
-    startY: loans.length === 1 ? 30 : 110,
-    styles: { 
-        fontSize: 8,
-        cellPadding: 2 // Reduce cell padding
+    startY: startY,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: {
+      fillColor: [22, 160, 133],
+      textColor: 255,
+      fontStyle: 'bold',
+      halign: 'left'
     },
-    headStyles: { 
-        fillColor: [255, 99, 132],
-        fontSize: 8,
-        fontStyle: 'bold',
-        halign: 'left'
-    },
-    columnStyles: {
-        0: { cellWidth: 'auto' }, // Name column
-        1: { 
-            halign: 'right',
-            cellWidth: 'auto',
-            font: 'helvetica', // Use consistent font
-            fontSize: 8 // Ensure consistent font size
-        },
-        8: { halign: 'center' }
-    },
-    margin: { top: 10, right: 10, bottom: 10, left: 10 }, // Add margins
-    didDrawPage: (data) => {
-        pdf.setFontSize(8);
-        pdf.text(
-            `Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
-            pdf.internal.pageSize.getWidth() - 60,
-            pdf.internal.pageSize.getHeight() - 10
-        );
+    margin: { top: 10, right: 10, bottom: 10, left: 10 },
+    didDrawPage: () => {
+      pdf.setFontSize(8);
+      const timestamp = `Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+      const timestampWidth = pdf.getStringUnitWidth(timestamp) * 8 / pdf.internal.scaleFactor;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const timestampX = pageWidth - timestampWidth - 10;
+      pdf.text(timestamp, timestampX, pdf.internal.pageSize.getHeight() - 10);
     }
-});
+  });
 
-  pdf.save(`${title}_${new Date().toISOString().split('T')[0]}.pdf`);
+  const fileName = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+  pdf.save(fileName);
 }
+
 
 formatIndianAmount(amount: number): string {
   const parts = amount.toFixed(2).split(".");
@@ -505,36 +500,50 @@ formatIndianAmount(amount: number): string {
 
   private exportToExcel(loans: any[]) {
     try {
-        const formattedData = loans.map(loan => ({
-            'Name': loan.Name || 'N/A',
-            'Amount': loan.Amount || 0,
-            'Merchant': this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
-            'Lender': loan.Lender || 'N/A', // Use loan.Lender directly instead of looking up in lenders array
-            'Mobile': loan.MobileNo || 'N/A',
-            'City': loan.City || 'N/A',
-            'Agent Name': loan.AgentName || 'N/A',
-            'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
-            'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
-            'Payment Type': loan.PaymentType || 'N/A',
-            'Online Payment Type': loan.OnlinePaymentType || 'N/A',
-            'Received By': loan.ReceivedBy || 'N/A'
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(formattedData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Loans');
-
-        const title = loans.length === 1
-            ? `Loan_${loans[0].Name}`
-            : this.selectedType === 'merchants'
-                ? `Merchant_${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All'}`
-                : `Lender_${this.selectedLender ? loans[0].Lender : 'All'}`;
-
-        XLSX.writeFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+      const formattedData = loans.map(loan => ({
+        'Name': loan.Name || 'N/A',
+        'Amount': loan.Amount || 0,
+        'Merchant': this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
+        'Lender': loan.Lender || 'N/A',
+        'Mobile': loan.MobileNo || 'N/A',
+        'City': loan.City || 'N/A',
+        'Agent Name': loan.AgentName || 'N/A',
+        'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
+        'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
+        'Payment Type': loan.PaymentType || '-',
+        'Cash Amount': loan.CashAmount || '-',
+        'Online Amount': loan.OnlineAmount || '-',
+        'Online Payment Type': loan.OnlinePaymentType || '-',
+        'Received By': loan.ReceivedBy || '-'
+      }));
+  
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+  
+      // ✅ Set column widths automatically
+      const columnWidths = Object.keys(formattedData[0]).map((key) => {
+        const maxLength = Math.max(
+          key.length,
+          ...formattedData.map(row => (row as any)[key]?.toString().length || 0)
+        );
+        return { wch: maxLength + 2 }; // Add some padding
+      });
+      ws['!cols'] = columnWidths;
+  
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Loans');
+  
+      const title = loans.length === 1
+        ? `Loan_${loans[0].Name}`
+        : this.selectedType === 'merchants'
+          ? `Merchant_${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All'}`
+          : `Lender_${this.selectedLender ? loans[0].Lender : 'All'}`;
+  
+      XLSX.writeFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
-        console.error('Error exporting to Excel:', error);
+      console.error('Error exporting to Excel:', error);
     }
-}
+  }
+  
 
     private getFilterName() {
       if (!this.selectedType) return 'All';

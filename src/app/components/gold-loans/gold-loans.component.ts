@@ -55,7 +55,7 @@ import jsPDF from 'jspdf';
     MatSelectModule,
     MatMenuModule,
     MatRadioModule,
-    FindPipe,
+    // FindPipe,
     MatTabsModule, IndentLoanComponent],
   templateUrl: './gold-loans.component.html'
 })
@@ -380,39 +380,50 @@ downloadDataSingle(type: string, loan: any) {
   }
 }
 
-  private exportToExcel(data: any[], isSingleEntry: boolean = false) {
-    try {
-      // Format data based on selected filter
-      const formattedData = data.map(loan => ({
-        'Name': loan.Name || 'N/A',
-        'Amount': loan.Amount || 0,
-        'Merchant': this.merchants.find(m => m.merchantId === loan.MerchantId)?.merchantName || 'N/A',
-        'Lender': this.lenders.find((l: any) => l.lenderId === loan.Lender)?.Lender || 'N/A',
-        'Mobile': loan.MobileNo || 'N/A',
-        'City': loan.City || 'N/A',
-        'Agent Name': loan.AgentName || 'N/A',
-        'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
-        'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
-        'Status': this.calculateProgress(loan).status || 'N/A',
-        'Commission Amount': loan.CommissionAmount || 0,
-        'Commission Status': loan.CommissionStatus || 'N/A',
-        'Payment Type': loan.PaymentType || 'N/A',
-        'Online Payment Type': loan.OnlinePaymentType || 'N/A',
-        'Received By': loan.ReceivedBy || 'N/A'
-      }));
+private exportToExcel(data: any[], isSingleEntry: boolean = false) {
+  try {
+    const formattedData = data.map(loan => ({
+      'Name': loan.Name || 'N/A',
+      'Amount': loan.Amount || 0,
+      'Merchant': this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
+      'Lender': this.lenders.find((l: any) => l.lenderName === loan.Lender)?.Lender || 'N/A',
+      'Mobile': loan.MobileNo || 'N/A',
+      'City': loan.City || 'N/A',
+      'Agent Name': loan.AgentName || 'N/A',
+      'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
+      'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
+      'Payment Type': loan.PaymentType || 'N/A',
+      'Cash Amount': loan.CashAmount || '-',
+      'Online Amount': loan.OnlineAmount || '-',
+      'Online Payment Type': loan.OnlinePaymentType || '-',
+      'Received By': loan.ReceivedBy || '-'
+    }));
 
-      const worksheet = XLSX.utils.json_to_sheet(formattedData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Loans');
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
 
-      const fileName = this.generateFileName(data, isSingleEntry);
-      XLSX.writeFile(workbook, fileName);
-      this.toast.success('Excel file downloaded successfully');
-    } catch (error) {
-      console.error('Error exporting to Excel:', error);
-      this.toast.error('Failed to download Excel file');
-    }
+    // Auto-width adjustment
+    const columnWidths = Object.keys(formattedData[0] || {}).map((key, colIndex) => {
+      const maxLength = Math.max(
+        key.length,
+        ...formattedData.map(row => ((row as any)[key] ? (row as any)[key].toString().length : 0))
+      );
+      return { wch: maxLength + 2 }; // +2 for padding
+    });
+
+    worksheet['!cols'] = columnWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Loans');
+
+    const fileName = this.generateFileName(data, isSingleEntry);
+    XLSX.writeFile(workbook, fileName);
+    this.toast.success('Excel file downloaded successfully');
+  } catch (error) {
+    console.error('Error exporting to Excel:', error);
+    this.toast.error('Failed to download Excel file');
   }
+}
+
 
   private generateFileName(data: any[], isSingleEntry: boolean): string {
     if (isSingleEntry) {
@@ -448,7 +459,7 @@ downloadDataSingle(type: string, loan: any) {
     const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
     pdf.setFontSize(12);
     pdf.text(`Total Loans: ${loans.length}`, 150, 40);
-    pdf.text(`Total Amount: ₹${totalAmount.toLocaleString('en-IN', {
+    pdf.text(`Total Amount: ${totalAmount.toLocaleString('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`, 150, 50);
@@ -456,7 +467,7 @@ downloadDataSingle(type: string, loan: any) {
     // Prepare table data with expanded information
     const tableData = loans.map(loan => [
       loan.Name,
-      `₹${loan.Amount.toLocaleString('en-IN')}`,
+      `${loan.Amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       loan.Lender,
       this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'Unknown',
       new Date(loan.IssuedDate).toLocaleDateString(),
@@ -585,7 +596,7 @@ downloadDataSingle(type: string, loan: any) {
     // Merchant/Lender filter
     if (this.selectedFilter) {
         tempLoans = tempLoans.filter(loan => {
-            const compareId = this.chartType === 'merchant' ? loan.MerchantId : loan.LenderId;
+            const compareId = this.chartType === 'merchant' ? loan.MerchantId : this.lenders.find((l: any) => l.lenderName === loan.Lender)?.id;
             return compareId === this.selectedFilter;
         });
     }
@@ -597,7 +608,22 @@ downloadDataSingle(type: string, loan: any) {
       this.filterDialogClose();
     }
 
-    this.filteredLoans = tempLoans;
+    if (this.currentUser?.role === 'admin') {
+      // Group filtered loans by agent
+      this.groupedLoans = tempLoans.reduce((groups: { [key: string]: any[] }, loan: any) => {
+          const agent = loan.AgentName || 'Unassigned';
+          if (!groups[agent]) {
+              groups[agent] = [];
+          }
+          groups[agent].push(loan);
+          return groups;
+      }, {});
+  } else {
+      // For non-admin users, only show their own loans
+      this.groupedLoans = {
+          [this.currentUser.name]: tempLoans.filter(loan => loan.AgentName === this.currentUser.name)
+      };
+  }
     this.createChart();
     this.cdr.detectChanges();
 }
@@ -854,21 +880,33 @@ filterDialogClose() {
 
   private calculateLenderDistribution() {
     const lenderData = new Map<string, { count: number, amount: number }>();
-    let filteredLoans = this.getFilteredLoans();
-
-    filteredLoans.forEach(loan => {
-      const lender = this.lenders.find((l: any) => l.lenderName === loan.Lender);
-      const lenderName = lender?.lenderName || 'Unknown';
-      const currentData = lenderData.get(lenderName) || { count: 0, amount: 0 };
-      lenderData.set(lenderName, {
-        count: currentData.count + 1,
-        amount: currentData.amount + (parseFloat(loan.Amount) || 0)
-      });
+  
+    // Filter loans based on selected lender
+    const filteredLoans = this.selectedFilter
+      ? this.filteredLoans.filter((loan: any) => {
+          const selectedLender = this.lenders.find((l: any) => l.id === this.selectedFilter);
+          return loan.Lender === selectedLender?.lenderName;
+        })
+      : this.filteredLoans;
+  
+    // Aggregate loan data directly from loans instead of initializing all lenders
+    filteredLoans.forEach((loan:any) => {
+        if (loan.Lender) {
+            const currentData = lenderData.get(loan.Lender) || { count: 0, amount: 0 };
+            lenderData.set(loan.Lender, {
+                count: currentData.count + 1,
+                amount: currentData.amount + (parseFloat(loan.Amount) || 0)
+            });
+        }
     });
-
+  
+    // Sort by amount
+    const sortedData = Array.from(lenderData.entries())
+        .sort(([_, a], [__, b]) => b.amount - a.amount);
+  
     return {
-      labels: Array.from(lenderData.keys()),
-      values: Array.from(lenderData.values()).map(data => data.count) // Use count instead of amount
+        labels: sortedData.map(([name, _]) => name),
+        values: sortedData.map(([_, data]) => data.amount)
     };
   }
 
@@ -889,9 +927,9 @@ filterDialogClose() {
     if (this.selectedFilter) {
       if (this.chartType === 'merchant') {
         filteredLoans = filteredLoans.filter(loan => loan.MerchantId === this.selectedFilter);
-      } else {
+    } else {
         filteredLoans = filteredLoans.filter(loan => loan.LenderId === this.selectedFilter);
-      }
+    }
     }
 
     return filteredLoans;
@@ -942,6 +980,22 @@ filterDialogClose() {
     this.chartType = type;
     this.selectedFilter = null;
     this.filteredLoans = [...this.loans];
+    if (this.currentUser?.role === 'admin') {
+      // Group filtered loans by agent
+      this.groupedLoans = this.filteredLoans.reduce((groups: { [key: string]: any[] }, loan: any) => {
+          const agent = loan.AgentName || 'Unassigned';
+          if (!groups[agent]) {
+              groups[agent] = [];
+          }
+          groups[agent].push(loan);
+          return groups;
+      }, {});
+  } else {
+      // For non-admin users, only show their own loans
+      this.groupedLoans = {
+          [this.currentUser.name]: this.filteredLoans.filter(loan => loan.AgentName === this.currentUser.name)
+      };
+  }
     this.createChart();
     this.cdr.detectChanges();
   }

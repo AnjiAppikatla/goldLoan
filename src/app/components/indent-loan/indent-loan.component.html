@@ -10,14 +10,19 @@
     <h3 *ngIf="currentUser?.role === 'admin'" class="text-lg font-semibold my-3 text-amber-500 pl-3">{{agentGroup.agent}}</h3>
 
     <mat-accordion class="mat-cs-body">
-      <mat-expansion-panel *ngFor="let loan of agentGroup.loans" class="cm-shadow mb-2 bg-gray-200 rounded-md">
-      <mat-expansion-panel-header>
+      <mat-expansion-panel *ngFor="let loan of agentGroup.loans" class="cm-shadow mb-2 rounded-md">
+      <mat-expansion-panel-header class="bg-gray-200">
         <mat-panel-title class="flex items-center justify-between w-full">
             <span>{{loan.name}}</span>
             <span *ngIf="loan.indentloan_status === 'Completed'" 
-                  class="flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
+                  class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm">
                 <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
                 Completed
+            </span>
+            <span *ngIf="loan.indentloan_status === 'Approved'" 
+                  class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm">
+                  <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
+                Approved
             </span>
             <span *ngIf="loan.indentloan_status === 'Pending'" 
                   class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm">
@@ -43,6 +48,10 @@
           <p><strong>Account Name :</strong> {{loan.accountName}}</p>
           <p><strong>Account Number :</strong> {{loan.accountNumber}}</p>
           <p><strong>IFSC Code :</strong> {{loan.ifscCode}}</p>
+
+          <mat-checkbox color="accent" [checked]="loan.indentloan_status === 'Approved' || loan.indentloan_status === 'Completed'"
+          (change)="ApprovalClick($event, loan)"
+          [disabled]="loan.indentloan_status === 'Completed' || loan.indentloan_status === 'Approved'">Approve</mat-checkbox>
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-1 gap-1">
@@ -61,3 +70,14 @@
   </mat-accordion>
 </div>
 </div>
+
+<ng-template #Approval>
+    <h2 mat-dialog-title>Indentloan Apporval</h2>
+    <mat-dialog-content>
+     <p>Are you sure you want to approve this loan?</p>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close (click)="close()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="updateAgent()">Update</button>
+    </mat-dialog-actions>
+</ng-template>

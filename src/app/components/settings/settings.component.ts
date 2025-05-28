@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
@@ -25,11 +25,13 @@ import { CityService } from '../../services/city.service';
 import { debounceTime, map, Observable, of, startWith, switchMap, take } from 'rxjs';
 import { AddressService } from '../../services/address.service';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
+import { MatRadioModule } from '@angular/material/radio';
 
 
 @Component({
   selector: 'app-settings',
   standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
     MatTabsModule,
@@ -48,7 +50,8 @@ import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.
     MatDialogModule,
     MatTableModule,
     MatMenuModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatRadioModule
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'
