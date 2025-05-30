@@ -31,6 +31,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class LoginComponent {
   loginForm: FormGroup;
   hidePassword = true;
+  currentUser: any;
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -46,6 +47,17 @@ export class LoginComponent {
   }
 
   onSubmit() {
+    this.currentUser = this.authService.currentUserValue;
+    if(this.currentUser){
+      this.controllers.LogoutAgent(this.currentUser,Number(this.currentUser.userId)).subscribe({
+        next: (data) => {
+          if (data) {
+            this.authService.currentUserSubject.next(null);
+            localStorage.removeItem('currentUser');
+          }
+        }
+      })
+    }
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
   
