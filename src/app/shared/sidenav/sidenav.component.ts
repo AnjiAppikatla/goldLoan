@@ -29,7 +29,6 @@ export class SidenavComponent implements OnInit {
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
-    console.log(localStorage.getItem('currentUser'));
     
     // If mobile menu is clicked, use the activeClassFromParent
     if (this.activeClassFromParent) {

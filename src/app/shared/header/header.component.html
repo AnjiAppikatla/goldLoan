@@ -28,11 +28,12 @@
         <div class="max-h-[400px] overflow-y-auto">
           <div *ngFor="let notification of notifications" class="p-4 hover:bg-gray-50 cursor-pointer">
             <div class="flex items-start gap-4">
-              <mat-icon [class]="notification.type === 'new' ? 'text-green-500' : 'text-amber-500' + ' mt-1'">
-                {{notification.type === 'new' ? 'check_circle' : 'access_time'}}
+              <mat-icon [class]="notification.type === 'new' ? 'text-green-500' : notification.type === 'indent' ? 'text-blue-500' : 'text-amber-500' + ' mt-1'">
+                {{notification.type === 'new' ? 'check_circle' : notification.type === 'indent' ? 'assignment' : 'access_time'}}
               </mat-icon>
               <div class="flex-1">
                 <p class="font-medium text-base">{{notification.customerName}}</p>
+                <p class="text-sm text-gray-600">Agent: {{notification.agentName}}</p>
                 <p class="text-sm text-gray-600 mt-1">{{notification.status}}</p>
                 <p class="text-xs text-gray-500 mt-2">{{notification.maturityDate | date}}</p>
               </div>

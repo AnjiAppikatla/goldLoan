@@ -658,7 +658,6 @@ filterDialogClose() {
   //           loan.progress = progress;
   //           loan.status = status;
   //         });
-  //         console.log(this.filteredLoans);
   //       }
   //     },
   //     error: (error) => {

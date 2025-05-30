@@ -207,27 +207,23 @@
             <h3 class="mb-2 text-amber-500 font-bold">Payment Details</h3>
             <p><strong>Payment Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
             <p><strong>Payment Type :</strong> {{loan.PaymentType}}</p>
-            <ng-container [ngSwitch]="loan.paymentType">
-              <ng-container *ngSwitchCase="'Cash'">
-                <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
-              </ng-container>
-              <ng-container *ngSwitchCase="'Online'">
-                <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
-              </ng-container>
-              <ng-container *ngSwitchCase="'Both'">
-                <p><strong>Cash Amount :</strong> {{loan.CashAmount}}</p>
-                <p><strong>Online Amount :</strong> {{loan.OnlineAmount}}</p>
-              </ng-container>
-            </ng-container>
+            <p *ngIf="loan.PaymentType !== 'Online'"><strong>Amount In Cash :</strong> {{loan.CashAmount}}</p>
+            <p *ngIf="loan.PaymentType !== 'Cash'"><strong>Amount In online :</strong> {{loan.OnlineAmount}}</p>
+            <div *ngIf="loan.OnlinePaymentType === 'Bank Transfer'">
+              <p><strong>Bank Name :</strong> {{loan.PaymentAccountName}}</p>
+              <p><strong>Bank Account Number :</strong> {{loan.PaymentAccountNumber}}</p>
+              <p><strong>Bank IFSC Code :</strong> {{loan.PaymentIfscCode}}</p>
+            </div>
           </div>
 
           <!-- Refund Details -->
           <div class="p-4 rounded">
             <h3 class="mb-2 text-amber-500 font-bold">Refund Details</h3>
-            <p><strong>Refund Date :</strong> {{loan.PaymentDate | date: 'dd/MM/yyyy'}}</p>
-            <p><strong>Account Name :</strong> {{loan.AccountName}}</p>
-            <p><strong>Account Number :</strong> {{loan.AccountNumber}}</p>
-            <p><strong>IFSC Code :</strong> {{loan.IfscCode}}</p>
+            <p><strong>Refund Date :</strong> {{loan.ReceivedDate | date: 'dd/MM/yyyy'}}</p>
+            <p><strong>Account Received :</strong> {{loan.AmountReceived}}</p>
+            <p><strong>Account Name :</strong> {{loan.ReceivedAccountName}}</p>
+            <p><strong>Account Number :</strong> {{loan.ReceivedAccountNumber}}</p>
+            <p><strong>IFSC Code :</strong> {{loan.ReceivedIfscCode}}</p>
           </div>
         </div>
       </mat-expansion-panel>

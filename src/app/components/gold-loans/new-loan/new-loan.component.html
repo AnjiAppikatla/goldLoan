@@ -65,7 +65,7 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Loan Amount</mat-label>
-              <input matInput type="number" formControlName="amount" placeholder="Enter loan amount">
+              <input matInput type="number" formControlName="amount" min="0" placeholder="Enter loan amount">
              
             </mat-form-field>
 
@@ -140,12 +140,12 @@
     
               <mat-form-field appearance="outline" *ngIf="loanForm.get('paymentType')?.value === 'Cash' || loanForm.get('paymentType')?.value === 'Both'">
                 <mat-label>Cash Amount</mat-label>
-                <input matInput type="number" formControlName="cashAmount">
+                <input matInput type="number" formControlName="cashAmount" min="0">
               </mat-form-field>
     
               <mat-form-field appearance="outline" *ngIf="loanForm.get('paymentType')?.value === 'Online' || loanForm.get('paymentType')?.value === 'Both'">
                 <mat-label>Online Amount</mat-label>
-                <input matInput type="number" formControlName="onlineAmount">
+                <input matInput type="number" formControlName="onlineAmount" min="0">
               </mat-form-field>
     
               <mat-form-field appearance="outline" *ngIf="loanForm.get('paymentType')?.value === 'Online' || loanForm.get('paymentType')?.value === 'Both'">
@@ -155,6 +155,36 @@
                     {{type}}
                   </mat-option>
                 </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" *ngIf="loanForm.get('onlinePaymentType')?.value === 'Bank Transfer'">
+                <mat-label> Payment Ac Name</mat-label>
+                <input matInput formControlName="PaymentaccountName" placeholder="Enter account holder name">
+                <mat-error *ngIf="loanForm.get('PaymentaccountName')?.hasError('required')">
+                  Account holder name is required
+                </mat-error>
+              </mat-form-field>
+  
+              <mat-form-field appearance="outline" *ngIf="loanForm.get('onlinePaymentType')?.value === 'Bank Transfer'">
+                <mat-label>Payment Ac Number</mat-label>
+                <input matInput formControlName="PaymentaccountNumber" placeholder="Enter account number">
+                <mat-error *ngIf="loanForm.get('PaymentaccountNumber')?.hasError('required')">
+                  Account number is required
+                </mat-error>
+                <mat-error *ngIf="loanForm.get('PaymentaccountNumber')?.hasError('pattern')">
+                  Please enter a valid account number
+                </mat-error>
+              </mat-form-field>
+  
+              <mat-form-field appearance="outline" *ngIf="loanForm.get('onlinePaymentType')?.value === 'Bank Transfer'">
+                <mat-label>Payment IFSC Code</mat-label>
+                <input matInput formControlName="PaymentifscCode" placeholder="Enter IFSC code">
+                <mat-error *ngIf="loanForm.get('PaymentifscCode')?.hasError('required')">
+                  IFSC code is required
+                </mat-error>
+                <mat-error *ngIf="loanForm.get('PaymentifscCode')?.hasError('pattern')">
+                  Please enter a valid IFSC code
+                </mat-error>
               </mat-form-field>
 
             
@@ -175,44 +205,44 @@
           </div>
 
           <div class="col-span-2">
-            <h3 class="text-amber-500 font-semibold mb-3">Refund Details</h3>
+            <div class="flex justify-around">
+              <h3 class="text-amber-500 font-semibold mb-3">Refund Details </h3>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              
   
               <mat-form-field appearance="outline">
-                <mat-label>Account Holder Name</mat-label>
-                <input matInput formControlName="accountName" placeholder="Enter account holder name">
-                <mat-error *ngIf="loanForm.get('accountName')?.hasError('required')">
+                <mat-label>Receive Ac Name</mat-label>
+                <input matInput formControlName="ReceivedaccountName" placeholder="Enter account holder name">
+                <mat-error *ngIf="loanForm.get('ReceivedaccountName')?.hasError('required')">
                   Account holder name is required
                 </mat-error>
               </mat-form-field>
   
               <mat-form-field appearance="outline">
-                <mat-label>Account Number</mat-label>
-                <input matInput formControlName="accountNumber" placeholder="Enter account number">
-                <mat-error *ngIf="loanForm.get('accountNumber')?.hasError('required')">
+                <mat-label>Receive Ac Number</mat-label>
+                <input matInput formControlName="ReceivedaccountNumber" placeholder="Enter account number">
+                <mat-error *ngIf="loanForm.get('ReceivedaccountNumber')?.hasError('required')">
                   Account number is required
                 </mat-error>
-                <mat-error *ngIf="loanForm.get('accountNumber')?.hasError('pattern')">
+                <mat-error *ngIf="loanForm.get('ReceivedaccountNumber')?.hasError('pattern')">
                   Please enter a valid account number
                 </mat-error>
               </mat-form-field>
   
               <mat-form-field appearance="outline">
-                <mat-label>IFSC Code</mat-label>
-                <input matInput formControlName="ifscCode" placeholder="Enter IFSC code">
-                <mat-error *ngIf="loanForm.get('ifscCode')?.hasError('required')">
+                <mat-label>Receive IFSC Code</mat-label>
+                <input matInput formControlName="ReceivedifscCode" placeholder="Enter IFSC code">
+                <mat-error *ngIf="loanForm.get('ReceivedifscCode')?.hasError('required')">
                   IFSC code is required
                 </mat-error>
-                <mat-error *ngIf="loanForm.get('ifscCode')?.hasError('pattern')">
+                <mat-error *ngIf="loanForm.get('ReceivedifscCode')?.hasError('pattern')">
                   Please enter a valid IFSC code
                 </mat-error>
               </mat-form-field>
   
               <mat-form-field appearance="outline">
-                <mat-label>Amount Received</mat-label>
-                <input matInput type="number" formControlName="amountReceived" placeholder="Enter received amount">
+                <mat-label>Received Amount</mat-label>
+                <input matInput type="number" formControlName="amountReceived" min="0" placeholder="Enter received amount">
                 
                 <mat-error *ngIf="loanForm.get('amountReceived')?.hasError('required')">
                   Amount received is required
@@ -220,6 +250,13 @@
                 <mat-error *ngIf="loanForm.get('amountReceived')?.hasError('min')">
                   Amount must be greater than 0
                 </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Received Date</mat-label>
+                <input matInput [matDatepicker]="receivedDatePicker" formControlName="ReceivedDate">
+                <mat-datepicker-toggle matSuffix [for]="receivedDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #receivedDatePicker></mat-datepicker>
               </mat-form-field>
 
               <mat-form-field appearance="outline">

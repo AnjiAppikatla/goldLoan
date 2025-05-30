@@ -29,6 +29,7 @@ export class HeaderComponent implements OnInit {
   
   notifications: any[] = [];
   loans: any[] = [];
+  indentLoans: any[] = [];
   adminUser: any = null;
 
   constructor(
@@ -39,46 +40,17 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Get loans and handle empty case
+    // Get loans and indent loans
     this.GetAllLoans();
+    this.GetAllIndentLoans();
 
-     // Subscribe to user changes
+    // Subscribe to user changes
     this.adminUser = this.authService.currentUserValue;
 
-    
-    // Only process notifications if we have loans
-   setTimeout(() => {
-    if (this.loans.length > 0) {
-      // Sort loans by date to get latest
-      const latestLoan = this.loans.sort((a:any, b:any) => 
-        new Date(b.IssuedDate || '').getTime() - new Date(a.IssuedDate || '').getTime()
-      )[0];
-
-      // Sort loans by maturity date to get nearest expiry
-      const nearestExpiryLoan = this.loans.sort((a:any, b:any) => 
-        new Date(a.MaturityDate || '').getTime() - new Date(b.MaturityDate || '').getTime()
-      )[0];
-
-      if (latestLoan && nearestExpiryLoan) {
-        this.notifications = [
-          {
-            customerName: latestLoan.Name || 'Unknown Customer',
-            status: 'New Loan Added',
-            maturityDate: latestLoan.IssuedDate,
-            type: 'new'
-          },
-          {
-            customerName: nearestExpiryLoan.Name || 'Unknown Customer',
-            status: 'Loan Expiring Soon',
-            maturityDate: nearestExpiryLoan.MaturityDate,
-            type: 'expiry'
-          }
-        ];
-      }
-    }
-   },2000)
-
-   
+    // Process notifications after data is loaded
+    setTimeout(() => {
+      this.processNotifications();
+    }, 2000);
   }
 
   GetAllLoans() {
@@ -91,13 +63,65 @@ export class HeaderComponent implements OnInit {
             const {progress, status} = this.goldLoanService.calculateProgress(loan);
             loan.progress = progress;
             loan.status = status;
-          })
+          });
         }
       },
       error: (error) => {
         console.error('Error fetching loans:', error);
       }
     });
+  }
+
+  GetAllIndentLoans() {
+    this.indentLoans = [];
+    this.controllers.GetAllIndentLoans().subscribe({
+      next: (response) => {
+        if (response) {
+          this.indentLoans = response;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching indent loans:', error);
+      }
+    });
+  }
+
+  processNotifications() {
+    this.notifications = [];
+
+    // Process regular loans
+    if (this.loans.length > 0) {
+      const latestLoan = this.loans.sort((a: any, b: any) => 
+        new Date(b.IssuedDate || '').getTime() - new Date(a.IssuedDate || '').getTime()
+      )[0];
+
+      if (latestLoan) {
+        this.notifications.push({
+          customerName: latestLoan.Name || 'Unknown Customer',
+          agentName: latestLoan.AgentName || 'Unknown Agent',
+          status: 'New Gold Loan Added',
+          maturityDate: latestLoan.IssuedDate,
+          type: 'new'
+        });
+      }
+    }
+
+    // Process indent loans
+    if (this.indentLoans.length > 0) {
+      const latestIndentLoan = this.indentLoans.sort((a: any, b: any) => 
+        new Date(b.IssuedDate || '').getTime() - new Date(a.IssuedDate || '').getTime()
+      )[0];
+
+      if (latestIndentLoan) {
+        this.notifications.push({
+          customerName: latestIndentLoan.name || 'Unknown Customer',
+          agentName: latestIndentLoan.agent || 'Unknown Agent',
+          status: 'New Indent Loan Added',
+          maturityDate: latestIndentLoan.created_at,
+          type: 'indent'
+        });
+      }
+    }
   }
 
   logout() {

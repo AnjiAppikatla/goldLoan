@@ -39,8 +39,8 @@ import { environment } from '../../environments/environment';
 })
 export class ControllersService {
 
-  // private baseUrl = 'http://localhost:8000';
-  private baseUrl = environment.apiUrl;
+  private baseUrl = 'http://localhost:8000';
+  // private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -59,6 +59,10 @@ export class ControllersService {
 
   LoginAgent(body: any): Observable<any> {
     return this.http.put(`${this.baseUrl}/agents/LoginAgent`, body)
+  }
+
+  LogoutAgent(body:any,id:number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/agents/LogoutAgent/${id}`, body)
   }
   
   DeleteAgent(id: number): Observable<any> {

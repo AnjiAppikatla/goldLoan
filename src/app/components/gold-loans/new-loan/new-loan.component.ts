@@ -28,6 +28,18 @@ import { AbstractControl, ValidationErrors } from '@angular/forms';
 @Component({
   selector: 'app-new-loan',
   standalone: true,
+  styles: `
+  /* Hide number input arrows in Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide number input arrows in Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}`,
   imports: [
     CommonModule,
     MatDialogModule,
@@ -100,11 +112,20 @@ export class NewLoanComponent implements OnInit {
       const cashAmountControl = this.loanForm.get('cashAmount');
       const onlineAmountControl = this.loanForm.get('onlineAmount');
       const onlinePaymentTypeControl = this.loanForm.get('onlinePaymentType');
+      const amount = this.loanForm.get('amount')?.value;
 
       if (paymentType === 'Cash') {
         cashAmountControl?.setValidators([Validators.required, Validators.min(0)]);
         onlineAmountControl?.clearValidators();
         onlinePaymentTypeControl?.clearValidators();
+        
+        // Clear online payment related fields
+        this.loanForm.patchValue({
+          onlinePaymentType: '',
+          PaymentaccountName: '',
+          PaymentaccountNumber: '',
+          PaymentifscCode: ''
+        });
       } else if (paymentType === 'Online') {
         onlineAmountControl?.setValidators([Validators.required, Validators.min(0)]);
         onlinePaymentTypeControl?.setValidators([Validators.required]);
@@ -119,9 +140,18 @@ export class NewLoanComponent implements OnInit {
       onlineAmountControl?.updateValueAndValidity();
       onlinePaymentTypeControl?.updateValueAndValidity();
 
-      const amount = this.loanForm.get('amount')?.value;
       if (amount) {
         this.updatePaymentAmounts(amount, paymentType);
+      }
+    });
+
+    this.loanForm.get('amount')?.valueChanges.subscribe(amount => {
+      if (amount) {
+        const paymentType = this.loanForm.get('paymentType')?.value;
+        this.updatePaymentAmounts(amount, paymentType);
+        this.loanForm.patchValue({
+          amountReceived: amount
+        }, { emitEvent: false });
       }
     });
 
@@ -175,7 +205,6 @@ export class NewLoanComponent implements OnInit {
             });
           }
         });
-        // console.log(city)
         this.loanForm.patchValue({
           lender: this.editLoan.Lender,
           agentname: this.editLoan.AgentName,
@@ -195,9 +224,9 @@ export class NewLoanComponent implements OnInit {
           paymentDate: new Date(this.editLoan.PaymentDate),
           paymentReference: this.editLoan.PaymentReference,
           receivedBy: this.editLoan.ReceivedBy,
-          accountName: this.editLoan.AccountName,
-          accountNumber: this.editLoan.AccountNumber,
-          ifscCode: this.editLoan.IfscCode,
+          PaymentaccountName: this.editLoan.AccountName,
+          PaymentaccountNumber: this.editLoan.AccountNumber,
+          PaymentifscCode: this.editLoan.IfscCode,
           aadharNumber: this.editLoan.AadharNumber,
           panNumber: this.editLoan.PanNumber
         });
@@ -220,14 +249,18 @@ export class NewLoanComponent implements OnInit {
       this.loanForm.patchValue({
         name: loanData.name,
         amount: loanData.amount,
+        onlineAmount: loanData.amount,
         agentname: this.Agents.find((agent:any) => agent.name === loanData.agent)?.name,
         merchantId: loanData.merchantid,
         lender: loanData.lender,
         // city: loanData.City,
         issuedDate: new Date(loanData.created_at),
-        accountName: loanData.accountName,
-        accountNumber: loanData.accountNumber,
-        ifscCode: loanData.ifscCode
+        ReceivedaccountName: loanData.accountName,
+        ReceivedaccountNumber: loanData.accountNumber,
+        ReceivedifscCode: loanData.ifscCode,
+        PaymentaccountName: loanData.accountName,
+        PaymentaccountNumber: loanData.accountNumber,
+        PaymentifscCode: loanData.ifscCode
           // Add other fields as needed
       });
       },1000)
@@ -285,17 +318,20 @@ export class NewLoanComponent implements OnInit {
   }
 
   private updatePaymentAmounts(totalAmount: number, paymentType: string) {
+    const amount = Number(totalAmount);
     switch (paymentType) {
       case 'Cash':
         this.loanForm.patchValue({
-          cashAmount: totalAmount,
-          onlineAmount: 0
+          cashAmount: amount,
+          onlineAmount: 0,
+          amountReceived: amount
         }, { emitEvent: false });
         break;
       case 'Online':
         this.loanForm.patchValue({
           cashAmount: 0,
-          onlineAmount: totalAmount
+          onlineAmount: amount,
+          amountReceived: amount
         }, { emitEvent: false });
         break;
       case 'Both':
@@ -330,20 +366,24 @@ export class NewLoanComponent implements OnInit {
       issuedDate: [new Date().toISOString(), Validators.required],
       maturityDate: ['', Validators.required],
       loanProgress: [0],
-      paymentType: ['Cash'],
+      paymentType: ['Online'],
       cashAmount: [0],
       onlineAmount: [0],
-      onlinePaymentType: [''],
+      onlinePaymentType: ['Bank Transfer'],
       paymentDate: [new Date().toISOString()],
+      ReceivedDate: [new Date().toISOString()],
       paymentReference: [''],
       agentId: [{
         value: this.currentUser?.id || '',
         disabled: this.currentUser?.role === 'agent'
       }],
       receivedBy: [''],
-      accountName: [''],
-      accountNumber: ['', [Validators.pattern('^[0-9]{9,18}$')]],
-      ifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
+      PaymentaccountName: [''],
+      PaymentaccountNumber: ['', [Validators.pattern('^[0-9]{9,18}$')]],
+      PaymentifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
+      ReceivedaccountName: [''],
+      ReceivedaccountNumber: ['', [Validators.pattern('^[0-9]{9,18}$')]],
+      ReceivedifscCode: ['', [Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
       amountReceived: ['']
     });
 
@@ -589,8 +629,6 @@ export class NewLoanComponent implements OnInit {
       const loanData = this.loanForm.value;
       // loanData.commission = loanData.commission ? loanData.commission : {};
 
-      console.log(loanData, this.loanForm.value.city.name);
-
       if (this.isEdit) {
         loanData.id = this.editLoan.Id;
         loanData.city = this.loanForm.value.city.name;
@@ -609,8 +647,6 @@ export class NewLoanComponent implements OnInit {
       }
       else{
         const formData = this.loanForm.value;
-
-        console.log(formData);
 
         // Format dates
         formData.createdAt = new Date().toISOString();
@@ -646,7 +682,6 @@ export class NewLoanComponent implements OnInit {
         // this.toast.success('Loan created successfully');
         this.controllersService.CreateLoan(formData).subscribe(
           (response) => {
-            // console.log('Loan created successfully:', response);
             this.toast.success('Loan Created Successfully');
             // Handle success, e.g., show a success message
           },

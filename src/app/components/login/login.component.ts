@@ -57,7 +57,7 @@ export class LoginComponent {
       this.controllers.LoginAgent(loginData).subscribe({
         next: (data) => {
           if (data) {
-            this.toast.success('Welcome ' + data[0].name);
+            this.toast.success('Welcome ' + data.name);
             this.authService.currentUserSubject.next(data);
             localStorage.setItem('currentUser', JSON.stringify(data));
             this.router.navigate(['/layout']);

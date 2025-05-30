@@ -27,7 +27,7 @@
             <span *ngIf="loan.indentloan_status === 'Pending'" 
                   class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm">
                   <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
-                Pending
+                Processing...
             </span>
         </mat-panel-title>
     </mat-expansion-panel-header>
@@ -49,16 +49,16 @@
           <p><strong>Account Number :</strong> {{loan.accountNumber}}</p>
           <p><strong>IFSC Code :</strong> {{loan.ifscCode}}</p>
 
-          <mat-checkbox color="accent" [checked]="loan.indentloan_status === 'Approved' || loan.indentloan_status === 'Completed'"
+          <mat-checkbox *ngIf="currentUser?.role === 'admin'" color="accent" [checked]="loan.indentloan_status === 'Approved' || loan.indentloan_status === 'Completed'"
           (change)="ApprovalClick($event, loan)"
           [disabled]="loan.indentloan_status === 'Completed' || loan.indentloan_status === 'Approved'">Approve</mat-checkbox>
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-1 gap-1">
-          <button mat-raised-button color="primary" [disabled]="loan.indentloan_status === 'Completed'" (click)="CreateNewLoan(loan)">
+          <button mat-raised-button color="primary" [disabled]="loan.indentloan_status === 'Completed' || loan.indentloan_status === 'Pending'" (click)="CreateNewLoan(loan)">
             <mat-icon>add</mat-icon> Create Loan
           </button>
-          <button mat-raised-button color="primary" (click)="editIndentLoan(loan)">
+          <button mat-raised-button color="primary" [disabled]="loan.indentloan_status === 'Completed'" (click)="editIndentLoan(loan)">
             <mat-icon>edit</mat-icon> Edit
           </button>
           <button mat-raised-button color="warn" (click)="deleteIndentLoan(loan.id)">
