@@ -39,8 +39,8 @@ import { environment } from '../../environments/environment';
 })
 export class ControllersService {
 
-  private baseUrl = 'http://localhost:8000';
-  // private baseUrl = environment.apiUrl;
+  // private baseUrl = 'http://localhost:8000';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
