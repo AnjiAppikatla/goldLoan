@@ -262,8 +262,8 @@
               <mat-form-field appearance="outline">
                 <mat-label>Received By</mat-label>
                 <mat-select formControlName="receivedBy">
-                  <mat-option *ngFor="let person of receivedByList" [value]="person">
-                    {{person}}
+                  <mat-option *ngFor="let person of banks" [value]="person.id">
+                    {{person.account_holder_name}} - {{person.account_number}}
                   </mat-option>
                 </mat-select>
               </mat-form-field>

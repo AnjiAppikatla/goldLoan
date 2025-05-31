@@ -52,7 +52,7 @@
 
       <div class="flex gap-2 items-center w-full">
         <!-- Dynamic Dropdown -->
-        <mat-form-field appearance="outline" class="w-full">
+        <!-- <mat-form-field appearance="outline" class="w-full">
           <mat-label>{{ chartType === 'merchant' ? 'Select Merchant' : 'Select Lender' }}</mat-label>
           <mat-select [(ngModel)]="selectedFilter"
                       name="filterSelect"
@@ -61,6 +61,27 @@
             <mat-option class="text-sm" *ngFor="let item of chartType === 'merchant' ? merchants : lenders"
                         [value]="chartType === 'merchant' ? item.merchantid : item.id">
               {{ chartType === 'merchant' ? item.merchantName : item.lenderName }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field> -->
+
+        <mat-form-field appearance="outline" class="w-full" *ngIf="chartType === 'merchant'">
+          <mat-label>Select Merchant</mat-label>
+          <mat-select [(ngModel)]="selectedMerchant" (selectionChange)="onMerchantChange($event)">
+            <mat-option [value]="null">All Merchants</mat-option>
+            <mat-option *ngFor="let merchant of merchants" [value]="merchant.merchantid">
+              {{merchant.merchantName}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <!-- Lender Dropdown -->
+        <mat-form-field appearance="outline" class="w-full" *ngIf="chartType === 'lender'">
+          <mat-label>Select Lender</mat-label>
+          <mat-select [(ngModel)]="selectedLender" (selectionChange)="onLenderChange($event)">
+            <mat-option [value]="null">All Lenders</mat-option>
+            <mat-option *ngFor="let lender of lenders" [value]="lender.id">
+              {{lender.lenderName}}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -108,11 +129,11 @@
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
               </button>
-              <button mat-menu-item (click)="downloadDataSingle('excel', loan)">
+              <button mat-menu-item (click)="downloadDataSingle(loan, 'excel')">
                 <mat-icon>table_view</mat-icon>
                 <span>Download as Excel</span>
               </button>
-              <button mat-menu-item (click)="downloadDataSingle('pdf',loan)">
+              <button mat-menu-item (click)="downloadDataSingle(loan, 'pdf')">
                 <mat-icon>picture_as_pdf</mat-icon>
                 <span>Download as PDF</span>
               </button>

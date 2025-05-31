@@ -387,11 +387,11 @@ private async exportToPDF(loans: any[]): Promise<void> {
     const canvasImage = await html2canvas(chartCanvas);
     const imgData = canvasImage.toDataURL('image/png');
     const imgProps = pdf.getImageProperties(imgData);
-    const imgWidth = 70; // Reduced chart size
+    const imgWidth = 80; // Reduced chart size
     const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
     // Add chart
-    pdf.addImage(imgData, 'PNG', 15, startY, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'PNG', 20, startY, imgWidth, imgHeight);
 
     // Add summary to the right of the chart
     if (loans.length > 1) {
@@ -413,13 +413,14 @@ private async exportToPDF(loans: any[]): Promise<void> {
 
   // Table Headers and Body remain the same
   const headers = [
-    ['Name', 'Amount', 'Lender', 'Merchant', 'Issue Date', 'Maturity Date', 'City', 'Agent']
+    ['Name', 'Amount', 'Lender', 'Lead Id', 'Merchant', 'Issue Date', 'Maturity Date', 'City', 'Agent']
   ];
 
   const tableData = loans.map(loan => ([
     loan.Name || 'N/A',
     `${loan.Amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     loan.Lender || 'N/A',
+    loan.LeadId || 'N/A',
     this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
     loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
     loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
@@ -505,6 +506,7 @@ formatIndianAmount(amount: number): string {
         'Amount': loan.Amount || 0,
         'Merchant': this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
         'Lender': loan.Lender || 'N/A',
+        'Lead Id': loan.LeadId || 'N/A',
         'Mobile': loan.MobileNo || 'N/A',
         'City': loan.City || 'N/A',
         'Agent Name': loan.AgentName || 'N/A',
@@ -516,6 +518,43 @@ formatIndianAmount(amount: number): string {
         'Online Payment Type': loan.OnlinePaymentType || '-',
         'Received By': loan.ReceivedBy || '-'
       }));
+
+      const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
+    formattedData.push({'Name': '',
+      'Amount': '',
+      'Merchant': '',
+      'Lender': '',
+      'Lead Id': '',
+      'Mobile': '',
+      'City': '',
+      'Agent Name': '',
+      'Issue Date': '',
+      'Maturity Date': '',
+      'Payment Type': '',
+      'Cash Amount': '',
+      'Online Amount': '',
+      'Online Payment Type': '',
+      'Received By': ''}); // Empty row
+    formattedData.push({
+      'Name': 'Total Amount : ',
+      'Amount': totalAmount.toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }),
+      'Merchant': '',
+      'Lender': '',
+      'Lead Id': '',
+      'Mobile': '',
+      'City': '',
+      'Agent Name': '',
+      'Issue Date': '',
+      'Maturity Date': '',
+      'Payment Type': '',
+      'Cash Amount': '',
+      'Online Amount': '',
+      'Online Payment Type': '',
+      'Received By': ''
+    });
   
       const ws = XLSX.utils.json_to_sheet(formattedData);
   
@@ -761,12 +800,18 @@ private calculateLenderDistribution() {
         if (response) {
           this.recentLoans = response;
 
+          this.recentLoans = this.recentLoans.map((loan:any) => ({
+            ...loan,
+            ReceivedDate: loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate
+          }));
+
           this.recentLoans = [...this.recentLoans].reverse(); // Reverse the array here
 
           this.recentLoans.map((loan: any) => {
             const { progress, status } = this.goldLoanService.calculateProgress(loan);
             loan.progress = progress;
             loan.status = status;
+            loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate
           });
         }
       }

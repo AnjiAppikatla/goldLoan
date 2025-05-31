@@ -54,7 +54,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   activeClass: string = '';
   currentUser: any;
 
-  sessionTimeout: number = 10 * 60 * 1000; // 10 minutes in ms
+  sessionTimeout: number = 10 * 60 * 1000;
   sessionTimer: any;
   lastActivityTime: number = Date.now();
   remainingTime: number = 10 * 60 * 1000;
@@ -74,14 +74,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-
-    if(localStorage.getItem('currentUser') == null){
+    if (localStorage.getItem('currentUser') == null) {
       this.router.navigate(['/login']);
     }
 
     this.currentUser = this.authService.currentUserValue;
 
-    // Set screen based on role
     if (this.currentUser?.role === 'admin') {
       this.isDashboard = true;
       this.activeClass = 'dashboard';
@@ -222,7 +220,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ HostListener should point to a method, not a property!
   @HostListener('window:mousemove')
   @HostListener('window:keypress')
   @HostListener('window:click')
@@ -231,25 +228,21 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('window:beforeunload', ['$event'])
-onBeforeUnload(event: any) {
-  // Optional: prevent accidental tab close
-  // event.preventDefault();
-  // event.returnValue = '';
-
-  this.handleBrowserCloseLogout();
-}
-
-private handleBrowserCloseLogout() {
-  if (this.currentUser) {
-    this.controllers
-      .LogoutAgent(this.currentUser, Number(this.currentUser.userId))
-      .subscribe({
-        next: () => {
-          localStorage.removeItem('currentUser');
-          this.authService.currentUserSubject.next(null);
-        },
-        error: (err) => console.error('Logout error on browser close:', err),
-      });
+  onBeforeUnload(event: any) {
+    this.handleBrowserCloseLogout();
   }
-}
+
+  private handleBrowserCloseLogout() {
+    if (this.currentUser) {
+      this.controllers
+        .LogoutAgent(this.currentUser, Number(this.currentUser.userId))
+        .subscribe({
+          next: () => {
+            localStorage.removeItem('currentUser');
+            this.authService.currentUserSubject.next(null);
+          },
+          error: (err) => console.error('Logout error on browser close:', err),
+        });
+    }
+  }
 }

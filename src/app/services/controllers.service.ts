@@ -158,6 +158,22 @@ export class ControllersService {
     return this.http.put(`${this.baseUrl}/goldloan/UpdateCommission/${id}`, body)
   }
 
+  GetAllBankDetails():Observable<any>{
+    return this.http.get<any>(`${this.baseUrl}/bankdetails/GetAllBankDetails`)
+  }
+
+  CreateBankDetails(body: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/bankdetails/CreateBankDetails`, body)
+  }
+
+  UpdateBankDetails(body: any, id: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/bankdetails/UpdateBankDetails/${id}`, body)
+  }
+  
+  DeleteBankDetails(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/bankdetails/DeleteBankDetails/${id}`)
+  }
+
 
 
 }

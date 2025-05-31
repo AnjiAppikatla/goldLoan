@@ -78,6 +78,7 @@ export class NewLoanComponent implements OnInit {
 
   Agents: any = []
   currentUser: any;
+  banks: any = [];
 
 
   constructor(
@@ -104,7 +105,8 @@ export class NewLoanComponent implements OnInit {
     this.loanForm.controls['issuedDate'].setValue(new Date().toISOString());
     this.calculateMaturityDate();
 
-    this.GetAllBranches()
+    this.GetAllBranches();
+    this.GetAllBanks();
 
     // this.cities = this.goldLoanService.cities;
     // Subscribe to payment type changes
@@ -710,6 +712,17 @@ export class NewLoanComponent implements OnInit {
         commissionAmount: commissionAmount
       });
     }
+  }
+
+  GetAllBanks() {
+    this.controllersService.GetAllBankDetails().subscribe({
+      next: (response) => {
+        this.banks = response.data;
+      },
+      error: (error) => {
+        console.error('Error fetching bank accounts');
+      }
+    });
   }
 
 

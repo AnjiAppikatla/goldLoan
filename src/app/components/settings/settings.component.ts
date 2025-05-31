@@ -94,6 +94,12 @@ export class SettingsComponent {
 
   hidePassword = true;
 
+  bankDetails: any = [];
+  filteredBankDetails: any = [];
+  bankForm!: FormGroup;
+  searchBankInput: string = '';
+  @ViewChild('bankDialog') bankDialog!: TemplateRef<any>;
+
   constructor(
     private dialog: MatDialog,
     private fb: FormBuilder,
@@ -113,6 +119,8 @@ export class SettingsComponent {
     this.GetAllBranches();
     this.GetAllLenders();
     this.GetAllMerchants();
+
+    this.loadBankDetails();
 
    setTimeout(() => {
     this.filteredBranches = this.branches;
@@ -458,6 +466,14 @@ export class SettingsComponent {
       merchantName: ['', Validators.required],
       mobile: ['', Validators.required]
     });
+
+    this.bankForm = this.fb.group({
+      bank_name: ['', Validators.required],
+      account_number: ['', [Validators.required, Validators.pattern('^[0-9]{9,18}$')]],
+      account_holder_name: ['', Validators.required],
+      ifsc_code: ['', [Validators.required, Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
+      created_at: [new Date().toISOString(), Validators.required]
+    });
   }
 
 
@@ -602,6 +618,93 @@ export class SettingsComponent {
 
   displayCityFn(city: string): string {
     return city || '';
+  }
+
+  loadBankDetails() {
+    // Initialize with some sample data
+    this.controllersService.GetAllBankDetails().subscribe((data: any) => {
+      if(data.status == 'success'){
+        this.bankDetails = data.data;
+        this.filteredBankDetails = [...this.bankDetails];
+      }
+    })
+  }
+
+  searchBanks(event: any) {
+    const searchTerm = (event.target.value || '').toLowerCase();
+    this.filteredBankDetails = this.bankDetails.filter((bank:any) => 
+      bank.bankName.toLowerCase().includes(searchTerm) ||
+      bank.accountHolderName.toLowerCase().includes(searchTerm) ||
+      bank.branch.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  openBankDialog() {
+    this.isEdit = false;
+    this.bankForm.reset();
+    this.dialog.open(this.bankDialog, {
+      width: '400px',
+      disableClose: true
+    });
+  }
+
+  saveBank() {
+    if (this.bankForm.valid) {
+      this.controllersService.CreateBankDetails(this.bankForm.value).subscribe(res => {
+        if(res){
+          this.toast.success('Bank details added successfully');
+          this.dialog.closeAll();
+          this.bankForm.reset();
+          this.loadBankDetails();
+        }
+      })
+    }
+  }
+
+  editBank(bank:any) {
+    this.isEdit = true;
+    this.bankForm.patchValue(bank);
+    this.dialog.open(this.bankDialog, {
+      width: '400px',
+      disableClose: true
+    });
+    this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+      this.controllersService.UpdateBankDetails(this.bankForm.value, Number(bank.id)).subscribe(res => {
+        if(res){
+          this.toast.success('Bank details updated successfully');
+          this.dialog.closeAll();
+          this.bankForm.reset();
+          this.loadBankDetails();
+        }
+      })
+    })
+  }
+
+  updateBank() {
+    this.dialog.closeAll();
+    this.loadBankDetails();
+  }
+
+  deleteBank(id: number) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: 'Confirm Delete',
+        message: 'Are you sure you want to delete this bank detail?'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.controllersService.DeleteBankDetails(id).subscribe(res => {
+          if(res){
+            this.toast.success('Bank detail deleted successfully');
+            this.dialog.closeAll();
+            this.loadBankDetails();
+          }
+        });
+      }
+    });
   }
 
 

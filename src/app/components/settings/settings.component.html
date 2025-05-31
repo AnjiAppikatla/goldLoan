@@ -181,6 +181,48 @@
           </div>
         </div>
       </mat-expansion-panel>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header class="bg-gray-200">
+          <mat-panel-title class="flex items-center gap-2">
+            <mat-icon>credit_card</mat-icon>
+            <span>Bank Details</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+      
+        <div class="pt-3 h-[350px] overflow-auto overflow-x-hidden">
+          <div class="flex items-center gap-2 w-full mb-4">
+            <mat-form-field class="w-full">
+              <mat-label>Search Bank Details</mat-label>
+              <input matInput placeholder="Search by name" (input)="searchBanks($event)" [(ngModel)]="searchBankInput">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+            
+            <button mat-mini-fab color="primary" class="flex-shrink-0" (click)="openBankDialog()">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+      
+          <!-- Bank Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <mat-card *ngFor="let bank of filteredBankDetails" class="bg-gray-50">
+              <mat-card-content class="mt-2">
+                <p><strong>Bank Name :</strong> {{bank.bank_name}}</p>
+                <p><strong>Account Holder :</strong> {{bank.account_holder_name}}</p>
+                <p><strong>Account Number :</strong> {{bank.account_number}}</p>
+                <p><strong>IFSC Code :</strong> {{bank.ifsc_code}}</p>
+                <p><strong>Created At :</strong> {{bank.created_at}}</p>
+              </mat-card-content>
+              <mat-card-actions align="end">
+                <button mat-button color="primary" (click)="editBank(bank)">Edit</button>
+                <button mat-button color="warn" (click)="deleteBank(bank.id)">Delete</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+
   </mat-accordion>
 
 
@@ -327,6 +369,44 @@
       <button mat-button mat-dialog-close>Cancel</button>
       <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveMerchant()">Save</button>
       <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateAgent()">Update</button>
+    </mat-dialog-actions>
+  </ng-template>
+
+  <ng-template #bankDialog>
+    <h2 mat-dialog-title>{{isEdit ? 'Edit Bank Details' : 'Add New Bank Details'}}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="bankForm" class="flex flex-col gap-1">
+        <mat-form-field appearance="outline">
+          <mat-label>Bank Name</mat-label>
+          <input matInput formControlName="bank_name">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Account Holder Name</mat-label>
+          <input matInput formControlName="account_holder_name">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Account Number</mat-label>
+          <input matInput formControlName="account_number" type="text">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>IFSC Code</mat-label>
+          <input matInput formControlName="ifsc_code">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Created Date</mat-label>
+          <input matInput [matDatepicker]="paymentDatePicker" formControlName="created_at">
+          <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #paymentDatePicker></mat-datepicker>
+        </mat-form-field>
+
+
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close (click)="close()">Cancel</button>
+      <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveBank()">Save</button>
+      <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateBank()">Update</button>
     </mat-dialog-actions>
   </ng-template>
 

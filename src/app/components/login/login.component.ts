@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
@@ -28,7 +28,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatIconModule
   ]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   hidePassword = true;
   currentUser: any;
@@ -46,7 +46,7 @@ export class LoginComponent {
     });
   }
 
-  onSubmit() {
+  ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
     if(this.currentUser){
       this.controllers.LogoutAgent(this.currentUser,Number(this.currentUser.userId)).subscribe({
@@ -58,6 +58,10 @@ export class LoginComponent {
         }
       })
     }
+  }
+
+  onSubmit() {
+
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
   
@@ -78,9 +82,8 @@ export class LoginComponent {
             this.router.navigate(['/login']);
           }
         },
-        error: (error) => {
-          console.error('Login error:', error);
-          this.toast.error('Invalid credentials');
+        error: (res) => {
+          this.toast.warning(res.error.error);
           localStorage.removeItem('currentUser');
           this.authService.currentUserSubject.next(null);
           this.router.navigate(['/login']);
