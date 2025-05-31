@@ -79,6 +79,7 @@ export class GoldLoansComponent {
   toDate: Date | null = null;
   uniqueAgents: any[] = [];
   currentUser: any;
+  isAdmin: boolean = false;
   groupedLoans: { [key: string]: any[] } = {};
 
   merchants: any[] = [];
@@ -141,6 +142,8 @@ export class GoldLoansComponent {
   }
 
   ngOnInit() {
+    this.currentUser = this.authService.currentUserValue;
+    this.isAdmin = this.currentUser?.role === 'admin';
 
     this.goldloansDiv = true;
     this.chartType = 'merchant'
@@ -153,7 +156,7 @@ export class GoldLoansComponent {
     // this.GetAllBranches();
     this.GetAllMerchants();
     this.GetAllLenders()
-    this.currentUser = this.authService.currentUserValue;
+
     this.loadLoans();
     this.GetAllAgents();
     //  this.GetAllLoans();
@@ -358,13 +361,13 @@ export class GoldLoansComponent {
     this.ngOnInit();
   }
 
-  downloadData(format: 'excel' | 'pdf', type: 'all' | 'filtered') {
+  downloadData(format: 'excel' | 'pdf') {
     let filteredLoans = this.chartType === 'merchant'
       ? (this.selectedMerchant
         ? this.loans.filter((loan: any) => loan.MerchantId === this.selectedMerchant)
         : this.loans)
       : (this.selectedLender
-        ? this.loans.filter((loan: any) => loan.Lender === this.selectedLender)
+        ? this.loans.filter((loan: any) => this.lenders.find((lender:any) => lender.lenderName === loan.Lender)?.id === this.selectedLender)
         : this.loans);
   
     if (format === 'excel') {
@@ -382,7 +385,27 @@ async downloadDataSingle(loan: any, type: 'excel' | 'pdf') {
   }
 }
 
+CalCForXl(loan:any){
+  let existingCommissions: any[] = [];
+  try {
+    if (loan.CommissionReceived) {
+      const parsed = JSON.parse(loan.CommissionReceived);
+      existingCommissions = Array.isArray(parsed) ? parsed : [parsed];
+    }
+  } catch (e) {
+    console.error('Error parsing commission data:', e);
+    existingCommissions = [];
+  }
+
+  // Calculate total already received
+  const totalReceived = existingCommissions.reduce((sum, entry) =>
+    sum + (parseFloat(entry.received) || 0), 0);
+
+  return totalReceived;
+}
+
 private exportToExcel(loans: any[]) {
+  const isAdmin = this.currentUser?.role === 'admin';
   try {
     const formattedData = loans.map(loan => ({
       'Name': loan.Name || 'N/A',
@@ -398,7 +421,11 @@ private exportToExcel(loans: any[]) {
       'Cash Amount': loan.CashAmount || '-',
       'Online Amount': loan.OnlineAmount || '-',
       'Online Payment Type': loan.OnlinePaymentType || '-',
-      'Received By': loan.ReceivedBy || '-'
+      'Received By': loan.ReceivedBy || '-',
+      'Commission Amount': isAdmin ? loan.CommissionAmount :  '-',
+      'Commission Received': isAdmin ? this.CalCForXl(loan) : '-',
+      'Receivable Commission': isAdmin ? loan.CommissionAmount - this.CalCForXl(loan.CommissionReceived) : '-',
+      'Commission Percentage': isAdmin ? loan.CommissionPercentage : '-'
     }));
 
     const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
@@ -415,7 +442,12 @@ private exportToExcel(loans: any[]) {
       'Cash Amount': '',
       'Online Amount': '',
       'Online Payment Type': '',
-      'Received By': ''}); // Empty row
+      'Received By': '',
+      'Commission Amount': '',
+      'Commission Received': '',
+      'Receivable Commission': '',
+      'Commission Percentage': ''
+    }); // Empty row
     formattedData.push({
       'Name': 'Total Amount : ',
       'Amount': totalAmount.toLocaleString('en-IN', {
@@ -433,7 +465,11 @@ private exportToExcel(loans: any[]) {
       'Cash Amount': '',
       'Online Amount': '',
       'Online Payment Type': '',
-      'Received By': ''
+      'Received By': '',
+      'Commission Amount': '',
+      'Commission Received': '',
+      'Receivable Commission': '',
+      'Commission Percentage': ''
     });
 
     const ws = XLSX.utils.json_to_sheet(formattedData);

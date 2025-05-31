@@ -411,9 +411,12 @@ private async exportToPDF(loans: any[]): Promise<void> {
     startY += imgHeight + 15; // Added more spacing after chart
   }
 
+  // const isAdmin = this.currentUser?.role === 'admin';
+
   // Table Headers and Body remain the same
   const headers = [
     ['Name', 'Amount', 'Lender', 'Lead Id', 'Merchant', 'Issue Date', 'Maturity Date', 'City', 'Agent']
+    // 'Commission Amount', 'Commission Received','Receivable Commission','Commission Percentage'
   ];
 
   const tableData = loans.map(loan => ([
@@ -426,6 +429,10 @@ private async exportToPDF(loans: any[]): Promise<void> {
     loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
     loan.City || 'N/A',
     loan.AgentName || 'N/A'
+    // isAdmin ? loan.CommissionAmount :  '-',
+    // isAdmin ? this.CalCForXl(loan) : '-',
+    // isAdmin ? loan.CommissionAmount - this.CalCForXl(loan.CommissionReceived) : '-',
+    // isAdmin ? loan.CommissionPercentage : '-'
   ]));
 
   autoTable(pdf, {
@@ -499,7 +506,27 @@ formatIndianAmount(amount: number): string {
   //   XLSX.writeFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
   // }
 
+  CalCForXl(loan:any){
+    let existingCommissions: any[] = [];
+    try {
+      if (loan.CommissionReceived) {
+        const parsed = JSON.parse(loan.CommissionReceived);
+        existingCommissions = Array.isArray(parsed) ? parsed : [parsed];
+      }
+    } catch (e) {
+      console.error('Error parsing commission data:', e);
+      existingCommissions = [];
+    }
+  
+    // Calculate total already received
+    const totalReceived = existingCommissions.reduce((sum, entry) =>
+      sum + (parseFloat(entry.received) || 0), 0);
+  
+    return totalReceived;
+  }
+
   private exportToExcel(loans: any[]) {
+    const isAdmin = this.currentUser?.role === 'admin';
     try {
       const formattedData = loans.map(loan => ({
         'Name': loan.Name || 'N/A',
@@ -516,7 +543,11 @@ formatIndianAmount(amount: number): string {
         'Cash Amount': loan.CashAmount || '-',
         'Online Amount': loan.OnlineAmount || '-',
         'Online Payment Type': loan.OnlinePaymentType || '-',
-        'Received By': loan.ReceivedBy || '-'
+        'Received By': loan.ReceivedBy || '-',
+        'Commission Amount': isAdmin ? loan.CommissionAmount :  '-',
+      'Commission Received': isAdmin ? this.CalCForXl(loan) : '-',
+      'Receivable Commission': isAdmin ? loan.CommissionAmount - this.CalCForXl(loan.CommissionReceived) : '-',
+      'Commission Percentage': isAdmin ? loan.CommissionPercentage : '-'
       }));
 
       const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
@@ -534,7 +565,12 @@ formatIndianAmount(amount: number): string {
       'Cash Amount': '',
       'Online Amount': '',
       'Online Payment Type': '',
-      'Received By': ''}); // Empty row
+      'Received By': '',
+      'Commission Amount': '',
+      'Commission Received': '',
+      'Receivable Commission': '',
+      'Commission Percentage': ''
+    }); // Empty row
     formattedData.push({
       'Name': 'Total Amount : ',
       'Amount': totalAmount.toLocaleString('en-IN', {
@@ -553,7 +589,11 @@ formatIndianAmount(amount: number): string {
       'Cash Amount': '',
       'Online Amount': '',
       'Online Payment Type': '',
-      'Received By': ''
+      'Received By': '',
+      'Commission Amount': '',
+      'Commission Received': '',
+      'Receivable Commission': '',
+      'Commission Percentage': ''
     });
   
       const ws = XLSX.utils.json_to_sheet(formattedData);

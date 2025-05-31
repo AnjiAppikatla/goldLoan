@@ -92,11 +92,11 @@
         <mat-icon>download</mat-icon>
       </button>
       <mat-menu #downloadMenu="matMenu">
-        <button mat-menu-item (click)="downloadData('excel', 'filtered')">
+        <button mat-menu-item (click)="downloadData('excel')">
           <mat-icon>table_view</mat-icon>
           <span>Download as Excel</span>
         </button>
-        <button mat-menu-item (click)="downloadData('pdf', 'filtered')">
+        <button mat-menu-item (click)="downloadData('pdf')">
           <mat-icon>picture_as_pdf</mat-icon>
           <span>Download as PDF</span>
         </button>
@@ -121,11 +121,11 @@
               <mat-icon class="text-white">more_vert</mat-icon>
             </button>
             <mat-menu #loanMenu="matMenu">
-              <button mat-menu-item (click)="editLoan(loan)">
+              <button mat-menu-item *ngIf="isAdmin" (click)="editLoan(loan)">
                 <mat-icon>edit</mat-icon>
                 <span>Edit</span>
               </button>
-              <button mat-menu-item *ngIf="currentUser?.role === 'admin'" (click)="deleteLoan(loan)">
+              <button mat-menu-item *ngIf="isAdmin" (click)="deleteLoan(loan)">
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
               </button>
@@ -254,19 +254,19 @@
                   <mat-icon class="text-white">more_vert</mat-icon>
                 </button>
                 <mat-menu #loanMenu="matMenu">
-                  <button mat-menu-item (click)="editLoan(loan)">
+                  <!-- <button mat-menu-item (click)="editLoan(loan)">
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
-                  </button>
-                  <button mat-menu-item *ngIf="currentUser?.role === 'admin'" (click)="deleteLoan(loan)">
+                  </button> -->
+                  <!-- <button mat-menu-item *ngIf="currentUser?.role === 'admin'" (click)="deleteLoan(loan)">
                     <mat-icon>delete</mat-icon>
                     <span>Delete</span>
-                  </button>
-                  <button mat-menu-item (click)="downloadDataSingle('excel', loan)">
+                  </button> -->
+                  <button mat-menu-item (click)="downloadDataSingle(loan,'excel')">
                     <mat-icon>table_view</mat-icon>
                     <span>Download as Excel</span>
                   </button>
-                  <button mat-menu-item (click)="downloadDataSingle('pdf',loan)">
+                  <button mat-menu-item (click)="downloadDataSingle(loan, 'pdf')">
                     <mat-icon>picture_as_pdf</mat-icon>
                     <span>Download as PDF</span>
                   </button>

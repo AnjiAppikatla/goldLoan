@@ -634,6 +634,17 @@ export class NewLoanComponent implements OnInit {
       if (this.isEdit) {
         loanData.id = this.editLoan.Id;
         loanData.city = this.loanForm.value.city.name;
+
+        if(this.editLoan.commissionPercentage == null){
+          const selectedLender = this.lenders.find(l => l.lenderName === loanData.lender);
+          loanData.commissionPercentage = selectedLender?.percentage || 0.006;
+          loanData.commissionAmount = (loanData.amount * loanData.commissionPercentage).toFixed(2);
+        }
+        else{
+          loanData.commissionPercentage = this.editLoan.commissionPercentage;
+        }
+
+        
         this.controllersService.UpdateLoan(loanData, Number(loanData.id)).subscribe({
           next: (response) => {
             if (response) {
@@ -656,6 +667,9 @@ export class NewLoanComponent implements OnInit {
         formData.maturityDate = new Date(formData.maturityDate).toISOString();
         formData.paymentDate = new Date(formData.paymentDate).toISOString();
         formData.city = formData.city.name;
+        if(formData.agentId == null){
+          formData.agentId = this.loanForm.get('agentId')?.value;
+        }
   
         // Format numbers
         formData.amount = parseFloat(formData.amount);

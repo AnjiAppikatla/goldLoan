@@ -54,10 +54,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
   activeClass: string = '';
   currentUser: any;
 
-  sessionTimeout: number = 10 * 60 * 1000;
+  sessionTimeout: number = 5 * 60 * 1000;
   sessionTimer: any;
   lastActivityTime: number = Date.now();
-  remainingTime: number = 10 * 60 * 1000;
+  remainingTime: number = 5 * 60 * 1000;
 
   constructor(
     private authService: AuthService,
