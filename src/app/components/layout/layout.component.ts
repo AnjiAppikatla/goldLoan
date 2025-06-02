@@ -67,10 +67,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     private router: Router,
     private dialog: MatDialog
   ) {
-    history.pushState(null, '', location.href);
-    this.platformLocation.onPopState(() => {
-      this.openLogoutDialog();
-    });
+    // history.pushState(null, '', location.href);
+    // this.platformLocation.onPopState(() => {
+    //   this.openLogoutDialog();
+    // });
   }
 
   ngOnInit() {
@@ -220,29 +220,29 @@ export class LayoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  @HostListener('window:mousemove')
-  @HostListener('window:keypress')
-  @HostListener('window:click')
-  onUserActivity() {
-    this.resetSessionTimer();
-  }
+  // @HostListener('window:mousemove')
+  // @HostListener('window:keypress')
+  // @HostListener('window:click')
+  // onUserActivity() {
+  //   this.resetSessionTimer();
+  // }
 
-  @HostListener('window:beforeunload', ['$event'])
-  onBeforeUnload(event: any) {
-    this.handleBrowserCloseLogout();
-  }
+  // @HostListener('window:beforeunload', ['$event'])
+  // onBeforeUnload(event: any) {
+  //   this.handleBrowserCloseLogout();
+  // }
 
-  private handleBrowserCloseLogout() {
-    if (this.currentUser) {
-      this.controllers
-        .LogoutAgent(this.currentUser, Number(this.currentUser.userId))
-        .subscribe({
-          next: () => {
-            localStorage.removeItem('currentUser');
-            this.authService.currentUserSubject.next(null);
-          },
-          error: (err) => console.error('Logout error on browser close:', err),
-        });
-    }
-  }
+//   private handleBrowserCloseLogout() {
+//     if (this.currentUser) {
+//       this.controllers
+//         .LogoutAgent(this.currentUser, Number(this.currentUser.userId))
+//         .subscribe({
+//           next: () => {
+//             localStorage.removeItem('currentUser');
+//             this.authService.currentUserSubject.next(null);
+//           },
+//           error: (err) => console.error('Logout error on browser close:', err),
+//         });
+//     }
+//   }
 }
