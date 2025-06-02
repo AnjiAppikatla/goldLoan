@@ -47,17 +47,17 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
-    // this.currentUser = this.authService.currentUserValue;
-    // if(this.currentUser){
-    //   this.controllers.LogoutAgent(this.currentUser,Number(this.currentUser.userId)).subscribe({
-    //     next: (data) => {
-    //       if (data) {
-    //         this.authService.currentUserSubject.next(null);
-    //         localStorage.removeItem('currentUser');
-    //       }
-    //     }
-    //   })
-    // }
+    this.currentUser = this.authService.currentUserValue;
+    if(this.currentUser){
+      this.controllers.LogoutAgent(this.currentUser,Number(this.currentUser.userId)).subscribe({
+        next: (data) => {
+          if (data) {
+            this.authService.currentUserSubject.next(null);
+            localStorage.removeItem('currentUser');
+          }
+        }
+      })
+    }
   }
 
   onSubmit() {

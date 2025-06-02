@@ -1,51 +1,58 @@
-::ng-deep .mat-expansion-panel-header:hover,
-::ng-deep .mat-expansion-panel-header:focus {
-  background-color: #f1d7b4 !important;
-}
+// ::ng-deep .mat-expansion-panel-header:hover,
+// ::ng-deep .mat-expansion-panel-header:focus {
+//   background-color: #f1d7b4 !important;
+// }
 
-.loan-progress-mini {
-  .progress-bar {
-    height: 6px;
-    border-radius: 3px;
-    background-color: #e5e7eb;
-    overflow: hidden;
+// .loan-progress-mini {
+//   .progress-bar {
+//     height: 6px;
+//     border-radius: 3px;
+//     background-color: #e5e7eb;
+//     overflow: hidden;
     
-    .progress {
-      height: 100%;
-      transition: width 0.3s ease;
-      border-radius: 3px;
+//     .progress {
+//       height: 100%;
+//       transition: width 0.3s ease;
+//       border-radius: 3px;
       
-      &.safe { 
-        background-color: #22c55e; 
-      }
-      &.warning { 
-        background-color: #f59e0b; 
-      }
-      &.danger { 
-        background-color: #ef4444; 
-      }
-    }
-  }
-}
+//       &.safe { 
+//         background-color: #22c55e; 
+//       }
+//       &.warning { 
+//         background-color: #f59e0b; 
+//       }
+//       &.danger { 
+//         background-color: #ef4444; 
+//       }
+//     }
+//   }
+// }
 
-::ng-deep .mat-expansion-panel-header {
-  &:hover {
-    .loan-progress-mini {
-      opacity: 1;
-    }
-  }
+// ::ng-deep .mat-expansion-panel-header {
+//   &:hover {
+//     .loan-progress-mini {
+//       opacity: 1;
+//     }
+//   }
   
-  .loan-progress-mini {
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
-  }
-}
+//   .loan-progress-mini {
+//     opacity: 0.8;
+//     transition: opacity 0.2s ease;
+//   }
+// }
 
-::ng-deep .full-width-dialog {
-  .mat-mdc-dialog-container {
-    padding: 0;
-  }
-  .mat-mdc-dialog-surface {
-    border-radius: 0;
-  }
+// ::ng-deep .full-width-dialog {
+//   .mat-mdc-dialog-container {
+//     padding: 0;
+//   }
+//   .mat-mdc-dialog-surface {
+//     border-radius: 0;
+//   }
+// }
+
+::ng-deep .mat-expansion-panel-{
+  padding: 0px !important;
+}
+::ng-deep .mat-mdc-menu-content{
+  padding: 0px !important;
 }

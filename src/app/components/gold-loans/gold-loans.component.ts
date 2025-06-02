@@ -29,12 +29,14 @@ import { IndentLoanComponent } from '../indent-loan/indent-loan.component';
 import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
 import jsPDF from 'jspdf';
+import { LoanImagesDialogComponent } from './loan-images-dialog/loan-images-dialog.component';
 
 
 
 @Component({
   selector: 'app-gold-loans',
   standalone: true,
+  styleUrls: ['./gold-loans.component.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [CommonModule,
     MatButtonModule,
@@ -71,6 +73,9 @@ export class GoldLoansComponent {
   minAmount: number | null = null;
   maxAmount: number | null = null;
   filteredLoans: any[] = [];
+
+  commissionDisplay: any = [];
+  singleLoanCommsionObject: any = {};
 
   // Add new properties for filtering
   selectedAgent: string = '';
@@ -221,10 +226,13 @@ export class GoldLoansComponent {
 
         this.loans = this.loans.map(loan => ({
           ...loan,
-          ReceivedDate: loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate
+          ReceivedDate: loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate,
+          images: []
         }));
         
-
+        // this.loans.forEach(loan => {
+        //   this.loadLoanImages(loan.Id);
+        // });
 
         if (this.currentUser?.role === 'admin') {
           // Group loans by agent
@@ -245,6 +253,7 @@ export class GoldLoansComponent {
         this.filteredLoans.map(loan => {
           this.CalculateCommission(loan);
         });
+
       }
     });
   }
@@ -255,14 +264,22 @@ export class GoldLoansComponent {
       
       // Normalize to array
       const receivedCommissions = Array.isArray(parsed) ? parsed : [parsed];
-  
       const totalReceivedCommission = receivedCommissions.reduce(
         (sum: number, entry: any) => sum + (parseFloat(entry.received) || 0),
         0
-      );
-  
+      );  
       const receivableCommission =
         parseFloat(loan.CommissionAmount || 0) - totalReceivedCommission;
+
+        if(receivedCommissions){
+          const obj = Object.assign({})
+          obj.loan_Id = loan.Id;
+          obj.CommissionAmount = loan.CommissionAmount;
+          obj.receivedCommissions = receivedCommissions;
+          obj.receivableCommission = receivableCommission;
+          obj.totalReceivedCommission = totalReceivedCommission;
+          this.commissionDisplay.push(obj);
+        }
   
       loan.receivedCommissions = totalReceivedCommission;
       loan.receivableCommission = receivableCommission;
@@ -1406,6 +1423,107 @@ filterDialogClose() {
     this.applyFilters();
     this.createChart();
   }
+
+  openImages(loan: any, viewOnly = false) {
+    if (!loan || !loan.Id) {
+      this.toast.error('Invalid loan data');
+      return;
+    }
+  
+    // If viewOnly is true, load images from the server first
+    if (viewOnly === true) {
+      this.controllers.getLoanImages(Number(loan.Id)).subscribe({
+        next: (response: any) => {
+          if (response) {
+           
+            for (const agent in this.groupedLoans) {
+              const groupedLoan = this.groupedLoans[agent].find(l => l.Id === loan.Id.toString());
+              if (groupedLoan) {
+                groupedLoan.images = response;
+                break; // Loan found and updated, no need to continue
+              }
+            }
+            this.showImageDialog(loan, viewOnly); // Open the dialog
+            this.cdr.detectChanges(); // Trigger change detection
+          }
+        },
+        error: (error) => {
+          console.error('Error loading images for loan', error);
+          this.toast.error('Failed to load images');
+        }
+      });
+    } else {
+      this.showImageDialog(loan, viewOnly); // Open immediately if not viewOnly
+    }
+  }
+  
+  private showImageDialog(loan: any, viewOnly: boolean) {
+    const dialogRef = this.dialog.open(LoanImagesDialogComponent, {
+      width: '90%',
+      maxWidth: '800px',
+      data: {
+        images: loan.images || [],
+        loanId: loan.Id,
+        viewOnly
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.controllers.uploadLoanImages(result.loanId, result.images)
+          .subscribe({
+            next: () => {
+              this.loadLoanImages(result.loanId);
+              this.toast.success('Images uploaded successfully');
+              this.cdr.detectChanges();
+            },
+            error: (error) => {
+              console.error('Error uploading images:', error);
+              this.toast.error('Failed to upload images');
+            }
+          });
+      }
+    });
+  }
+  
+
+  loadLoanImages(loanId: number) {
+    this.controllers.getLoanImages(loanId).subscribe({
+      next: (response: any) => {
+        if (response) {
+          // Step 1: Update the loan in this.loans
+          const loan = this.loans.find(l => l.Id === loanId.toString());
+          if (loan) {
+            loan.images = response;
+          }
+  
+          // Step 2: Also update the loan in this.groupedLoans
+          for (const agent in this.groupedLoans) {
+            const groupedLoan = this.groupedLoans[agent].find(l => l.Id === loanId.toString());
+            if (groupedLoan) {
+              groupedLoan.images = response;
+              break; // Loan found and updated, no need to continue
+            }
+          }
+  
+          this.cdr.detectChanges(); // Trigger change detection
+        }
+      },
+      error: (error) => {
+        console.error('Error loading images for loan', loanId, error);
+        this.toast.error('Failed to load images');
+      }
+    });
+  }
+
+  singleLoanCommission(Id:string){
+   this.singleLoanCommsionObject = this.commissionDisplay.find((x:any) => x.loan_Id === Id);
+  }
+  
+  
+  
+
+
 
 
 

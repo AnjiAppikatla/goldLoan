@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, from, Observable, switchMap, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 // export interface Agent {
@@ -173,6 +173,32 @@ export class ControllersService {
   DeleteBankDetails(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/bankdetails/DeleteBankDetails/${id}`)
   }
+
+  uploadLoanImages(loanId: number, images: any[]): Observable<any> {
+    const formData = new FormData();
+    formData.append('loan_id', loanId.toString());
+    formData.append('total_images', images.length.toString());
+  
+    images.forEach((image, index) => {
+      formData.append(`image_data_${index}`, image.data); // Already base64 from dialog
+      formData.append(`image_name_${index}`, image.name);
+      formData.append(`image_type_${index}`, image.type);
+      formData.append(`created_at_${index}`, image.created_at);
+    });
+  
+    return this.http.post(`${this.baseUrl}/loan_images/UploadLoanImages/${loanId}`, formData);
+  }
+
+  getLoanImages(loanId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/loan_images/GetLoanImages/${loanId}`);
+  }
+
+  deleteImage(imageId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/loan_images/DeleteImage/${imageId}`);
+  }
+
+
+  
 
 
 
