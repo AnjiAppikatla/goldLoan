@@ -100,7 +100,11 @@ export class GoldLoanService {
   }
 
   GetAllLoans() {
-    this.controllersService.GetAllLoans().subscribe({
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // e.g., 6 for June
+    const currentYear = today.getFullYear();  // e.g., 2025
+    this.controllersService.GetLoansByMonth(currentMonth,currentYear).subscribe({
+    // this.controllersService.GetAllLoans().subscribe({
       next: (response) => {
         if (response) {
           try {

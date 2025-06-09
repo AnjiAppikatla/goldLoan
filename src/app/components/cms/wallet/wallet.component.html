@@ -1,0 +1,24 @@
+<div *ngIf="userRole === 'admin'">
+    <h2 class="text-xl font-bold mb-4">Fino Wallet Overview (Admin)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Chart for Fino Wallet -->
+      <div class="p-4 border rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Fino Wallet Transfers</h3>
+        <canvas id="finoWalletChart" width="400" height="200"></canvas>
+      </div>
+  
+      <!-- Agent-wise Wallet Collections -->
+      <div class="p-4 border rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Agent-wise Wallet Collection</h3>
+        <canvas id="agentWalletChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="userRole === 'agent'">
+    <h2 class="text-xl font-bold mb-4">My Wallet Overview</h2>
+    <div class="p-4 border rounded shadow">
+        <canvas id="agentOwnWalletChart" width="400" height="200"></canvas>
+    </div>
+  </div>
+  

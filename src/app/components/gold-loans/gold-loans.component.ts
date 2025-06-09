@@ -30,6 +30,7 @@ import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
 import jsPDF from 'jspdf';
 import { LoanImagesDialogComponent } from './loan-images-dialog/loan-images-dialog.component';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 
 
@@ -58,7 +59,7 @@ import { LoanImagesDialogComponent } from './loan-images-dialog/loan-images-dial
     MatMenuModule,
     MatRadioModule,
     // FindPipe,
-    MatTabsModule, IndentLoanComponent],
+    MatTabsModule, IndentLoanComponent, MatCheckboxModule],
   templateUrl: './gold-loans.component.html'
 })
 export class GoldLoansComponent {
@@ -76,6 +77,7 @@ export class GoldLoansComponent {
 
   commissionDisplay: any = [];
   singleLoanCommsionObject: any = {};
+  isChecked: boolean = false;
 
   // Add new properties for filtering
   selectedAgent: string = '';
@@ -157,9 +159,9 @@ export class GoldLoansComponent {
     this.selectedFilter = null;
     this.selectedAgent = '';
     this.selectedDateFilter = '',
-     
-    // this.GetAllBranches();
-    this.GetAllMerchants();
+
+      // this.GetAllBranches();
+      this.GetAllMerchants();
     this.GetAllLenders()
 
     this.loadLoans();
@@ -220,7 +222,11 @@ export class GoldLoansComponent {
   }
 
   loadLoans() {
-    this.controllers.GetAllLoans().subscribe((res: any) => {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // e.g., 6 for June
+    const currentYear = today.getFullYear();  // e.g., 2025
+    // this.controllers.GetAllLoans().subscribe((res: any) => {
+    this.controllers.GetLoansByMonth(currentMonth, currentYear).subscribe((res: any) => {
       if (res) {
         this.loans = res;
 
@@ -229,7 +235,7 @@ export class GoldLoansComponent {
           ReceivedDate: loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate,
           images: []
         }));
-        
+
         // this.loans.forEach(loan => {
         //   this.loadLoanImages(loan.Id);
         // });
@@ -261,33 +267,33 @@ export class GoldLoansComponent {
   CalculateCommission(loan: any) {
     if (loan.CommissionReceived) {
       const parsed = JSON.parse(loan.CommissionReceived);
-      
+
       // Normalize to array
       const receivedCommissions = Array.isArray(parsed) ? parsed : [parsed];
       const totalReceivedCommission = receivedCommissions.reduce(
         (sum: number, entry: any) => sum + (parseFloat(entry.received) || 0),
         0
-      );  
+      );
       const receivableCommission =
         parseFloat(loan.CommissionAmount || 0) - totalReceivedCommission;
 
-        if(receivedCommissions){
-          const obj = Object.assign({})
-          obj.loan_Id = loan.Id;
-          obj.CommissionAmount = loan.CommissionAmount;
-          obj.receivedCommissions = receivedCommissions;
-          obj.receivableCommission = receivableCommission;
-          obj.totalReceivedCommission = totalReceivedCommission;
-          this.commissionDisplay.push(obj);
-        }
-  
+      if (receivedCommissions) {
+        const obj = Object.assign({})
+        obj.loan_Id = loan.Id;
+        obj.CommissionAmount = loan.CommissionAmount;
+        obj.receivedCommissions = receivedCommissions;
+        obj.receivableCommission = receivableCommission;
+        obj.totalReceivedCommission = totalReceivedCommission;
+        this.commissionDisplay.push(obj);
+      }
+
       loan.receivedCommissions = totalReceivedCommission;
       loan.receivableCommission = receivableCommission;
-  
+
       return { ...loan };
     }
   }
-  
+
 
   calculateCommissionValues(loan: any) {
     try {
@@ -306,16 +312,16 @@ export class GoldLoansComponent {
       } else {
         commissionReceived = [];
       }
-  
+
       // Calculate total received commission
       loan.totalReceivedCommission = commissionReceived.reduce(
         (sum: number, entry: any) => sum + (parseFloat(entry.Received) || 0),
         0
       );
-  
+
       // Calculate receivable commission
       loan.receivableCommission = parseFloat(loan.CommissionAmount || 0) - loan.totalReceivedCommission;
-  
+
       // Ensure values are not negative
       loan.totalReceivedCommission = Math.max(0, loan.totalReceivedCommission);
       loan.receivableCommission = Math.max(0, loan.receivableCommission);
@@ -384,137 +390,138 @@ export class GoldLoansComponent {
         ? this.loans.filter((loan: any) => loan.MerchantId === this.selectedMerchant)
         : this.loans)
       : (this.selectedLender
-        ? this.loans.filter((loan: any) => this.lenders.find((lender:any) => lender.lenderName === loan.Lender)?.id === this.selectedLender)
+        ? this.loans.filter((loan: any) => this.lenders.find((lender: any) => lender.lenderName === loan.Lender)?.id === this.selectedLender)
         : this.loans);
-  
+
     if (format === 'excel') {
       this.exportToExcel(filteredLoans);
     } else {
-       this.exportToPDF(filteredLoans);
+      this.exportToPDF(filteredLoans);
     }
-}
+  }
 
-async downloadDataSingle(loan: any, type: 'excel' | 'pdf') {
-  if (type === 'excel') {
+  async downloadDataSingle(loan: any, type: 'excel' | 'pdf') {
+    if (type === 'excel') {
       this.exportToExcel([loan]);
-  } else {
+    } else {
       await this.exportToPDF([loan]);
-  }
-}
-
-CalCForXl(loan:any){
-  let existingCommissions: any[] = [];
-  try {
-    if (loan.CommissionReceived) {
-      const parsed = JSON.parse(loan.CommissionReceived);
-      existingCommissions = Array.isArray(parsed) ? parsed : [parsed];
     }
-  } catch (e) {
-    console.error('Error parsing commission data:', e);
-    existingCommissions = [];
   }
 
-  // Calculate total already received
-  const totalReceived = existingCommissions.reduce((sum, entry) =>
-    sum + (parseFloat(entry.received) || 0), 0);
+  CalCForXl(loan: any) {
+    let existingCommissions: any[] = [];
+    try {
+      if (loan.CommissionReceived) {
+        const parsed = JSON.parse(loan.CommissionReceived);
+        existingCommissions = Array.isArray(parsed) ? parsed : [parsed];
+      }
+    } catch (e) {
+      console.error('Error parsing commission data:', e);
+      existingCommissions = [];
+    }
 
-  return totalReceived;
-}
+    // Calculate total already received
+    const totalReceived = existingCommissions.reduce((sum, entry) =>
+      sum + (parseFloat(entry.received) || 0), 0);
 
-private exportToExcel(loans: any[]) {
-  const isAdmin = this.currentUser?.role === 'admin';
-  try {
-    const formattedData = loans.map(loan => ({
-      'Name': loan.Name || 'N/A',
-      'Amount': loan.Amount || 0,
-      'Merchant': this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
-      'Lender': loan.Lender || 'N/A',
-      'Mobile': loan.MobileNo || 'N/A',
-      'City': loan.City || 'N/A',
-      'Agent Name': loan.AgentName || 'N/A',
-      'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
-      'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
-      'Payment Type': loan.PaymentType || '-',
-      'Cash Amount': loan.CashAmount || '-',
-      'Online Amount': loan.OnlineAmount || '-',
-      'Online Payment Type': loan.OnlinePaymentType || '-',
-      'Received By': loan.ReceivedBy || '-',
-      'Commission Amount': isAdmin ? loan.CommissionAmount :  '-',
-      'Commission Received': isAdmin ? this.CalCForXl(loan) : '-',
-      'Receivable Commission': isAdmin ? loan.CommissionAmount - this.CalCForXl(loan.CommissionReceived) : '-',
-      'Commission Percentage': isAdmin ? loan.CommissionPercentage : '-'
-    }));
-
-    const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
-    formattedData.push({'Name': '',
-      'Amount': '',
-      'Merchant': '',
-      'Lender': '',
-      'Mobile': '',
-      'City': '',
-      'Agent Name': '',
-      'Issue Date': '',
-      'Maturity Date': '',
-      'Payment Type': '',
-      'Cash Amount': '',
-      'Online Amount': '',
-      'Online Payment Type': '',
-      'Received By': '',
-      'Commission Amount': '',
-      'Commission Received': '',
-      'Receivable Commission': '',
-      'Commission Percentage': ''
-    }); // Empty row
-    formattedData.push({
-      'Name': 'Total Amount : ',
-      'Amount': totalAmount.toLocaleString('en-IN', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }),
-      'Merchant': '',
-      'Lender': '',
-      'Mobile': '',
-      'City': '',
-      'Agent Name': '',
-      'Issue Date': '',
-      'Maturity Date': '',
-      'Payment Type': '',
-      'Cash Amount': '',
-      'Online Amount': '',
-      'Online Payment Type': '',
-      'Received By': '',
-      'Commission Amount': '',
-      'Commission Received': '',
-      'Receivable Commission': '',
-      'Commission Percentage': ''
-    });
-
-    const ws = XLSX.utils.json_to_sheet(formattedData);
-
-    // ✅ Set column widths automatically
-    const columnWidths = Object.keys(formattedData[0]).map((key) => {
-      const maxLength = Math.max(
-        key.length,
-        ...formattedData.map(row => (row as any)[key]?.toString().length || 0)
-      );
-      return { wch: maxLength + 2 }; // Add some padding
-    });
-    ws['!cols'] = columnWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Loans');
-
-    const title = loans.length === 1
-      ? `Loan_${loans[0].Name}`
-      : this.chartType === 'merchant'
-        ? `Merchant_${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All'}`
-        : `Lender_${this.selectedLender ? loans[0].Lender : 'All'}`;
-
-    XLSX.writeFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
-  } catch (error) {
-    console.error('Error exporting to Excel:', error);
+    return totalReceived;
   }
-}
+
+  private exportToExcel(loans: any[]) {
+    const isAdmin = this.currentUser?.role === 'admin';
+    try {
+      const formattedData = loans.map(loan => ({
+        'Name': loan.Name || 'N/A',
+        'Amount': loan.Amount || 0,
+        'Merchant': this.merchants.find(m => m.merchantid === loan.MerchantId)?.merchantName || 'N/A',
+        'Lender': loan.Lender || 'N/A',
+        'Mobile': loan.MobileNo || 'N/A',
+        'City': loan.City || 'N/A',
+        'Agent Name': loan.AgentName || 'N/A',
+        'Issue Date': loan.IssuedDate ? new Date(loan.IssuedDate).toLocaleDateString() : 'N/A',
+        'Maturity Date': loan.MaturityDate ? new Date(loan.MaturityDate).toLocaleDateString() : 'N/A',
+        'Payment Type': loan.PaymentType || '-',
+        'Cash Amount': loan.CashAmount || '-',
+        'Online Amount': loan.OnlineAmount || '-',
+        'Online Payment Type': loan.OnlinePaymentType || '-',
+        'Received By': loan.ReceivedBy || '-',
+        'Commission Amount': isAdmin ? loan.CommissionAmount : '-',
+        'Commission Received': isAdmin ? this.CalCForXl(loan) : '-',
+        'Receivable Commission': isAdmin ? loan.CommissionAmount - this.CalCForXl(loan.CommissionReceived) : '-',
+        'Commission Percentage': isAdmin ? loan.CommissionPercentage : '-'
+      }));
+
+      const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
+      formattedData.push({
+        'Name': '',
+        'Amount': '',
+        'Merchant': '',
+        'Lender': '',
+        'Mobile': '',
+        'City': '',
+        'Agent Name': '',
+        'Issue Date': '',
+        'Maturity Date': '',
+        'Payment Type': '',
+        'Cash Amount': '',
+        'Online Amount': '',
+        'Online Payment Type': '',
+        'Received By': '',
+        'Commission Amount': '',
+        'Commission Received': '',
+        'Receivable Commission': '',
+        'Commission Percentage': ''
+      }); // Empty row
+      formattedData.push({
+        'Name': 'Total Amount : ',
+        'Amount': totalAmount.toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }),
+        'Merchant': '',
+        'Lender': '',
+        'Mobile': '',
+        'City': '',
+        'Agent Name': '',
+        'Issue Date': '',
+        'Maturity Date': '',
+        'Payment Type': '',
+        'Cash Amount': '',
+        'Online Amount': '',
+        'Online Payment Type': '',
+        'Received By': '',
+        'Commission Amount': '',
+        'Commission Received': '',
+        'Receivable Commission': '',
+        'Commission Percentage': ''
+      });
+
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+
+      // ✅ Set column widths automatically
+      const columnWidths = Object.keys(formattedData[0]).map((key) => {
+        const maxLength = Math.max(
+          key.length,
+          ...formattedData.map(row => (row as any)[key]?.toString().length || 0)
+        );
+        return { wch: maxLength + 2 }; // Add some padding
+      });
+      ws['!cols'] = columnWidths;
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Loans');
+
+      const title = loans.length === 1
+        ? `Loan_${loans[0].Name}`
+        : this.chartType === 'merchant'
+          ? `Merchant_${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All'}`
+          : `Lender_${this.selectedLender ? loans[0].Lender : 'All'}`;
+
+      XLSX.writeFile(wb, `${title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+    }
+  }
 
 
   private generateFileName(data: any[], isSingleEntry: boolean): string {
@@ -524,7 +531,7 @@ private exportToExcel(loans: any[]) {
       const lender = this.lenders.find((l: any) => l.lenderId === loan.Lender)?.lenderName || 'Unknown';
       return `Loan_${loan.Name}_${merchant}_${lender}_${new Date().toISOString().split('T')[0]}.xlsx`;
     }
-  
+
     return `Loans_Report_${this.chartType === 'merchant' ? 'Merchant' : 'Lender'}_${this.getFilterName()}_${new Date().toISOString().split('T')[0]}.xlsx`;
   }
 
@@ -536,22 +543,22 @@ private exportToExcel(loans: any[]) {
       format: 'a4'
     });
     const chartCanvas = document.getElementById('goldLoansChart') as HTMLCanvasElement;
-  
+
     // Generate Title
     const title = loans.length === 1
       ? `Loan Details - ${loans[0].Name}`
       : this.chartType === 'merchant'
         ? `Merchant Report - ${this.selectedMerchant ? this.merchants.find(m => m.merchantid === this.selectedMerchant)?.merchantName : 'All Merchants'}`
-        : `Lender Report - ${this.selectedLender ? this.lenders.find((l:any) => l.id === this.selectedLender)?.lenderName : 'All Lenders'}`;
-  
+        : `Lender Report - ${this.selectedLender ? this.lenders.find((l: any) => l.id === this.selectedLender)?.lenderName : 'All Lenders'}`;
+
     pdf.setFontSize(16);
     const titleWidth = pdf.getStringUnitWidth(title) * 16 / pdf.internal.scaleFactor;
     const pageWidth = pdf.internal.pageSize.getWidth();
     const titleX = (pageWidth - titleWidth) / 2;
     pdf.text(title, titleX, 15);
-  
+
     let startY = 25;
-  
+
     // Insert Chart (if exists and multiple loans)
     if (chartCanvas && loans.length > 1) {
       const canvasImage = await html2canvas(chartCanvas);
@@ -559,10 +566,10 @@ private exportToExcel(loans: any[]) {
       const imgProps = pdf.getImageProperties(imgData);
       const imgWidth = 95; // Reduced chart size
       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-  
+
       // Add chart
       pdf.addImage(imgData, 'PNG', 20, startY, imgWidth, imgHeight);
-  
+
       // Add summary to the right of the chart
       if (loans.length > 1) {
         const totalAmount = loans.reduce((sum, loan) => sum + (Number(loan.Amount) || 0), 0);
@@ -577,15 +584,15 @@ private exportToExcel(loans: any[]) {
           startY + 20
         );
       }
-  
+
       startY += imgHeight + 15; // Added more spacing after chart
     }
-  
+
     // Table Headers and Body remain the same
     const headers = [
       ['Name', 'Amount', 'Lender', 'Lead Id', 'Merchant', 'Issue Date', 'Maturity Date', 'City', 'Agent']
     ];
-  
+
     const tableData = loans.map(loan => ([
       loan.Name || 'N/A',
       `${loan.Amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
@@ -597,7 +604,7 @@ private exportToExcel(loans: any[]) {
       loan.City || 'N/A',
       loan.AgentName || 'N/A'
     ]));
-  
+
     autoTable(pdf, {
       head: headers,
       body: tableData,
@@ -619,7 +626,7 @@ private exportToExcel(loans: any[]) {
         pdf.text(timestamp, timestampX, pdf.internal.pageSize.getHeight() - 10);
       }
     });
-  
+
     const fileName = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(fileName);
   }
@@ -631,7 +638,7 @@ private exportToExcel(loans: any[]) {
       const lender = this.lenders.find((l: any) => l.lenderId === loan.Lender)?.lenderName || 'Unknown';
       return `Loan Report - ${loan.Name} (${merchant} - ${lender})`;
     }
-  
+
     return this.chartType === 'merchant'
       ? `${this.selectedMerchant ? this.merchants.find(m => m.merchantId === this.selectedMerchant)?.merchantName : 'All'} Merchant Report`
       : `${this.selectedLender ? this.lenders.find((l: any) => l.lenderId === this.selectedLender)?.lenderName : 'All'} Lender Report`;
@@ -650,6 +657,15 @@ private exportToExcel(loans: any[]) {
     }
   }
 
+  onDateChange() {
+    if (this.selectedDateFilter === 'custom' && this.fromDate && this.toDate) {
+      const start = this.formatDate(this.fromDate);
+      const end = this.formatDate(this.toDate);
+      this.GetLoansByCustomRange(start, end);
+      this.filterDialogClose();
+    }
+  }
+
 
   applyFilters() {
     let tempLoans = [...this.loans];
@@ -660,59 +676,104 @@ private exportToExcel(loans: any[]) {
       tempLoans = tempLoans.filter(loan => loan.AgentName === this.selectedAgent);
     }
 
+    if (this.selectedDateFilter === 'custom') {
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+  
+    let startDate: string;
+    let endDate: string;
+
     // Date filter
     if (this.selectedDateFilter) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+      switch (this.selectedDateFilter) {
+        case 'all':
+          this.loadLoans();
+          break;
+        case 'today':
+          startDate = this.formatDate(today);
+          endDate = this.formatDate(today);
+          this.GetLoansByCustomRange(startDate, endDate);
+          break;
+        case 'yesterday':
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          startDate = this.formatDate(yesterday);
+          endDate = this.formatDate(yesterday);
+          this.GetLoansByCustomRange(startDate, endDate);
+          break;
+        case 'week':
+          const oneWeekAgo = new Date(today);
+          oneWeekAgo.setDate(today.getDate() - 7);
+          startDate = this.formatDate(oneWeekAgo);
+          endDate = this.formatDate(today);
+          this.GetLoansByCustomRange(startDate, endDate);
+          break;
+        case 'month':
+          const oneMonthAgo = new Date(today);
+          oneMonthAgo.setMonth(today.getMonth() - 1);
+          startDate = this.formatDate(oneMonthAgo);
+          endDate = this.formatDate(today);
+          this.GetLoansByCustomRange(startDate, endDate);
+          break;
+        case 'custom':
+          if (this.fromDate && this.toDate) {
+            startDate = this.fromDate ? this.formatDate(this.fromDate) : '';
+            endDate = this.toDate ? this.formatDate(this.toDate) : '';
+          }
+          break;
+          default:
+            this.toast.error('Invalid period selected');
+            return;
+          }
 
-        switch (this.selectedDateFilter) {
-            case 'today':
-                tempLoans = tempLoans.filter(loan => {
-                    const loanDate = new Date(loan.IssuedDate);
-                    return loanDate.toDateString() === today.toDateString();
-                });
-                break;
-            case 'thisWeek':
-                const weekStart = new Date(today);
-                weekStart.setDate(today.getDate() - today.getDay());
-                tempLoans = tempLoans.filter(loan => {
-                    const loanDate = new Date(loan.IssuedDate);
-                    return loanDate >= weekStart && loanDate <= today;
-                });
-                break;
-            case 'thisMonth':
-                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-                tempLoans = tempLoans.filter(loan => {
-                    const loanDate = new Date(loan.IssuedDate);
-                    return loanDate >= monthStart && loanDate <= today;
-                });
-                break;
-            case 'custom':
-                if (this.fromDate && this.toDate) {
-                    tempLoans = tempLoans.filter(loan => {
-                        const loanDate = new Date(loan.IssuedDate);
-                        return loanDate >= this.fromDate! && loanDate <= this.toDate!;
-                      });
-                      this.filterDialogClose();
-                }
-                break;
-        }
+      // Merchant/Lender filter
+      if (this.chartType === 'merchant' && this.selectedMerchant) {
+        tempLoans = tempLoans.filter(loan => loan.MerchantId === this.selectedMerchant);
+      } else if (this.chartType === 'lender' && this.selectedLender) {
+        tempLoans = tempLoans.filter(loan => {
+          const lender = this.lenders.find((l: any) => l.id === this.selectedLender);
+          return loan.Lender === lender?.lenderName;
+        });
+      }
 
-         // Merchant/Lender filter
-    if (this.chartType === 'merchant' && this.selectedMerchant) {
-      tempLoans = tempLoans.filter(loan => loan.MerchantId === this.selectedMerchant);
-    } else if (this.chartType === 'lender' && this.selectedLender) {
+      // Update filtered loans
+      this.filteredLoans = tempLoans;
+
+      // Update grouping for admin users
+      if (this.currentUser?.role === 'admin') {
+        this.groupedLoans = tempLoans.reduce((groups: { [key: string]: any[] }, loan: any) => {
+          const agent = loan.AgentName || 'Unassigned';
+          if (!groups[agent]) {
+            groups[agent] = [];
+          }
+          groups[agent].push(loan);
+          return groups;
+        }, {});
+      }
+
+      this.createChart();
+      this.cdr.detectChanges();
+    }
+
+    // Merchant/Lender filter
+    if (this.selectedFilter) {
       tempLoans = tempLoans.filter(loan => {
-        const lender = this.lenders.find((l: any) => l.id === this.selectedLender);
-        return loan.Lender === lender?.lenderName;
+        const compareId = this.chartType === 'merchant' ? loan.MerchantId : this.lenders.find((l: any) => l.lenderName === loan.Lender)?.id;
+        return compareId === this.selectedFilter;
       });
     }
 
-    // Update filtered loans
-    this.filteredLoans = tempLoans;
+    if (this.selectedDateFilter === 'custom') {
 
-    // Update grouping for admin users
+    }
+    else {
+      this.filterDialogClose();
+    }
+
     if (this.currentUser?.role === 'admin') {
+      // Group filtered loans by agent
       this.groupedLoans = tempLoans.reduce((groups: { [key: string]: any[] }, loan: any) => {
         const agent = loan.AgentName || 'Unassigned';
         if (!groups[agent]) {
@@ -721,54 +782,24 @@ private exportToExcel(loans: any[]) {
         groups[agent].push(loan);
         return groups;
       }, {});
-    }
-
-    this.createChart();
-    this.cdr.detectChanges();
-    }
-
-    // Merchant/Lender filter
-    if (this.selectedFilter) {
-        tempLoans = tempLoans.filter(loan => {
-            const compareId = this.chartType === 'merchant' ? loan.MerchantId : this.lenders.find((l: any) => l.lenderName === loan.Lender)?.id;
-            return compareId === this.selectedFilter;
-        });
-    }
-
-    if(this.selectedDateFilter === 'custom'){
-      
-    }
-    else{
-      this.filterDialogClose();
-    }
-
-    if (this.currentUser?.role === 'admin') {
-      // Group filtered loans by agent
-      this.groupedLoans = tempLoans.reduce((groups: { [key: string]: any[] }, loan: any) => {
-          const agent = loan.AgentName || 'Unassigned';
-          if (!groups[agent]) {
-              groups[agent] = [];
-          }
-          groups[agent].push(loan);
-          return groups;
-      }, {});
-  } else {
+    } else {
       // For non-admin users, only show their own loans
       this.groupedLoans = {
-          [this.currentUser.name]: tempLoans.filter(loan => loan.AgentName === this.currentUser.name)
+        [this.currentUser.name]: tempLoans.filter(loan => loan.AgentName === this.currentUser.name)
       };
-  }
+    }
     this.createChart();
     this.cdr.detectChanges();
-}
+    this.filterDialogClose();
+  }
 
-filterDialogClose() {
-  const dialogRef = this.dialog.getDialogById('filterDialog');
-  if (dialogRef) {
+  filterDialogClose() {
+    const dialogRef = this.dialog.getDialogById('filterDialog');
+    if (dialogRef) {
       dialogRef.close();
       this.dialog.closeAll(); // Ensure all dialogs are closed
+    }
   }
-}
 
   // Add this method to reset all filters
   resetFilters(): void {
@@ -777,7 +808,7 @@ filterDialogClose() {
     this.fromDate = null;
     this.toDate = null;
     this.filteredLoans = [...this.loans];
-}
+  }
 
   // GetAllLoans() {
   //   this.filteredLoans = [];
@@ -949,7 +980,7 @@ filterDialogClose() {
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const value = context.raw as number;
                 const label = context.label || '';
                 const count = label.match(/\((\d+)\)$/)?.[1] || '0';
@@ -1013,33 +1044,33 @@ filterDialogClose() {
 
   private calculateLenderDistribution() {
     const lenderData = new Map<string, { count: number, amount: number }>();
-  
+
     // Filter loans based on selected lender
     const filteredLoans = this.selectedFilter
       ? this.filteredLoans.filter((loan: any) => {
-          const selectedLender = this.lenders.find((l: any) => l.id === this.selectedFilter);
-          return loan.Lender === selectedLender?.lenderName;
-        })
+        const selectedLender = this.lenders.find((l: any) => l.id === this.selectedFilter);
+        return loan.Lender === selectedLender?.lenderName;
+      })
       : this.filteredLoans;
-  
+
     // Aggregate loan data directly from loans instead of initializing all lenders
-    filteredLoans.forEach((loan:any) => {
-        if (loan.Lender) {
-            const currentData = lenderData.get(loan.Lender) || { count: 0, amount: 0 };
-            lenderData.set(loan.Lender, {
-                count: currentData.count + 1,
-                amount: currentData.amount + (parseFloat(loan.Amount) || 0)
-            });
-        }
+    filteredLoans.forEach((loan: any) => {
+      if (loan.Lender) {
+        const currentData = lenderData.get(loan.Lender) || { count: 0, amount: 0 };
+        lenderData.set(loan.Lender, {
+          count: currentData.count + 1,
+          amount: currentData.amount + (parseFloat(loan.Amount) || 0)
+        });
+      }
     });
-  
+
     // Sort by amount
     const sortedData = Array.from(lenderData.entries())
-        .sort(([_, a], [__, b]) => b.amount - a.amount);
-  
+      .sort(([_, a], [__, b]) => b.amount - a.amount);
+
     return {
-        labels: sortedData.map(([name, _]) => name),
-        values: sortedData.map(([_, data]) => data.amount)
+      labels: sortedData.map(([name, _]) => name),
+      values: sortedData.map(([_, data]) => data.amount)
     };
   }
 
@@ -1060,9 +1091,9 @@ filterDialogClose() {
     if (this.selectedFilter) {
       if (this.chartType === 'merchant') {
         filteredLoans = filteredLoans.filter(loan => loan.MerchantId === this.selectedFilter);
-    } else {
+      } else {
         filteredLoans = filteredLoans.filter(loan => loan.LenderId === this.selectedFilter);
-    }
+      }
     }
 
     return filteredLoans;
@@ -1116,19 +1147,19 @@ filterDialogClose() {
     if (this.currentUser?.role === 'admin') {
       // Group filtered loans by agent
       this.groupedLoans = this.filteredLoans.reduce((groups: { [key: string]: any[] }, loan: any) => {
-          const agent = loan.AgentName || 'Unassigned';
-          if (!groups[agent]) {
-              groups[agent] = [];
-          }
-          groups[agent].push(loan);
-          return groups;
+        const agent = loan.AgentName || 'Unassigned';
+        if (!groups[agent]) {
+          groups[agent] = [];
+        }
+        groups[agent].push(loan);
+        return groups;
       }, {});
-  } else {
+    } else {
       // For non-admin users, only show their own loans
       this.groupedLoans = {
-          [this.currentUser.name]: this.filteredLoans.filter(loan => loan.AgentName === this.currentUser.name)
+        [this.currentUser.name]: this.filteredLoans.filter(loan => loan.AgentName === this.currentUser.name)
       };
-  }
+    }
     this.createChart();
     this.cdr.detectChanges();
   }
@@ -1160,24 +1191,6 @@ filterDialogClose() {
       status: status
     };
   }
-
-  // getProgressClass(progress: number): string {
-  //   if (progress >= 90) {
-  //     return 'bg-red-500';
-  //   } else if (progress >= 75) {
-  //     return 'bg-yellow-500';
-  //   }
-  //   return 'bg-green-500';
-  // }
-
-  // getProgressTextClass(progress: number): string {
-  //   if (progress >= 90) {
-  //     return 'text-red-500';
-  //   } else if (progress >= 75) {
-  //     return 'text-yellow-500';
-  //   }
-  //   return 'text-green-500';
-  // }
 
 
   commissionEnterClick(id: any) {
@@ -1234,7 +1247,7 @@ filterDialogClose() {
       try {
         const newCommission = parseFloat(this.commissionForm.value.received);
         const totalCommission = parseFloat(this.selectedLoan.CommissionAmount);
-  
+
         // Parse existing commission JSON safely
         let existingCommissions: any[] = [];
         try {
@@ -1246,31 +1259,31 @@ filterDialogClose() {
           console.error('Error parsing commission data:', e);
           existingCommissions = [];
         }
-  
+
         // Calculate total already received
         const totalReceived = existingCommissions.reduce((sum, entry) =>
           sum + (parseFloat(entry.received) || 0), 0);
-  
+
         const remainingCommission = totalCommission - totalReceived;
-  
+
         if (newCommission > remainingCommission) {
           this.toast.warning(`Commission cannot exceed remaining amount of ₹${remainingCommission}`);
           return;
         }
-  
+
         // Create new commission entry
         const newEntry = {
           received: newCommission,
           date: new Date().toISOString().split('T')[0], // yyyy-mm-dd format
           remaining: remainingCommission - newCommission
         };
-  
+
         // Add new entry
         existingCommissions.push(newEntry);
-  
+
         // Update the local loan model - keep as array here, backend will encode
         this.selectedLoan.CommissionReceived = existingCommissions;
-  
+
         // Call backend update API
         this.controllers.UpdateCommission({ CommissionReceived: this.selectedLoan.CommissionReceived }, Number(this.selectedLoan.Id))
           .subscribe({
@@ -1278,7 +1291,7 @@ filterDialogClose() {
               if (response) {
                 const dialogRef = this.dialog.getDialogById('editDialog');
                 if (dialogRef) dialogRef.close();
-  
+
                 this.loadLoans(); // reload updated list
                 this.toast.success('Commission updated successfully');
                 this.cdr.detectChanges();
@@ -1290,7 +1303,7 @@ filterDialogClose() {
               this.toast.error(error.message || 'Error updating commission');
             }
           });
-  
+
       } catch (error: any) {
         console.error('Error updating commission:', error);
         this.toast.error(error.message || 'Error updating commission');
@@ -1311,27 +1324,6 @@ filterDialogClose() {
       }
     });
   }
-
-  // updateLoan() {
-  //   if (this.loanForm.valid && this.selectedLoan) {
-  //     const updatedLoan = {
-  //       ...this.selectedLoan,
-  //       Name: this.loanForm.value.name,
-  //       Amount: this.loanForm.value.amount,
-  //       MobileNo: this.loanForm.value.mobileNo,
-  //       City: this.loanForm.value.city
-  //     };
-
-  //     this.controllers.UpdateLoan(updatedLoan).subscribe({
-  //       next: (response) => {
-  //         if (response) {
-  //           this.dialog.closeAll();
-  //           this.GetAllLoans(); // Refresh the list
-  //         }
-  //       }
-  //     });
-  //   }
-  // }
 
   deleteLoan(loan: any) {
     // Only allow admin to delete
@@ -1429,13 +1421,13 @@ filterDialogClose() {
       this.toast.error('Invalid loan data');
       return;
     }
-  
+
     // If viewOnly is true, load images from the server first
     if (viewOnly === true) {
       this.controllers.getLoanImages(Number(loan.Id)).subscribe({
         next: (response: any) => {
           if (response) {
-           
+
             for (const agent in this.groupedLoans) {
               const groupedLoan = this.groupedLoans[agent].find(l => l.Id === loan.Id.toString());
               if (groupedLoan) {
@@ -1456,7 +1448,7 @@ filterDialogClose() {
       this.showImageDialog(loan, viewOnly); // Open immediately if not viewOnly
     }
   }
-  
+
   private showImageDialog(loan: any, viewOnly: boolean) {
     const dialogRef = this.dialog.open(LoanImagesDialogComponent, {
       width: '90%',
@@ -1467,7 +1459,7 @@ filterDialogClose() {
         viewOnly
       }
     });
-  
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.controllers.uploadLoanImages(result.loanId, result.images)
@@ -1485,7 +1477,7 @@ filterDialogClose() {
       }
     });
   }
-  
+
 
   loadLoanImages(loanId: number) {
     this.controllers.getLoanImages(loanId).subscribe({
@@ -1496,7 +1488,7 @@ filterDialogClose() {
           if (loan) {
             loan.images = response;
           }
-  
+
           // Step 2: Also update the loan in this.groupedLoans
           for (const agent in this.groupedLoans) {
             const groupedLoan = this.groupedLoans[agent].find(l => l.Id === loanId.toString());
@@ -1505,7 +1497,7 @@ filterDialogClose() {
               break; // Loan found and updated, no need to continue
             }
           }
-  
+
           this.cdr.detectChanges(); // Trigger change detection
         }
       },
@@ -1516,12 +1508,68 @@ filterDialogClose() {
     });
   }
 
-  singleLoanCommission(Id:string){
-   this.singleLoanCommsionObject = this.commissionDisplay.find((x:any) => x.loan_Id === Id);
+  singleLoanCommission(Id: string) {
+    this.singleLoanCommsionObject = this.commissionDisplay.find((x: any) => x.loan_Id === Id);
+  }
+
+  formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
   
+  GetLoansByCustomRange(startDate: string, endDate: string) {
+    this.filteredLoans = [];
+    this.controllers.GetLoansByDateRange(startDate, endDate).subscribe({
+      next: (response) => {
+        if (response) {
+          this.loans = response;
   
+          this.loans = this.loans.map(loan => ({
+            ...loan,
+            ReceivedDate: loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate,
+            images: []
+          }));
   
+          // this.loans.forEach(loan => {
+          //   this.loadLoanImages(loan.Id);
+          // });
+  
+          if (this.currentUser?.role === 'admin') {
+            // Group loans by agent
+            this.groupedLoans = this.loans.reduce((groups: { [key: string]: any[] }, loan: any) => {
+              const agent = loan.AgentName || 'Unassigned';
+              if (!groups[agent]) {
+                groups[agent] = [];
+              }
+              groups[agent].push(loan);
+              return groups;
+            }, {});
+          } else {
+            // For agents, only show their own loans
+            this.loans = this.loans.filter(loan => loan.AgentName === this.currentUser.name);
+          }
+          this.filteredLoans = [...this.loans];
+          this.filteredLoans.map(loan => {
+            this.CalculateCommission(loan);
+          });
+          this.createChart();
+          this.cdr.detectChanges();
+          this.toast.success('loans fetched successfully');
+        } else {
+          this.toast.warning('no loans found');
+        }
+      },
+      error: (err) => {
+        this.toast.error('Error fetching loans by date range');
+        console.error(err);
+      }
+    });
+  }
+
+
+
 
 
 

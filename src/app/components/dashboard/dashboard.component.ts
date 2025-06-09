@@ -800,9 +800,6 @@ private calculateLenderDistribution() {
       values: sortedData.map(([_, data]) => data.amount)
   };
 }
-  
-  
-
 
   downloadMerchantReport() {
     const filteredLoans = this.selectedMerchant
@@ -835,7 +832,12 @@ private calculateLenderDistribution() {
 
   GetAllLoans() {
     this.recentLoans = [];
-    this.controllers.GetAllLoans().subscribe({
+    this.filteredLoans = [];
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // e.g., 6 for June
+    const currentYear = today.getFullYear();  // e.g., 2025
+    // this.controllers.GetAllLoans().subscribe({
+    this.controllers.GetLoansByMonth(currentMonth,currentYear).subscribe({
       next: (response) => {
         if (response) {
           this.recentLoans = response;
@@ -1064,124 +1066,143 @@ private createPieChart() {
   }
 
   onPeriodChange() {
+    if (this.selectedPeriod === 'custom') {
+      return;
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    var loans = [...this.recentLoans]
-
-    if (this.selectedPeriod === 'all') {
-      this.GetAllLoans();
-
-      setTimeout(() => {
-        this.filteredLoans = this.recentLoans;
-      },100)
+  
+    let startDate: string;
+    let endDate: string;
+  
+    switch (this.selectedPeriod) {
+      case 'all':
+        this.GetAllLoans();
+        return;
+  
+      case 'today':
+        startDate = this.formatDate(today);
+        endDate = this.formatDate(today);
+        break;
+  
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        startDate = this.formatDate(yesterday);
+        endDate = this.formatDate(yesterday);
+        break;
+  
+      case 'week':
+        const oneWeekAgo = new Date(today);
+        oneWeekAgo.setDate(today.getDate() - 7);
+        startDate = this.formatDate(oneWeekAgo);
+        endDate = this.formatDate(today);
+        break;
+  
+      case 'month':
+        const oneMonthAgo = new Date(today);
+        oneMonthAgo.setMonth(today.getMonth() - 1);
+        startDate = this.formatDate(oneMonthAgo);
+        endDate = this.formatDate(today);
+        break;
+      case 'custom':
+        // const custom = new Date(today);
+        // oneMonthAgo.setMonth(today.getMonth() - 1);
+        startDate = this.startDate ? this.formatDate(this.startDate) : '';
+        endDate = this.endDate ? this.formatDate(this.endDate) : '';
+        break;
+  
+      default:
+        this.toast.error('Invalid period selected');
+        return;
     }
   
-    if (this.selectedPeriod === 'today') {
-        loans = loans.filter(loan => {
-        const loanDate = new Date(loan.IssuedDate);
-        loanDate.setHours(0, 0, 0, 0);
-        return loanDate.getTime() === today.getTime();
-      });
-    } 
-    else if (this.selectedPeriod === 'yesterday') {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(0, 0, 0, 0);
+    this.GetLoansByCustomRange(startDate, endDate);
+  }
   
-      loans = loans.filter(loan => {
-        const loanDate = new Date(loan.IssuedDate);
-        loanDate.setHours(0, 0, 0, 0);
-        return loanDate.getTime() === yesterday.getTime();
-      });
-    } 
-    else if (this.selectedPeriod === 'last-week') {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(today.getDate() - 7);
-      oneWeekAgo.setHours(0, 0, 0, 0);
+  formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   
-      loans = loans.filter(loan => {
-        const loanDate = new Date(loan.IssuedDate);
-        return loanDate >= oneWeekAgo && loanDate <= today;
-      });
-    } 
-    else if (this.selectedPeriod === 'last-month') {
-      const oneMonthAgo = new Date();
-      oneMonthAgo.setMonth(today.getMonth() - 1);
-      oneMonthAgo.setHours(0, 0, 0, 0);
-  
-      loans = loans.filter(loan => {
-        const loanDate = new Date(loan.IssuedDate);
-        return loanDate >= oneMonthAgo && loanDate <= today;
-      });
-    }
-
-    if(loans.length > 0){
-      this.filteredLoans = loans
-    }
-    else{
-      this.filteredLoans = []
-      this.datefilterResult = `${this.selectedPeriod} loans not found`;
-      this.toast.error(`${this.selectedPeriod} loans not found`)
-    }
-
-    setTimeout(() => {
-      this.createChart();
-    this.createTimeDistributionChart();
-    this.createPieChart();
-    },500)
-
+  GetLoansByCustomRange(startDate: string, endDate: string) {
+    this.filteredLoans = [];
+    this.recentLoans = [];
+    this.controllers.GetLoansByDateRange(startDate, endDate).subscribe({
+      next: (response) => {
+        if (response?.length > 0) {
+          this.recentLoans = response;
+          this.filteredLoans = response;
+          this.datefilterResult = `Loans between ${startDate} and ${endDate}`;
+          this.toast.success(this.datefilterResult);          
+        } else {
+          this.datefilterResult = `No loans found between ${startDate} and ${endDate}`;
+          this.toast.warning(this.datefilterResult);
+        }
+        setTimeout(() => {
+          this.initializeCharts();
+        },500)
+      },
+      error: (err) => {
+        this.toast.error('Error fetching loans by date range');
+        console.error(err);
+      }
+    });
   }
   
 
   onDateChange() {
-    if (this.startDate && this.endDate) {
-      this.filterLoans();
+    if (this.selectedPeriod === 'custom' && this.startDate && this.endDate) {
+      const start = this.formatDate(this.startDate);
+      const end = this.formatDate(this.endDate);
+      this.GetLoansByCustomRange(start, end);
     }
   }
 
-  private filterLoans() {
-    const now = new Date();
-    let startDate: Date;
-    let endDate = new Date(now.setHours(23, 59, 59, 999));
+  // private filterLoans() {
+  //   const now = new Date();
+  //   let startDate: Date;
+  //   let endDate = new Date(now.setHours(23, 59, 59, 999));
 
-    switch (this.selectedPeriod) {
-      case 'today':
-        startDate = new Date(now.setHours(0, 0, 0, 0));
-        break;
-      case 'yesterday':
-        startDate = new Date(now.setDate(now.getDate() - 1));
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(startDate);
-        endDate.setHours(23, 59, 59, 999);
-        break;
-      case 'week':
-        startDate = new Date(now.setDate(now.getDate() - 7));
-        break;
-      case 'month':
-        startDate = new Date(now.setMonth(now.getMonth() - 1));
-        break;
-      case 'custom':
-        if (this.startDate && this.endDate) {
-          startDate = new Date(this.startDate);
-          endDate = new Date(this.endDate);
-          endDate.setHours(23, 59, 59, 999);
-        } else {
-          return;
-        }
-        break;
-      default:
-        startDate = new Date(0); // All time
-    }
+  //   switch (this.selectedPeriod) {
+  //     case 'today':
+  //       startDate = new Date(now.setHours(0, 0, 0, 0));
+  //       break;
+  //     case 'yesterday':
+  //       startDate = new Date(now.setDate(now.getDate() - 1));
+  //       startDate.setHours(0, 0, 0, 0);
+  //       endDate = new Date(startDate);
+  //       endDate.setHours(23, 59, 59, 999);
+  //       break;
+  //     case 'week':
+  //       startDate = new Date(now.setDate(now.getDate() - 7));
+  //       break;
+  //     case 'month':
+  //       startDate = new Date(now.setMonth(now.getMonth() - 1));
+  //       break;
+  //     case 'custom':
+  //       if (this.startDate && this.endDate) {
+  //         startDate = new Date(this.startDate);
+  //         endDate = new Date(this.endDate);
+  //         endDate.setHours(23, 59, 59, 999);
+  //       } else {
+  //         return;
+  //       }
+  //       break;
+  //     default:
+  //       startDate = new Date(0); // All time
+  //   }
 
-    this.filteredLoans = this.recentLoans.filter((loan: any) => {
-      const loanDate = new Date(loan.issuedDate);
-      return loanDate >= startDate && loanDate <= endDate;
-    });
+  //   this.filteredLoans = this.recentLoans.filter((loan: any) => {
+  //     const loanDate = new Date(loan.issuedDate);
+  //     return loanDate >= startDate && loanDate <= endDate;
+  //   });
 
-    this.createPieChart();
-    this.createTimeDistributionChart();
-  }
+  //   this.createPieChart();
+  //   this.createTimeDistributionChart();
+  // }
 
 
 

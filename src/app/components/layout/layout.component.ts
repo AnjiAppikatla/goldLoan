@@ -23,6 +23,11 @@ import { AuthService } from '../../services/auth.service';
 import { ControllersService } from '../../services/controllers.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PlatformLocation } from '@angular/common';
+import { CmsdashboardComponent } from "../cms/cmsdashboard/cmsdashboard.component";
+import { CollectionsComponent } from "../cms/collections/collections.component";
+import { TransactionsComponent } from "../cms/transactions/transactions.component";
+import { CommissionsComponent } from "../cms/commissions/commissions.component";
+import { WalletComponent } from "../cms/wallet/wallet.component";
 
 @Component({
   selector: 'app-layout',
@@ -42,22 +47,31 @@ import { PlatformLocation } from '@angular/common';
     SettingsComponent,
     PersonalloansComponent,
     IndentLoanComponent,
-  ],
+    CmsdashboardComponent,
+    CollectionsComponent,
+    TransactionsComponent,
+    // CommissionsComponent,
+    WalletComponent
+],
 })
 export class LayoutComponent implements OnInit, OnDestroy {
   isDashboard = false;
   isGoldLoans = false;
   isSettings = false;
   personalloans = false;
+  cmsdashboard = false;
+  collections = false;
+  transactions = false;
+  wallet = false;
   indentloans = false;
   showSidenav = false;
   activeClass: string = '';
   currentUser: any;
 
-  sessionTimeout: number = 5 * 60 * 1000;
+  sessionTimeout: number = 14 * 60 * 1000;
   sessionTimer: any;
   lastActivityTime: number = Date.now();
-  remainingTime: number = 5 * 60 * 1000;
+  remainingTime: number = 14 * 60 * 1000;
 
   constructor(
     private authService: AuthService,
@@ -131,6 +145,20 @@ export class LayoutComponent implements OnInit, OnDestroy {
       case 'indentloans':
         this.indentloans = true;
         break;
+      case 'cmsdashboard':
+        this.cmsdashboard = true;
+        break;
+      case 'cmscollections':
+        this.collections = true;
+        break;
+      case 'cmspayments':
+        this.transactions = true;
+        break;
+      case 'wallet':
+        this.wallet = true;
+        break;
+      default:
+        break;
     }
   }
 
@@ -140,6 +168,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.isSettings = false;
     this.personalloans = false;
     this.indentloans = false;
+    this.cmsdashboard = false;
+    this.collections = false;
+    this.transactions = false;
+    this.wallet = false;
   }
 
   async openLogoutDialog(): Promise<void> {

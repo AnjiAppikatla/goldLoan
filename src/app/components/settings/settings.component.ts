@@ -100,6 +100,21 @@ export class SettingsComponent {
   searchBankInput: string = '';
   @ViewChild('bankDialog') bankDialog!: TemplateRef<any>;
 
+  @ViewChild('custodianDialog') custodianDialog!: TemplateRef<any>;
+  @ViewChild('clientDialog') clientDialog!: TemplateRef<any>;
+
+    // Custodian
+    custodianForm!: FormGroup;
+    custodianDetails: any[] = [];
+    filteredCustodianDetails: any[] = [];
+    searchCustodianInput = '';
+  
+    // Client
+    clientForm!: FormGroup;
+    clientDetails: any[] = [];
+    filteredClientDetails: any[] = [];
+    searchClientInput = '';
+
   constructor(
     private dialog: MatDialog,
     private fb: FormBuilder,
@@ -121,6 +136,9 @@ export class SettingsComponent {
     this.GetAllMerchants();
 
     this.loadBankDetails();
+
+    this.loadCustodianDetails();
+    this.loadClientDetails();
 
    setTimeout(() => {
     this.filteredBranches = this.branches;
@@ -474,6 +492,16 @@ export class SettingsComponent {
       ifsc_code: ['', [Validators.required, Validators.pattern('^[A-Z]{4}0[A-Z0-9]{6}$')]],
       created_at: [new Date().toISOString(), Validators.required]
     });
+
+    this.custodianForm = this.fb.group({
+      custodianName: ['', Validators.required],
+      custodianid: ['', Validators.required]
+    });
+
+    this.clientForm = this.fb.group({
+      clientName: ['', Validators.required],
+      percentage: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+    });
   }
 
 
@@ -706,6 +734,157 @@ export class SettingsComponent {
       }
     });
   }
+
+    // --- Custodian methods ---
+    loadCustodianDetails() {
+      this.controllersService.getAllCustodians().subscribe((res: any) => {
+        this.custodianDetails = res;
+        this.filteredCustodianDetails = res;
+      });
+    }
+  
+    searchCustodians(event: any) {
+      const searchTerm = (event.target.value || '').toLowerCase();
+      this.filteredCustodianDetails = this.custodianDetails.filter(custodian =>
+        custodian.name.toLowerCase().includes(searchTerm) ||
+        custodian.email.toLowerCase().includes(searchTerm) ||
+        custodian.phone.toLowerCase().includes(searchTerm)
+      );
+    }
+  
+    openCustodianDialog() {
+      this.isEdit = false;
+      this.custodianForm.reset();
+      this.dialog.open(this.custodianDialog, {
+        width: '400px',
+        disableClose: true,
+      });
+    }
+  
+    saveCustodian() {
+      if (this.custodianForm.valid) {
+        this.controllersService.createCustodian(this.custodianForm.value).subscribe(() => {
+          this.toast.success('Custodian added successfully');
+          this.dialog.closeAll();
+          this.loadCustodianDetails();
+        });
+      }
+    }
+  
+    editCustodian(custodian: any) {
+      this.isEdit = true;
+      this.custodianForm.patchValue(custodian);
+      this.dialog.open(this.custodianDialog, {
+        width: '400px',
+        disableClose: true,
+      });
+
+      this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+        this.controllersService.updateCustodian(Number(custodian.id), this.custodianForm.value).subscribe(() => {
+          this.toast.success('Custodian updated successfully');
+          this.dialog.closeAll();
+          this.loadCustodianDetails();
+        });
+      })
+    }
+  
+    updateCustodian() {
+      this.dialog.closeAll();
+      this.loadCustodianDetails(); // Refresh the custodian detail
+    }
+  
+    deleteCustodian(id: number) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '300px',
+        data: {
+          title: 'Confirm Delete',
+          message: 'Are you sure you want to delete this custodian?'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.controllersService.deleteCustodian(Number(id)).subscribe(() => {
+            this.toast.success('Custodian deleted successfully');
+            this.loadCustodianDetails();
+          });
+        }
+      })
+    }
+  
+    // --- Client methods ---
+    loadClientDetails() {
+      this.controllersService.getAllClients().subscribe((res: any) => {
+        this.clientDetails = res;
+        this.filteredClientDetails = res;
+      });
+    }
+  
+    searchClients(event: any) {
+      const searchTerm = (event.target.value || '').toLowerCase();
+      this.filteredClientDetails = this.clientDetails.filter(client =>
+        client.clientName.toLowerCase().includes(searchTerm) ||
+        client.percentage.toString().includes(searchTerm)
+      );
+    }
+  
+    openClientDialog() {
+      this.isEdit = false;
+      this.clientForm.reset();
+      this.dialog.open(this.clientDialog, {
+        width: '400px',
+        disableClose: true,
+      });
+    }
+  
+    saveClient() {
+      if (this.clientForm.valid) {
+        this.controllersService.createClient(this.clientForm.value).subscribe(() => {
+          this.toast.success('Client added successfully');
+          this.dialog.closeAll();
+          this.loadClientDetails();
+        });
+      }
+    }
+  
+    editClient(client: any) {
+      this.isEdit = true;
+      this.clientForm.patchValue(client);
+      this.dialog.open(this.clientDialog, {
+        width: '400px',
+        disableClose: true,
+      });
+      this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+        this.controllersService.updateClient(Number(client.id), this.clientForm.value).subscribe(() => {
+          this.toast.success('Client updated successfully');
+          this.dialog.closeAll();
+          this.loadClientDetails();
+        });
+      })
+    }
+  
+    updateClient() {
+      this.dialog.closeAll();
+      this.loadClientDetails(); // Refresh the client detail
+    }
+  
+    deleteClient(id: number) {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '300px',
+        data: {
+          title: 'Confirm Delete',
+          message: 'Are you sure you want to delete this client?'
+        } 
+      })
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.controllersService.deleteClient(Number(id)).subscribe(() => {
+            this.toast.success('Client deleted successfully');
+            this.loadClientDetails();
+          });
+        }
+      })
+    }
 
 
 

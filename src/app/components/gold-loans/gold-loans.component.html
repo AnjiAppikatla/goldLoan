@@ -114,6 +114,7 @@
       <mat-expansion-panel-header>
         <mat-panel-title class="flex items-center gap-4 w-full">
           <div class="flex items-center gap-2 flex-1">
+            <span class="font-medium text-md sm:text-[11px] text-white">{{loan.LeadId !== '' ? loan.LeadId : 'Lead Id'}} - </span>
             <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
           </div>
           <div class="flex items-center">
@@ -177,8 +178,14 @@
         </div>
 
         <div class="p-4 rounded" *ngIf="currentUser?.role === 'admin'">
+
+         
+      
           <h3 class="mb-2 text-amber-500 font-bold relative">Revenew
-            <span class="absolute right-0 top-0">
+            <mat-checkbox class="ml-3" [(ngModel)]="isChecked">
+              {{ isChecked ? 'Checked' : 'Unchecked' }}
+            </mat-checkbox>
+            <span class="absolute right-0 top-0" *ngIf="isChecked">
               <button mat-icon-button color="primary" (click)="openEditDialog(loan)"
                 class="focus-visible:outline-2 focus-visible:outline-offset-2">
                 <mat-icon>edit</mat-icon>
@@ -186,7 +193,7 @@
             </span>
           </h3>
 
-          <p class="flex items-center gap-2 mb-0">
+          <p class="flex items-center gap-2 mb-0" *ngIf="isChecked">
             <strong>Total Revenue:</strong> {{loan.CommissionAmount}}
 
             <button mat-icon-button [matMenuTriggerFor]="commissionMenu" (click)="singleLoanCommission(loan.Id)">
@@ -220,8 +227,8 @@
             </mat-menu>
 
           </p>
-          <p><strong>Received :</strong> {{loan.receivedCommissions}}</p>
-          <p><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
+          <p *ngIf="isChecked"><strong>Received :</strong> {{loan.receivedCommissions}}</p>
+          <p *ngIf="isChecked"><strong>Receivable :</strong> {{loan.receivableCommission}}</p>
 
         </div>
 
@@ -291,7 +298,8 @@
           <mat-expansion-panel-header>
             <mat-panel-title class="flex items-center gap-4 w-full">
               <div class="flex items-center gap-2 flex-1">
-                <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
+                <span class="font-medium text-md sm:text-[11px] text-white">{{loan.LeadId !== '' ? loan.LeadId : 'Lead Id'}} - </span>
+                <span class="font-medium text-md sm:text-[11px] text-white"> {{loan.Name}}</span>
               </div>
               <div class="flex items-center">
                 <button mat-icon-button [matMenuTriggerFor]="loanMenu" (click)="$event.stopPropagation()">
@@ -487,8 +495,9 @@
             <mat-select [(ngModel)]="selectedDateFilter" (selectionChange)="applyFilters()">
               <mat-option [value]="">All Time</mat-option>
               <mat-option value="today">Today</mat-option>
-              <mat-option value="week">Last 7 Days</mat-option>
-              <mat-option value="month">Last 30 Days</mat-option>
+              <mat-option value="yesterday">Today</mat-option>
+              <mat-option value="week">Last week</mat-option>
+              <mat-option value="month">Last Month</mat-option>
               <mat-option value="custom">Custom Range</mat-option>
             </mat-select>
           </mat-form-field>
@@ -497,14 +506,14 @@
           <div *ngIf="selectedDateFilter === 'custom'" class="flex gap-4">
             <mat-form-field appearance="outline">
               <mat-label>From Date</mat-label>
-              <input matInput [matDatepicker]="fromPicker" [(ngModel)]="fromDate" (dateChange)="applyFilters()">
+              <input matInput [matDatepicker]="fromPicker" [(ngModel)]="fromDate" (dateChange)="onDateChange()">
               <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
               <mat-datepicker #fromPicker></mat-datepicker>
             </mat-form-field>
           
             <mat-form-field appearance="outline">
               <mat-label>To Date</mat-label>
-              <input matInput [matDatepicker]="toPicker" [(ngModel)]="toDate" (dateChange)="applyFilters()">
+              <input matInput [matDatepicker]="toPicker" [(ngModel)]="toDate" (dateChange)="onDateChange()">
               <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
               <mat-datepicker #toPicker></mat-datepicker>
             </mat-form-field>

@@ -168,7 +168,7 @@ export class LoanImagesDialogComponent {
         image_name: image.file.name,
         image_type: image.file.type,
         created_at: new Date().toISOString().replace('T', ' ').split('.')[0],
-        url: base64Data  // This will be replaced by the server with the correct URL
+        data: base64Data  // This will be replaced by the server with the correct URL
       };
     });
 

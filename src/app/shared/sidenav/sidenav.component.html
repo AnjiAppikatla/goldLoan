@@ -1,41 +1,76 @@
 <div class="h-full side-nav-bg shadow-md">
   <nav class="gold-loan">
     <!-- Show dashboard only for admin -->
-    <a *ngIf="currentUser?.role === 'admin'" 
-       class="text-left flex items-center mt-0" 
-       [class.active]="activeClass === 'dashboard'"  
-       (click)="changeScreen('dashboard')">
-      <mat-icon class="mr-2">dashboard</mat-icon> 
+    <p class="text-white font-medium flex items-center pl-3 h-[45px] text-lg app-theme-bg mb-0 relative">Gold Loans 
+      <!-- <mat-icon class="ml-2 absolute right-0">
+        {{ goldtoggleMenuArrow }}
+      </mat-icon> -->
+    </p>
+
+    <ng-container>
+      <a *ngIf="currentUser?.role === 'admin'" class="text-left flex items-center mt-0"
+      [class.active]="activeClass === 'dashboard'" (click)="changeScreen('dashboard')">
+      <mat-icon class="mr-2">dashboard</mat-icon>
       <span>Dashboard</span>
     </a>
 
-    <a class="text-left flex items-center mt-0" 
-       [class.active]="activeClass === 'goldLoans'" 
-       (click)="changeScreen('goldLoans')">
-      <mat-icon class="mr-2">account_balance</mat-icon> 
+    <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'goldLoans'"
+      (click)="changeScreen('goldLoans')">
+      <mat-icon class="mr-2">account_balance</mat-icon>
       <span>Gold Loans</span>
     </a>
 
-    <a class="text-left flex items-center mt-0" 
-       [class.active]="activeClass === 'indentloans'" 
-       (click)="changeScreen('indentloans')">
-       <mat-icon class="mr-2">event</mat-icon>
+    <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'indentloans'"
+      (click)="changeScreen('indentloans')">
+      <mat-icon class="mr-2">event</mat-icon>
       <span>Indent Loans</span>
     </a>
 
-    <a class="text-left flex items-center mt-0" 
-       [class.active]="activeClass === 'personalLoans'" 
-       (click)="changeScreen('personalLoans')">
-      <mat-icon class="mr-2">person</mat-icon> 
+    <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'personalLoans'"
+      (click)="changeScreen('personalLoans')">
+      <mat-icon class="mr-2">person</mat-icon>
       <span>Personal Loans</span>
     </a>
+    </ng-container>    
+
+    <p class="text-white font-medium flex items-center pl-3 h-[45px] text-lg app-theme-bg mb-0 relative mt-1">CMS 
+      <!-- <mat-icon class="ml-2 absolute right-0">
+        {{ cmstoggleMenuArrow }}
+      </mat-icon> -->
+    </p>
+
+    <ng-container>
+      <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'cmsdashboard'"
+      (click)="changeScreen('cmsdashboard')">
+      <mat-icon>dashboard</mat-icon>
+      <span>CMS Dashboard</span>
+    </a>
+    <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'cmscollections'"
+      (click)="changeScreen('cmscollections')">
+      <mat-icon>inventory_2</mat-icon>
+      <span>Collection's</span>
+    </a>
+    <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'cmspayments'"
+      (click)="changeScreen('cmspayments')">
+      <mat-icon>attach_money</mat-icon>
+      <span>Payments</span>
+    </a>
+    <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'wallet'"
+      (click)="changeScreen('wallet')">
+      <mat-icon>wallet</mat-icon>
+      <span>Wallet</span>
+    </a>
+    <!-- <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'cmscommission'"
+      (click)="changeScreen('cmscommission')">
+      <mat-icon>monetization_on</mat-icon>
+      <span>Commission's</span>
+    </a> -->
+    </ng-container>
 
     <!-- Show settings only for admin -->
-    <a *ngIf="currentUser?.role === 'admin'" 
-       class="text-left flex items-center mt-0" 
-       [class.active]="activeClass == 'settings'" 
-       (click)="changeScreen('settings')">
-      <mat-icon class="mr-2">settings</mat-icon> 
+    <a *ngIf="currentUser?.role === 'admin'" class="text-left flex items-center mt-0"
+      [class.active]="activeClass == 'settings'" (click)="changeScreen('settings')">
+      <mat-icon class="mr-2">settings</mat-icon>
       <span>Settings</span>
     </a>
   </nav>

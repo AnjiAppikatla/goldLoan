@@ -6,7 +6,10 @@
     <div class="session-timer">
       <div class="flex justify-evenly items-center">
         <mat-icon>schedule</mat-icon>
-        <span class="pl-2"> {{ remainingTime / 1000 | number: '1.0-0' }} sec </span>
+        <span class="pl-2"> 
+          {{ (remainingTime / 1000 / 60) | number: '1.0-0' }} min 
+          {{ ((remainingTime / 1000) % 60) | number: '1.0-0' }} sec
+        </span>
       </div>
     </div>
     <!-- <div class="session-timer">
@@ -61,6 +64,19 @@
 
       <div *ngIf="personalloans">
         <app-personalloans></app-personalloans>
+      </div>
+
+      <div *ngIf="cmsdashboard">
+        <app-cmsdashboard></app-cmsdashboard>
+      </div>
+      <div *ngIf="collections" class="p-4">
+        <app-collections></app-collections>
+      </div>
+      <div *ngIf="transactions" class="p-4">
+        <app-transactions></app-transactions>
+      </div>
+      <div *ngIf="wallet" class="p-4">
+        <app-wallet></app-wallet>
       </div>
 
       <div *ngIf="isSettings">

@@ -54,6 +54,7 @@ export class LoginComponent implements OnInit {
           if (data) {
             this.authService.currentUserSubject.next(null);
             localStorage.removeItem('currentUser');
+            localStorage.removeItem('token');
           }
         }
       })
@@ -76,6 +77,7 @@ export class LoginComponent implements OnInit {
             this.toast.success('Welcome ' + data.name);
             this.authService.currentUserSubject.next(data);
             localStorage.setItem('currentUser', JSON.stringify(data));
+            localStorage.setItem('token', data.token);
             this.router.navigate(['/layout']);
           } else {
             this.toast.error('Invalid credentials');

@@ -222,6 +222,83 @@
         </div>
       </mat-expansion-panel>
 
+      <!-- Custodian Details Panel -->
+<mat-expansion-panel>
+  <mat-expansion-panel-header class="bg-gray-200">
+    <mat-panel-title class="flex items-center gap-2">
+      <mat-icon>person</mat-icon>
+      <span>Custodian Details</span>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+
+  <div class="pt-3 h-[350px] overflow-auto overflow-x-hidden">
+    <div class="flex items-center gap-2 w-full mb-4">
+      <mat-form-field class="w-full">
+        <mat-label>Search Custodian Details</mat-label>
+        <input matInput placeholder="Search by name" (input)="searchCustodians($event)" [(ngModel)]="searchCustodianInput">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <button mat-mini-fab color="primary" class="flex-shrink-0" (click)="openCustodianDialog()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <mat-card *ngFor="let custodian of filteredCustodianDetails" class="bg-gray-50">
+        <mat-card-content class="mt-2">
+          <p><strong>Name :</strong> {{custodian.custodianName}}</p>
+          <p><strong>Email :</strong> {{custodian.custodianid}}</p>
+          <p><strong>Created At :</strong> {{custodian.created_at}}</p>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-button color="primary" (click)="editCustodian(custodian)">Edit</button>
+          <button mat-button color="warn" (click)="deleteCustodian(custodian.id)">Delete</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</mat-expansion-panel>
+
+<!-- Client Details Panel -->
+<mat-expansion-panel>
+  <mat-expansion-panel-header class="bg-gray-200">
+    <mat-panel-title class="flex items-center gap-2">
+      <mat-icon>people</mat-icon>
+      <span>Client Details</span>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+
+  <div class="pt-3 h-[350px] overflow-auto overflow-x-hidden">
+    <div class="flex items-center gap-2 w-full mb-4">
+      <mat-form-field class="w-full">
+        <mat-label>Search Client Details</mat-label>
+        <input matInput placeholder="Search by name" (input)="searchClients($event)" [(ngModel)]="searchClientInput">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <button mat-mini-fab color="primary" class="flex-shrink-0" (click)="openClientDialog()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <mat-card *ngFor="let client of filteredClientDetails" class="bg-gray-50">
+        <mat-card-content class="mt-2">
+          <p><strong>Client Name :</strong> {{client.clientName}}</p>
+          <p><strong>Percentage :</strong> {{client.percentage}}</p>
+          <p><strong>Created At :</strong> {{client.created_at}}</p>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-button color="primary" (click)="editClient(client)">Edit</button>
+          <button mat-button color="warn" (click)="deleteClient(client.id)">Delete</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</mat-expansion-panel>
+
+
 
   </mat-accordion>
 
@@ -409,6 +486,50 @@
       <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateBank()">Update</button>
     </mat-dialog-actions>
   </ng-template>
+
+  <!-- Custodian Dialog Template -->
+<ng-template #custodianDialog>
+  <h2 mat-dialog-title>{{isEdit ? 'Edit Custodian' : 'Add New Custodian'}}</h2>
+  <mat-dialog-content>
+    <form [formGroup]="custodianForm" class="flex flex-col gap-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="custodianName">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Custodian Id</mat-label>
+        <input matInput formControlName="custodianid" type="number">
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveCustodian()">Save</button>
+    <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateCustodian()">Update</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- Client Dialog Template -->
+<ng-template #clientDialog>
+  <h2 mat-dialog-title>{{isEdit ? 'Edit Client' : 'Add New Client'}}</h2>
+  <mat-dialog-content>
+    <form [formGroup]="clientForm" class="flex flex-col gap-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Client Name</mat-label>
+        <input matInput formControlName="clientName">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Percentage</mat-label>
+        <input matInput formControlName="percentage" type="number" min="0" max="100" step="0.01">
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" *ngIf="!isEdit" (click)="saveClient()">Save</button>
+    <button mat-raised-button color="primary" *ngIf="isEdit" (click)="updateClient()">Update</button>
+  </mat-dialog-actions>
+</ng-template>
 
 
 

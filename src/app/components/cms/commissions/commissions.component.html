@@ -1,0 +1,109 @@
+<div class="min-h-screen p-4">
+  <div class="mx-auto">
+    <!-- Summary Card -->
+    <mat-card class="mb-6">
+      <mat-card-content>
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-semibold">Total Commission</h2>
+          <div class="text-2xl font-bold text-green-600">
+            {{ getTotalCommission() | currency }}
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Charts Section -->
+    <div class="flex flex-col lg:flex-row gap-6 mb-6">
+      <!-- Agent Distribution Chart -->
+      <div class="w-full lg:w-1/3">
+        <mat-card>
+          <mat-card-title>Agent Distribution</mat-card-title>
+          <mat-card-content>
+            <div style="height: 270px;">
+              <!-- <canvas baseChart
+                [type]="'pie'"
+                [data]="agentPieChartData"
+                [options]="pieChartOptions">
+              </canvas> -->
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Total Commission Chart -->
+      <div class="w-full lg:w-1/3">
+        <mat-card>
+          <mat-card-title>Commission by Client</mat-card-title>
+          <mat-card-content>
+            <div style="height: 270px;">
+              <!-- <canvas baseChart
+                [type]="'pie'"
+                [data]="totalPieChartData"
+                [options]="pieChartOptions">
+              </canvas> -->
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Status Chart -->
+      <div class="w-full lg:w-1/3">
+        <mat-card>
+          <mat-card-title>Commission Status</mat-card-title>
+          <mat-card-content>
+            <div style="height: 270px;">
+              <!-- <canvas baseChart
+                [type]="'pie'"
+                [data]="statusPieChartData"
+                [options]="pieChartOptions">
+              </canvas> -->
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Accordion Section -->
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let commission of commissions" class="mb-2">
+        <mat-expansion-panel-header class="bg-purple-300">
+          <mat-panel-title>
+            {{ commission.collectedFrom }}
+          </mat-panel-title>
+          <mat-panel-description class="justify-end">
+            Commission: {{ getCommissionAmount(commission) | currency }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-2">
+          <div>
+            <p class="font-semibold">Collected By</p>
+            <p>{{ commission.collectedBy }}</p>
+          </div>
+          <div>
+            <p class="font-semibold">Reference</p>
+            <p>{{ commission.reference }}</p>
+          </div>
+          <div>
+            <p class="font-semibold">Collection Amount</p>
+            <p>{{ commission.amount | currency }}</p>
+          </div>
+          <div>
+            <p class="font-semibold">Commission Percentage</p>
+            <p>{{ commission.commissionPercentage }}%</p>
+          </div>
+          <div>
+            <p class="font-semibold">Date</p>
+            <p>{{ commission.date | date: 'mediumDate' }}</p>
+          </div>
+          <div>
+            <p class="font-semibold">Status</p>
+            <mat-chip [color]="commission.status === 'Paid' ? 'primary' : 'warn'" selected>
+              {{ commission.status }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+</div>

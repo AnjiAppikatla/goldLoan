@@ -2,6 +2,7 @@ import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { ControllersService } from '../../services/controllers.service';
 
 @Component({
   selector: 'app-session-timeout-dialog',
@@ -24,7 +25,9 @@ export class SessionTimeoutDialog implements OnInit, OnDestroy {
   private timer: any;
 
   constructor(
-    public dialogRef: MatDialogRef<SessionTimeoutDialog>
+    public dialogRef: MatDialogRef<SessionTimeoutDialog>,
+    private controllers: ControllersService,
+
   ) {}
 
   ngOnInit() {
@@ -57,7 +60,20 @@ export class SessionTimeoutDialog implements OnInit, OnDestroy {
   }
 
   onContinue(): void {
-    this.clearTimer();
+    const obj = {
+      token: localStorage.getItem('token')
+    }
+    
+    this.controllers.RefreshToken(obj).subscribe({
+      next: (data) => {
+        if (data) {
+          localStorage.setItem('token', data.token);
+          // this.clearTimer();
+          this.dialogRef.close('continue');
+        }
+      }
+    })
+    // this.clearTimer();
     this.dialogRef.close('continue');
   }
 }

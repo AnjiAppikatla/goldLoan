@@ -55,7 +55,11 @@ export class HeaderComponent implements OnInit {
 
   GetAllLoans() {
     this.loans = [];
-    this.controllers.GetAllLoans().subscribe({
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // e.g., 6 for June
+    const currentYear = today.getFullYear();  // e.g., 2025
+    this.controllers.GetLoansByMonth(currentMonth,currentYear).subscribe({
+    // this.controllers.GetAllLoans().subscribe({
       next: (response) => {
         if (response) {
           this.loans = response;

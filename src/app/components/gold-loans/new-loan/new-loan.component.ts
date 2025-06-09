@@ -147,15 +147,15 @@ export class NewLoanComponent implements OnInit {
       }
     });
 
-    this.loanForm.get('amount')?.valueChanges.subscribe(amount => {
-      if (amount) {
-        const paymentType = this.loanForm.get('paymentType')?.value;
-        this.updatePaymentAmounts(amount, paymentType);
-        this.loanForm.patchValue({
-          amountReceived: amount
-        }, { emitEvent: false });
-      }
-    });
+    // this.loanForm.get('amount')?.valueChanges.subscribe(amount => {
+    //   if (amount) {
+    //     const paymentType = this.loanForm.get('paymentType')?.value;
+    //     this.updatePaymentAmounts(amount, paymentType);
+    //     this.loanForm.patchValue({
+    //       amountReceived: amount
+    //     }, { emitEvent: false });
+    //   }
+    // });
 
     this.currentUser = this.authService.currentUserValue;
     
@@ -688,6 +688,7 @@ export class NewLoanComponent implements OnInit {
         // formData.totalReceivedCommission = 0;
         formData.agentname = this.loanForm.get('agentname')?.value;
         formData.agentId = this.Agents.filter((a:any) => a.name === formData.agentname).userId;
+        
   
         // Calculate loan progress
         // this.calculateLoanProgress();

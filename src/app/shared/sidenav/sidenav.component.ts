@@ -24,6 +24,10 @@ export class SidenavComponent implements OnInit {
   currentUser: any = null;
   activepage: string = '';
   activeClass: string = '';
+  mainToggleActiveClass: string = 'gold';
+  sideMenuToggle:boolean = true;
+  goldtoggleMenuArrow: string = 'expand_less';
+  cmstoggleMenuArrow: string = 'expand_more';
 
   constructor(private authService: AuthService) {}
 
@@ -55,4 +59,13 @@ export class SidenavComponent implements OnInit {
   isActive(page: string): boolean {
     return this.activepage === page;
   }
+
+  // sideMenuToggleClick(type: string) {  
+  //   this.mainToggleActiveClass = type;
+  //   this.cmstoggleMenuArrow = this.sideMenuToggle === true ? 'expand_less' : 'expand_more';
+  //   this.goldtoggleMenuArrow = this.sideMenuToggle === true ? 'expand_more' : 'expand_less';
+  //   this.sideMenuToggle = !this.sideMenuToggle;
+  // }
+
+
 }
