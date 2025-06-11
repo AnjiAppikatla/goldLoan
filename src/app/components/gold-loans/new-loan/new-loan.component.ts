@@ -234,6 +234,7 @@ export class NewLoanComponent implements OnInit {
           ReceivedaccountName: this.editLoan.ReceivedAccountName,
           ReceivedaccountNumber: this.editLoan.ReceivedAccountNumber,
           ReceivedifscCode: this.editLoan.ReceivedIfscCode,
+          amountReceived: this.editLoan.AmountReceived,
           aadharNumber: this.editLoan.AadharNumber,
           panNumber: this.editLoan.PanNumber
         });
