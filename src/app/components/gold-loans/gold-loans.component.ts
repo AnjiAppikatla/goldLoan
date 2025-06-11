@@ -1429,7 +1429,7 @@ export class GoldLoansComponent {
           if (response) {
 
             for (const agent in this.groupedLoans) {
-              const groupedLoan = this.groupedLoans[agent].find(l => l.Id === loan.Id.toString());
+              const groupedLoan = this.groupedLoans[agent].find(l => l.Id === loan.Id);
               if (groupedLoan) {
                 groupedLoan.images = response;
                 break; // Loan found and updated, no need to continue

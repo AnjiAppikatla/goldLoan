@@ -14,8 +14,8 @@ export class ControllersService {
   private isTokenValid = new BehaviorSubject<boolean>(false);
   private token: string | null = null;
 
-  private baseUrl = 'http://localhost:8000';
-  // private baseUrl = environment.apiUrl;
+  // private baseUrl = 'http://localhost:8000';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private router: Router) {
     this.token = localStorage.getItem('token');
@@ -363,8 +363,8 @@ export class ControllersService {
   
     images.forEach((image, index) => {
       formData.append(`image_data_${index}`, image.data); // base64 string
-      formData.append(`image_name_${index}`, image.name);
-      formData.append(`image_type_${index}`, image.type);
+      formData.append(`image_name_${index}`, image.image_name);
+      formData.append(`image_type_${index}`, image.image_type);
       formData.append(`created_at_${index}`, image.created_at);
     });
   
@@ -404,6 +404,15 @@ export class ControllersService {
 
   getCollectionById(id: number): Observable<any> {
     return this.http.get(`${this.baseUrl}/collections/GetCollectionById/${id}`, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
+  }
+
+  GetCollectionsByDate(startDate: string, endDate: string): Observable<any> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+
+    return this.http.get(`${this.baseUrl}/collections/GetCollectionsByDate`, { params, headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 

@@ -45,6 +45,8 @@ export class IndentLoanComponent implements OnInit {
   currentUser: any;
   isApproved = new FormControl(false);
   @ViewChild('Approval') Approval!: TemplateRef<any>;
+  @ViewChild('Account_add') Account_add!: TemplateRef<any>;
+  @ViewChild('Transfer') Transfer!: TemplateRef<any>;
 
   constructor(
     private dialog: MatDialog,
@@ -127,10 +129,50 @@ export class IndentLoanComponent implements OnInit {
 
       this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
         loan.indentloan_status = 'Approved';
-        loan.date = loan.created_at; // Set date to current dat
+        // loan.date = loan.created_at; // Set date to current dat
         this.controllerService.UpdateIndentLoan(loan, Number(loan.id)).subscribe((res:any) => {
           if(res){
             this.toast.success('Loan approved successfully');
+            this.loadIndentLoans();
+          }
+        });
+      });
+    }
+  }
+
+  AccounAddClick(event: any, loan: any) {
+    if (event.checked) {
+      this.dialog.open(this.Approval, {
+        width: '400px',
+        disableClose: true
+      });
+
+      this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+        loan.account_status = 'Added';
+        // loan.date = loan.created_at; // Set date to current dat
+        this.controllerService.UpdateIndentLoan(loan, Number(loan.id)).subscribe((res:any) => {
+          if(res){
+            this.toast.success('Account Added successfully');
+            this.loadIndentLoans();
+          }
+        });
+      });
+    }
+  }
+
+  TransferClick(event: any, loan: any) {
+    if (event.checked) {
+      this.dialog.open(this.Approval, {
+        width: '400px',
+        disableClose: true
+      });
+
+      this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+        loan.transfer_status = 'Transferred';
+        // loan.date = loan.created_at; // Set date to current dat
+        this.controllerService.UpdateIndentLoan(loan, Number(loan.id)).subscribe((res:any) => {
+          if(res){
+            this.toast.success('Transferred successfully');
             this.loadIndentLoans();
           }
         });

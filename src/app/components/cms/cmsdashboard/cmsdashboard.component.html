@@ -1,24 +1,57 @@
 <div class="p-4">
     <!-- Page Header -->
     <div class="space-y-4">
-      <div>
-        <h1 class="text-2xl font-bold">Dashboard</h1>
-        <p class="text-sm text-gray-600">Welcome back, Admin User (Admin)</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2">
+        <div>
+          <h1 class="text-2xl font-bold">Dashboard</h1>
+          <p class="text-sm text-gray-600">Welcome back, Admin User (Admin)</p>
+        </div>
+        <div>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Filter by Date</mat-label>
+            <mat-select [(value)]="selectedRange" (selectionChange)="onDateRangeChange($event.value)">
+              <mat-option *ngFor="let range of dateRanges" [value]="range.value">{{ range.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <!-- Custom range datepickers -->
+          <div *ngIf="selectedRange === 'custom'" class="custom-range">
+            <mat-form-field>
+              <mat-label>Start Date</mat-label>
+              <input matInput [matDatepicker]="picker1" [(ngModel)]="customStartDate">
+              <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+              <mat-datepicker #picker1></mat-datepicker>
+            </mat-form-field>
+          
+            <mat-form-field>
+              <mat-label>End Date</mat-label>
+              <input matInput [matDatepicker]="picker2" [(ngModel)]="customEndDate">
+              <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+              <mat-datepicker #picker2></mat-datepicker>
+            </mat-form-field>
+          
+            <button mat-raised-button color="primary" (click)="applyCustomRange()">Apply</button>
+          </div>
+        </div>
       </div>
   
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-lg shadow p-4">
-          <div class="text-sm font-semibold text-gray-600">Total Deposits</div>
-          <div class="text-xl mt-2 text-green-500 font-bold">$24,500</div>
+          <div class="text-sm font-semibold text-gray-600">Total Collection</div>
+          <div class="text-xl mt-2 text-green-500 font-bold">₹ {{totalCollections}}</div>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
-          <div class="text-sm font-semibold text-gray-600">Total Withdrawals</div>
-          <div class="text-xl mt-2 text-red-500 font-bold">$7,500</div>
+          <div class="text-sm font-semibold text-gray-600">Total Payments</div>
+          <div class="text-xl mt-2 text-red-500 font-bold">₹ {{totalPayments}}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="text-sm font-semibold text-gray-600">Total Transfer</div>
+          <div class="text-xl mt-2 text-amber-400 font-bold">₹ {{totalTransfer}}</div>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
           <div class="text-sm font-semibold text-gray-600">Net Balance</div>
-          <div class="text-xl mt-2 text-green-500 font-bold">$17,000</div>
+          <div class="text-xl mt-2 text-green-500 font-bold">₹ {{netBalance}}</div>
         </div>
       </div>
   
@@ -58,14 +91,14 @@
   
       <!-- Agent Summary -->
       <div class="mt-6">
-        <h2 class="text-xl font-bold mb-3">Agent Summary</h2>
-        <mat-accordion class="space-y-3">
-          <mat-expansion-panel *ngFor="let agent of agentSummary">
+        <h2 class="text-xl font-bold mb-3">Summary</h2>
+        <mat-accordion class="space-y-3 app-accordion-bg">
+          <mat-expansion-panel *ngFor="let agent of collections">
             <mat-expansion-panel-header>
               <mat-panel-title class="flex justify-between items-center w-full">
                 <div class="flex items-center gap-2">
                   <i class="fas fa-user-circle text-gray-600"></i>
-                  <span class="font-semibold">{{ agent.name }}</span>
+                  <span class="font-semibold">{{ agent.agentName }}</span>
                 </div>
                 <div class="flex flex-wrap items-center gap-3 text-sm">
                   <span class="text-gray-600">

@@ -1,5 +1,26 @@
 <div *ngIf="userRole === 'admin'">
-    <h2 class="text-xl font-bold mb-4">Fino Wallet Overview (Admin)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <h2 class="text-xl font-bold mb-4">Wallet Overview</h2>
+      </div>
+      <div>
+        <mat-card class="card-shadow bg-amber-100">
+          <mat-card-content>
+            <div class="text-lg font-semibold mb-2">Agent Wallet</div>
+            <div class="text-xl font-bold text-blue-600">{{agentWalletTotal}}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div>
+        <mat-card class="card-shadow bg-blue-100">
+          <mat-card-content>
+            <div class="text-lg font-semibold mb-2">Fino Wallet</div>
+            <div class="text-xl font-bold text-blue-600">{{finoWalletTotal}}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Chart for Fino Wallet -->
       <div class="p-4 border rounded shadow">
@@ -20,5 +41,38 @@
     <div class="p-4 border rounded shadow">
         <canvas id="agentOwnWalletChart" width="400" height="200"></canvas>
     </div>
+  </div>
+
+  <div>
+    <mat-accordion class="app-accordion-bg">
+      <mat-expansion-panel *ngFor="let transaction of transfers" class="mb-3">
+        <mat-expansion-panel-header>
+          <mat-panel-title *ngIf="transaction.collectionType !== 'Online'">{{transaction.agentName}} Wallet</mat-panel-title>
+          <mat-panel-title *ngIf="transaction.collectionType !== 'Cash'">Fino Wallet</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2">
+          <div>
+            <p><span class="font-bold">Collection Type :</span> {{transaction.collectionType}}</p>
+            <p><span class="font-bold">Cash Amount :</span> {{transaction.cashAmount}}</p>
+            <p><span class="font-bold">Online Amount :</span> {{transaction.onlineAmount}}</p>
+            <p><span class="font-bold">Total Amount :</span> {{transaction.totalAmount}}</p>
+            <p><span class="font-bold">Date :</span> {{transaction.created_at}}</p>
+          </div>
+          <div>
+            <ng-container *ngIf="transaction.collectionType !== 'Online'">
+              <p><span class="font-bold">Cash Wallet :</span> {{transaction.cashWalletTotal}}</p>
+              <p><span class="font-bold">+ Cash Amount :</span> {{transaction.cashAmount}}</p>
+              <p><span class="font-bold">Total Cash Wallet :</span>{{transaction.cashWalletTotal + transaction.cashAmount}}</p>
+            </ng-container>
+  
+            <ng-container *ngIf="transaction.collectionType!== 'Cash'">
+              <p><span class="font-bold">Online Wallet :</span> {{transaction.onlineWalletTotal}}</p>
+              <p><span class="font-bold">+ Online Amount :</span> {{transaction.onlineAmount}}</p>
+              <p><span class="font-bold">Total Online Amount :</span>{{transaction.onlineWalletTotal + transaction.onlineAmount}}</p>
+            </ng-container>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
   </div>
   

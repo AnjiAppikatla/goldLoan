@@ -345,9 +345,7 @@ export class CollectionsComponent implements OnInit {
     });
   }
 
-  saveCollection() { 
-
- 
+  saveCollection() {  
     let denomination = ''
      if(this.collectionGrop.controls['denomination500'].value !== '' || this.collectionGrop.controls['denomination500'].value !== null){
        denomination = denomination + `500_` + this.collectionGrop.controls['denomination500'].value + ';'
@@ -589,6 +587,10 @@ export class CollectionsComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  GetCollectionsByDate(){
+
   }
 
   groupByClient(collections: any[]): { [key: string]: any[] } {

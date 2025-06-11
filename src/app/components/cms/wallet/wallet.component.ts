@@ -4,17 +4,21 @@ import { Chart } from 'chart.js/auto';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ControllersService } from '../../../services/controllers.service';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-wallet',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule,MatExpansionModule,MatCardModule],
   templateUrl: './wallet.component.html',
   styleUrl: './wallet.component.scss'
 })
 export class WalletComponent implements OnInit {
   userRole = 'admin'; // Replace with actual auth logic
   transfers: any[] = [];
+  agentWalletTotal: number = 0;
+  finoWalletTotal: number = 0;
 
   constructor(private controllers: ControllersService) {}
 
@@ -27,12 +31,57 @@ export class WalletComponent implements OnInit {
       next: (res) => {
         this.transfers = res;
         this.prepareCharts();
+        this.processWalletData(res);
       },
       error: (err) => {
         console.error(err);
       }
     });
   }
+
+
+
+processWalletData(collections: any[]) {
+  this.agentWalletTotal = 0;
+  this.finoWalletTotal = 0;
+
+  collections.forEach(item => {
+    const type = item.collectionType;
+    // const amount = parseFloat(item.amount || 0);
+
+    const cashAmount = parseFloat(item.cashAmount || 0);
+    const onlineAmount = parseFloat(item.onlineAmount || 0);
+
+    switch (type) {
+      case 'Cash':
+        item.cashWalletTotal = this.agentWalletTotal;
+        this.agentWalletTotal += cashAmount;
+        break;
+      case 'Online':
+        item.onlineWalletTotal = this.finoWalletTotal;
+        this.finoWalletTotal += onlineAmount;
+        break;
+      case 'cash&online':
+        // const half = amount / 2;
+        item.cashWalletTotal = this.agentWalletTotal;
+        item.onlineWalletTotal = this.finoWalletTotal;
+        this.agentWalletTotal += cashAmount;
+        this.finoWalletTotal += onlineAmount;
+        break;
+      // case 'transfer':
+        
+      // case 'complete':
+      //   // Skip or subtract if you're tracking net movement
+      //   break;
+      default:
+        console.warn(`Unknown collection type: ${type}`);
+    }
+  });
+  this.transfers = collections; 
+
+
+}
+
 
   prepareCharts() {
     if (this.userRole === 'admin') {
@@ -51,9 +100,10 @@ export class WalletComponent implements OnInit {
   
     this.transfers.forEach(t => {
       const client = t.clientName || 'Unknown';
-      const amount = parseFloat(t.onlineAmount) || 0;
-      if (amount > 0) {
-        clientWise.set(client, (clientWise.get(client) || 0) + amount);
+      const onlineAmount = parseFloat(t.onlineAmount) || 0;
+  
+      if (onlineAmount > 0) {
+        clientWise.set(client, (clientWise.get(client) || 0) + onlineAmount);
       }
     });
   
@@ -68,9 +118,10 @@ export class WalletComponent implements OnInit {
   
     this.transfers.forEach(t => {
       const agent = t.custodianName || 'Unknown';
-      const amount = parseFloat(t.cashAmount) || 0;
-      if (amount > 0) {
-        agentWise.set(agent, (agentWise.get(agent) || 0) + amount);
+      const cashAmount = parseFloat(t.cashAmount) || 0;
+  
+      if (cashAmount > 0) {
+        agentWise.set(agent, (agentWise.get(agent) || 0) + cashAmount);
       }
     });
   
@@ -79,6 +130,7 @@ export class WalletComponent implements OnInit {
   
     this.renderBarChart('agentWalletChart', labels, data, 'Cash Collection (₹)');
   }
+  
 
   renderBarChart(canvasId: string, labels: string[], data: number[], label: string) {
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement;

@@ -855,6 +855,8 @@ private calculateLenderDistribution() {
             loan.status = status;
             loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate
           });
+
+          this.filteredLoans = this.recentLoans;
         }
       }
     })

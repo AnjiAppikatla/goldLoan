@@ -68,10 +68,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
   activeClass: string = '';
   currentUser: any;
 
-  sessionTimeout: number = 14 * 60 * 1000;
+  sessionTimeout: number = 0;
   sessionTimer: any;
   lastActivityTime: number = Date.now();
-  remainingTime: number = 14 * 60 * 1000;
+  remainingTime: number = 0;
 
   constructor(
     private authService: AuthService,
@@ -93,6 +93,17 @@ export class LayoutComponent implements OnInit, OnDestroy {
     }
 
     this.currentUser = this.authService.currentUserValue;
+
+    const createdAt = new Date(this.currentUser.token_created_at).getTime(); // milliseconds
+    const now = Date.now(); // current time in milliseconds
+
+    const expiresInMs = (this.currentUser.expires_in ? Number(this.currentUser.expires_in - 60) : 840) * 1000; // Convert to ms
+    const elapsed = now - createdAt; // time passed since token creation
+    const remaining = expiresInMs - elapsed; // time left
+
+    // Ensure not negative
+    this.sessionTimeout = Math.max(remaining, 0);
+    this.remainingTime = this.sessionTimeout;
 
     if (this.currentUser?.role === 'admin') {
       this.isDashboard = true;
