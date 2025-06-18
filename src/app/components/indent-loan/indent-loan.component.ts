@@ -106,6 +106,8 @@ export class IndentLoanComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         result.indentloan_status = "Pending";
+        result.account_status = "Pending";
+        result.transfer_status = "Pending";
         this.controllerService.CreateIndentLoan(result).subscribe((res:any) => {
           if(res){
             this.toast.success("Indent loan created successfully");

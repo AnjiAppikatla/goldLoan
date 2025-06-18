@@ -173,18 +173,18 @@ export class IndentLoanDialogComponent implements OnInit {
         }
     
         // Only load agent list for admin
-        if (this.currentUser?.role === 'admin') {
-          // this.Agents = this.authService.users.filter(user => user.role === 'agent');
-          // For admin, enable selecting agent and their ID
-          this.indentForm.get('agent')?.valueChanges.subscribe(agentName => {
-            const selectedAgent = this.agents.find((agent: any) => agent.name === agentName);
-            if (selectedAgent) {
-              this.indentForm.patchValue({
-                agent: selectedAgent.id
-              }, { emitEvent: false }); // Add emitEvent: false to prevent circular updates
-            }
-          });
-        }
+        // if (this.currentUser?.role === 'admin') {
+        //   // this.Agents = this.authService.users.filter(user => user.role === 'agent');
+        //   // For admin, enable selecting agent and their ID
+        //   this.indentForm.get('agent')?.valueChanges.subscribe(agentName => {
+        //     const selectedAgent = this.agents.find((agent: any) => agent.name === agentName);
+        //     if (selectedAgent) {
+        //       this.indentForm.patchValue({
+        //         agent: selectedAgent.id
+        //       }, { emitEvent: false }); // Add emitEvent: false to prevent circular updates
+        //     }
+        //   });
+        // }
   }
 
   GetAllAgents(){
@@ -231,6 +231,9 @@ export class IndentLoanDialogComponent implements OnInit {
     if (this.indentForm.valid) {
       const formData = this.indentForm.value;
       formData.agent = this.indentForm.get('agent')?.value;
+      formData.account_status = 'Pending';
+      formData.transfer_status = 'Pending';
+     
       // When updating, ensure date field is set from created_at
       if (this.data && this.data.created_at) {
         formData.date = this.data.created_at;

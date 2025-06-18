@@ -103,6 +103,16 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
+
+            <!-- Client Name -->
+            <mat-form-field>
+              <mat-label>Custodian Name</mat-label>
+              <mat-select formControlName="merchantid" required>
+                <mat-option *ngFor="let merchant of merchants" [value]="merchant.merchantid">
+                  {{ merchant.merchantName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
     
           <!-- Collection Type -->
           <mat-form-field>

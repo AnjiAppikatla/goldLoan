@@ -64,6 +64,7 @@ export class CollectionsComponent implements OnInit {
 
   currentUser: any;
   groupedCollections: { [key: string]: any[] } = {};
+  merchants: any;
 
 
   constructor(
@@ -107,9 +108,9 @@ export class CollectionsComponent implements OnInit {
 
   transactionChart: any;
 
-  ngAfterViewInit(): void {
-    this.createTransactionBarChart();
-  }
+  // ngAfterViewInit(): void {
+  //   this.createTransactionBarChart();
+  // }
 
   public barChartData: ChartData<'bar'> = {
     labels: ['January', 'February', 'March', 'April', 'May'],
@@ -145,6 +146,7 @@ export class CollectionsComponent implements OnInit {
       collectionType: new FormControl('', Validators.required),
       clientName: new FormControl('', Validators.required),
       custodianName: new FormControl('', Validators.required),
+      merchantid: new FormControl('', Validators.required),
       totalAmount: new FormControl('', Validators.required),
       cashAmount: new FormControl('', Validators.required),
       onlineAmount: new FormControl('', Validators.required),
@@ -557,6 +559,18 @@ export class CollectionsComponent implements OnInit {
       next: (res: any) => {
         this.clients = res;
         this.GetAllCustodians();
+        this.GetAllMerchants();
+      },
+      error: (err: any) => {
+        console.log(err);
+      }
+    })
+  }
+
+  GetAllMerchants(){
+    this.controllers.GetAllMerchants().subscribe({
+      next: (res: any) => {
+        this.merchants = res;
       },
       error: (err: any) => {
         console.log(err);

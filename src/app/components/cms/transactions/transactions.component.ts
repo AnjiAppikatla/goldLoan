@@ -75,6 +75,8 @@ interface Agent {
 })
 export class TransactionsComponent {
   @ViewChild('transactionDialog') transactionDialog!: TemplateRef<any>;
+  @ViewChild('PaymentDialog') PaymentDialog!: TemplateRef<any>;
+  @ViewChild('transferDialog') transferDialog!: TemplateRef<any>;
   groupedCollections: { [key: string]: any[] } = {};
 
   clientsData: any = [
@@ -128,6 +130,9 @@ export class TransactionsComponent {
   // @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
   transactionForm!: FormGroup;
+  paymentForm!: FormGroup;
+  transferForm!: FormGroup;
+
 
   bankNames = ['SBI', 'HDFC', 'ICICI', 'AXIS'];
 
@@ -141,6 +146,12 @@ export class TransactionsComponent {
     { id: 1, name: 'Agent 1' },
     { id: 2, name: 'Agent 2' },
     { id: 3, name: 'Agent 3' },
+  ]
+
+  merchantsData: any = [
+    { id: 1, name: 'Merchant 1' },
+    { id: 2, name: 'Merchant 2' },
+    { id: 3, name: 'Merchant 3' },
   ]
 
   // Update the resetForm method
@@ -172,6 +183,22 @@ export class TransactionsComponent {
       denomination5: ['', [Validators.required, Validators.required]],
       denomination2: ['', [Validators.required, Validators.required]],
       denomination1: ['', [Validators.required, Validators.required]]
+    });
+
+    this.paymentForm = this.fb.group({
+      paymentAccountName: ['', Validators.required],
+      paymentAccountNumber: ['', Validators.required],
+      paymentIFSC: ['', Validators.required],
+      paymentAmount: ['', Validators.required],
+      paymentImage: ['', Validators.required],
+    })
+
+    this.transferForm = this.fb.group({
+      transferType: ['agent'], // default selected option
+      transferToAgent: [''],
+      transferToMerchant: [''],
+      fromAgent: [''],
+      transfer_amount: ['']
     });
 
     // Subscribe to denomination changes
@@ -213,13 +240,32 @@ export class TransactionsComponent {
     this.currentUser = this.auth.currentUserValue
     this.GetAllPendingPayments();
     this.initForm();
-    this.prepareViewBasedChart()
+    this.prepareViewBasedChart();
+    this.GetAllAgents();
+    this.GetAllMerchants();
+    this.prepareViewBasedChart();
     // ... rest of existing ngOnInit code ...
   }
 
   closeDialog() {
     this.dialog.closeAll();
     this.resetForm();
+  }
+
+  GetAllAgents(){
+    this.controllers.GetAllAgents().subscribe((res:any)=>{
+      if(res){
+        this.agentsData = res;
+      }
+    })
+  }
+
+  GetAllMerchants(){
+    this.controllers.GetAllMerchants().subscribe((res:any)=>{
+      if(res){
+        this.clientsData = res;
+      }
+    })
   }
 
   prepareLast7DaysPaymentsChart() {
@@ -450,6 +496,24 @@ export class TransactionsComponent {
       grouped[client].push(collection);
       return grouped;
     }, {});
+  }
+
+  showMakePayment() {
+    this.paymentForm.reset();
+    this.dialog.open(this.PaymentDialog, {
+      width: '800px'
+    });
+  }
+
+  showTransfer() {
+    this.transferForm.reset();
+    this.dialog.open(this.transferDialog, {
+      width: '800px'
+    });
+  }
+
+  MakePayment(){
+
   }
 
 

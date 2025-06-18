@@ -38,8 +38,8 @@
           <!-- Agent Wise -->
           <canvas *ngIf="selectedView === 'agent'" id="agentWiseChartCanvas"></canvas>
 
-<!-- Client Wise -->
-<canvas *ngIf="selectedView === 'client'" id="clientWiseChartCanvas"></canvas>
+          <!-- Client Wise -->
+          <canvas *ngIf="selectedView === 'client'" id="clientWiseChartCanvas"></canvas>
         </mat-card-content>
       </mat-card>
     </div>
@@ -48,7 +48,7 @@
     <!-- <mat-card *ngIf="showForm" class="mb-6">
       <mat-card-content>
         <form (ngSubmit)="onSubmit()" class="grid grid-cols-2 gap-4">
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Select Agent</mat-label>
             <mat-select [(ngModel)]="selectedAgent" name="agent" required>
               <mat-option *ngFor="let agent of agents" [value]="agent">
@@ -57,7 +57,7 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Select Client</mat-label>
             <mat-select [(ngModel)]="customerName" name="customerName" required>
              <mat-option *ngFor="let data of clientsData" value="data.id">{{data.name}}</mat-option>
@@ -66,7 +66,7 @@
 
          
 
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Payment Type</mat-label>
             <mat-select [(ngModel)]="selectedType" name="type" required>
               <mat-option value="Cash">Cash</mat-option>
@@ -75,7 +75,7 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Amount</mat-label>
             <input matInput type="number" [(ngModel)]="amount" name="amount" required>
           </mat-form-field>
@@ -88,92 +88,64 @@
       </mat-card-content>
     </mat-card> -->
 
-    <!-- Agents Accordion -->
-    <mat-accordion class=" app-accordion-bg">
-      <mat-expansion-panel *ngFor="let agent of groupedCollections | keyvalue" class="mb-2">
-        <mat-expansion-panel-header class="bg-purple-300">
-          <mat-panel-title>
-            {{agent.key}}
-          </mat-panel-title>
-         
-        </mat-expansion-panel-header>
+    <div *ngFor="let agent of groupedCollections | keyvalue">
+      <h2 class="mb-2 text-amber-600">{{agent.key}}</h2>
+      <!-- Transaction List -->
 
-        <!-- Transaction List -->
+      <mat-accordion class="mt-3">
+        <mat-expansion-panel *ngFor="let transaction of agent.value" class="mb-2">
+          <mat-expansion-panel-header class="bg-gray-300">
+            <mat-panel-title>
+              {{transaction.custodianName}}
+            </mat-panel-title>
+            <span *ngIf="transaction.paymentStatus === 'completed'"
+              class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-3">
+              <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
+              Completed
+            </span>
+            <span *ngIf="transaction.paymentStatus === 'transfered'"
+              class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm mr-3">
+              <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
+              Approved
+            </span>
+            <span *ngIf="transaction.paymentStatus === 'pending'"
+              class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm mr-3">
+              <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
+              Processing...
+            </span>
+          </mat-expansion-panel-header>
 
-        <mat-accordion class="mt-3">
-          <mat-expansion-panel *ngFor="let transaction of agent.value" class="mb-2">
-            <mat-expansion-panel-header class="bg-purple-300">
-              <mat-panel-title>
-                {{transaction.custodianName}}
-              </mat-panel-title>
-               <span *ngIf="transaction.paymentStatus === 'completed'" 
-          class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-3">
-        <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
-        Completed
-    </span>
-    <span *ngIf="transaction.paymentStatus === 'transfered'" 
-          class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm mr-3">
-          <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
-        Approved
-    </span>
-    <span *ngIf="transaction.paymentStatus === 'pending'" 
-          class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm mr-3">
-          <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
-        Processing...
-    </span>
-            </mat-expansion-panel-header>
-
-            <div class="mt-4">
-              <div class="grid grid-cols-1 gap-4">
-                <div>
-                  <p>
-                    <span class="font-bold">Client Name : </span>
-                    <span>{{transaction.clientName}}</span>
-                  </p>
-                  <p>
-                    <span class="font-bold">Custodian Name : </span>
-                    <span>{{transaction.custodianName}}</span>
-                  </p>
-                  <p>
-                    <span class="font-bold">Agent Name : </span>
-                    <span>{{transaction.agentName}}</span>
-                  </p>
-                </div>
-                <div>
-                  <p><span class="font-bold">Total Amount : </span><span>{{transaction.totalAmount | number:'1.2-2'}}</span></p>
-                  <p><span class="font-bold"> Cash Amount : </span><span>{{transaction.cashAmount}}</span></p>
-                  <p><span class="font-bold"> Online Amount : </span><span>{{transaction.onlineAmount}}</span></p>
-                </div>
-                <div class="flex flex-col gap-2">
-                  <button mat-raised-button class="bg-amber-400">Transfer</button>
-                  <button mat-raised-button color="primary">Make Payment</button>
-                </div>
+          <div class="mt-4">
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <p>
+                  <span class="font-bold">Client Name : </span>
+                  <span>{{transaction.clientName}}</span>
+                </p>
+                <p>
+                  <span class="font-bold">Custodian Name : </span>
+                  <span>{{transaction.custodianName}}</span>
+                </p>
+                <p>
+                  <span class="font-bold">Agent Name : </span>
+                  <span>{{transaction.agentName}}</span>
+                </p>
               </div>
-            </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-
-
-        <!-- <div class="mt-4">
-          <div class="grid grid-cols-1 gap-4">
-            <div *ngFor="let transaction of agent.value" class="border rounded-lg p-4 hover:bg-gray-50">
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-sm text-gray-600">{{transaction.date | date:'mediumDate'}}</p>
-                  <p class="font-medium">{{transaction.clientName}}</p>
-                </div>
-                <div class="text-right">
-                  <p class="font-bold">${{transaction.amount | number:'1.2-2'}}</p>
-                  <p class="font-medium">
-                    {{transaction.paymentType}}
-                  </p>
-                </div>
+              <div>
+                <p><span class="font-bold">Total Amount : </span><span>{{transaction.totalAmount |
+                    number:'1.2-2'}}</span></p>
+                <p><span class="font-bold"> Cash Amount : </span><span>{{transaction.cashAmount}}</span></p>
+                <p><span class="font-bold"> Online Amount : </span><span>{{transaction.onlineAmount}}</span></p>
+              </div>
+              <div class="flex flex-col gap-2">
+                <button mat-raised-button class="bg-amber-400" (click)="showTransfer()">Transfer</button>
+                <button mat-raised-button color="primary" (click)="showMakePayment()">Make Payment</button>
               </div>
             </div>
           </div>
-        </div> -->
-      </mat-expansion-panel>
-    </mat-accordion>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </div>
   </div>
 </div>
 
@@ -181,21 +153,21 @@
   <h2 mat-dialog-title>New Payment</h2>
   <mat-dialog-content>
     <form [formGroup]="transactionForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Select Agent</mat-label>
         <mat-select formControlName="agent">
           <mat-option *ngFor="let agent of agentsData" [value]="agent.name">{{agent.name}}</mat-option>
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Select Client</mat-label>
         <mat-select formControlName="clientName">
           <mat-option *ngFor="let data of clientsData" [value]="data.id">{{data.name}}</mat-option>
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Payment Type</mat-label>
         <mat-select formControlName="type">
           <mat-option value="cdm">CDM</mat-option>
@@ -203,14 +175,14 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Amount</mat-label>
         <input matInput type="number" formControlName="amount">
       </mat-form-field>
 
       <div>
         <!-- Bank dropdown if type is Online -->
-        <mat-form-field *ngIf="transactionForm.get('type')?.value === 'bank'" class="w-100">
+        <mat-form-field appearance="outline" *ngIf="transactionForm.get('type')?.value === 'bank'" class="w-100">
           <mat-label>Select Bank</mat-label>
           <mat-select formControlName="bankName">
             <mat-option *ngFor="let bank of bankNames" [value]="bank">{{ bank }}</mat-option>
@@ -226,7 +198,7 @@
       <div *ngIf="transactionForm.get('type')?.value === 'cdm'">
         <h3 class="text-lg font-semibold mb-2">Denominations</h3>
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <mat-form-field *ngFor="let denom of denominations">
+          <mat-form-field appearance="outline" *ngFor="let denom of denominations">
             <mat-label>₹{{ denom }}</mat-label>
             <input matInput type="number" [formControlName]="'denomination' + denom" (input)="calculateTotal()" min="0">
           </mat-form-field>
@@ -237,6 +209,96 @@
       </div>
       <!-- ... existing code ... -->
 
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center">
+    <button mat-raised-button color="white" (click)="closeDialog()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveTransaction()">
+      Save
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #PaymentDialog>
+  <h2 mat-dialog-title>Make Payment</h2>
+  <mat-dialog-content>
+    <form [formGroup]="paymentForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <mat-form-field appearance="outline">
+        <mat-label>Payment Account Name</mat-label>
+        <input matInput type="text" formControlName="paymentAccountName">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Payment Account Number</mat-label>
+        <input matInput type="number" formControlName="paymentAccountNumber">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Payment IFSC</mat-label>
+        <input matInput type="text" formControlName="paymentIFSC">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Payment Amount</mat-label>
+        <input matInput type="number" formControlName="paymentAmount">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Payment Receipt</mat-label>
+        <input matInput type="image" formControlName="paymentImage">
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center">
+    <button mat-raised-button color="white" (click)="closeDialog()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="MakePayment()">
+      Save
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #transferDialog>
+  <h2 mat-dialog-title>New Payment</h2>
+  <mat-dialog-content>
+    <form [formGroup]="transferForm">
+
+       <!-- Transfer Type Selection -->
+       <mat-radio-group formControlName="transferType" class="mb-4 flex flex-col md:flex-row gap-4">
+        <mat-radio-button value="agent">Transfer to Agent</mat-radio-button>
+        <mat-radio-button value="merchant">Transfer to Merchant</mat-radio-button>
+      </mat-radio-group>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">      
+
+        <!-- Agent Dropdown -->
+        <mat-form-field appearance="outline" *ngIf="transferForm.get('transferType')?.value === 'agent'" class="w-full">
+          <mat-label>Select Agent</mat-label>
+          <mat-select formControlName="transferToAgent">
+            <mat-option *ngFor="let agent of agentsData" [value]="agent.name">{{ agent.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Merchant Dropdown -->
+        <mat-form-field appearance="outline" *ngIf="transferForm.get('transferType')?.value === 'merchant'" class="w-full">
+          <mat-label>Select Merchant</mat-label>
+          <mat-select formControlName="transferToMerchant">
+            <mat-option *ngFor="let merchant of merchantsData" [value]="merchant.merchantName">{{ merchant.merchantName }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- From Agent -->
+        <mat-form-field appearance="outline">
+          <mat-label>From Agent</mat-label>
+          <mat-select formControlName="fromAgent">
+            <mat-option *ngFor="let agent of agentsData" [value]="agent.name">{{ agent.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Transfer Amount -->
+        <mat-form-field appearance="outline">
+          <mat-label>Transfer Amount</mat-label>
+          <input matInput type="number" formControlName="transfer_amount">
+        </mat-form-field>
+      </div>
     </form>
   </mat-dialog-content>
 
