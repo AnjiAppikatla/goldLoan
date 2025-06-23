@@ -123,11 +123,15 @@
     <mat-accordion class="grid grid-cols-1 gap-2 app-accordion-bg">
       <mat-expansion-panel *ngFor="let loan of filteredLoans">
         <mat-expansion-panel-header>
-          <mat-panel-title class="flex items-center gap-4 w-full">
-            <div class="flex items-center gap-2 flex-1">
-              <span class="font-medium text-md sm:text-[11px] text-white">{{loan.LeadId !== '' ? loan.LeadId : 'Lead Id'}} - </span>
+          <mat-panel-title class="">
+            <div class="flex gap-2 flex-1 flex-col">
+              <div>
+                <span class="font-medium text-md sm:text-[11px] text-white">{{loan.LeadId !== '' ? loan.LeadId : 'Lead Id'}} - </span>
               <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
+              <p class="font-medium text-md sm:text-[11px] text-amber-300 mb-0">{{loan.City}}</p>
             </div>
+            </div>
+            
             <div class="flex items-center">
               <button mat-icon-button [matMenuTriggerFor]="loanMenu" (click)="$event.stopPropagation()">
                 <mat-icon class="text-white">more_vert</mat-icon>

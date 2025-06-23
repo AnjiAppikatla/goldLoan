@@ -78,6 +78,7 @@ export class LoginComponent implements OnInit {
             this.authService.currentUserSubject.next(data);
             localStorage.setItem('currentUser', JSON.stringify(data));
             localStorage.setItem('token', data.token);
+            localStorage.setItem('token_expiry', data.token_created_at.split(' ')[1]);
             this.router.navigate(['/layout']);
           } else {
             this.toast.error('Invalid credentials');

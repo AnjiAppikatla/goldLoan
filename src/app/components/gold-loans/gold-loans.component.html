@@ -113,9 +113,10 @@
         <mat-expansion-panel *ngFor="let loan of agent.value">
       <mat-expansion-panel-header>
         <mat-panel-title class="flex items-center gap-4 w-full">
-          <div class="flex items-center gap-2 flex-1">
+          <div class="gap-2 flex-1 flex-col">
             <span class="font-medium text-md sm:text-[11px] text-white">{{loan.LeadId !== '' ? loan.LeadId : 'Lead Id'}} - </span>
             <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
+            <p class="font-medium text-md sm:text-[11px] text-amber-300 mb-0">{{loan.City}}</p>
           </div>
           <div class="flex items-center">
             <button mat-icon-button [matMenuTriggerFor]="loanMenu" (click)="$event.stopPropagation()">
@@ -297,9 +298,10 @@
         <!-- Existing expansion panel content -->
           <mat-expansion-panel-header>
             <mat-panel-title class="flex items-center gap-4 w-full">
-              <div class="flex items-center gap-2 flex-1">
+              <div class="gap-2 flex-1 flex-col">
                 <span class="font-medium text-md sm:text-[11px] text-white">{{loan.LeadId !== '' ? loan.LeadId : 'Lead Id'}} - </span>
-                <span class="font-medium text-md sm:text-[11px] text-white"> {{loan.Name}}</span>
+                <span class="font-medium text-md sm:text-[11px] text-white">{{loan.Name}}</span>
+                <p class="font-medium text-md sm:text-[11px] text-amber-300 mb-0">{{loan.City}}</p>
               </div>
               <div class="flex items-center">
                 <button mat-icon-button [matMenuTriggerFor]="loanMenu" (click)="$event.stopPropagation()">

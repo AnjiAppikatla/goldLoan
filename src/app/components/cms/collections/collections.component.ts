@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { FormControl, FormControlName, FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
@@ -16,6 +16,7 @@ import { ControllersService } from '../../../services/controllers.service';
 import { AuthService } from '../../../services/auth.service';
 import { ToastService } from '../../../services/toastr.service';
 import { Chart } from 'chart.js/auto';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 
 // Update the Collection interface to include time
 interface Collection {
@@ -53,7 +54,8 @@ interface Collection {
     MatExpansionModule,
     MatButtonModule,
     MatDialogModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatDatepickerModule
   ],
   templateUrl: './collections.component.html',
   styleUrl: './collections.component.scss'
@@ -65,6 +67,19 @@ export class CollectionsComponent implements OnInit {
   currentUser: any;
   groupedCollections: { [key: string]: any[] } = {};
   merchants: any;
+  last7daysCollections: any = [];
+
+  dateRanges = [
+    { label: 'Today', value: 'today' },
+    { label: 'Yesterday', value: 'yesterday' },
+    { label: 'Last Week', value: 'lastweek' },
+    { label: 'Last Month', value: 'lastmonth' },
+    { label: 'Custom Range', value: 'custom' }
+  ];
+
+  selectedRange = 'today';
+  customStartDate!: Date;
+  customEndDate!: Date;
 
 
   constructor(
@@ -99,6 +114,7 @@ export class CollectionsComponent implements OnInit {
     { id: 5, name: 'Admin' }
   ];
 
+
   collectionGrop!: FormGroup;
 
   cashAmountRow: boolean = false
@@ -106,7 +122,8 @@ export class CollectionsComponent implements OnInit {
   totalCash: number = 0;
   totalOnlineCash: number = 0;
 
-  transactionChart: any;
+  transactionChart: Chart | null = null; // Declare this in the component
+  last7DaysCollectionChart: Chart | null = null; // Declare this in the component
 
   // ngAfterViewInit(): void {
   //   this.createTransactionBarChart();
@@ -136,9 +153,10 @@ export class CollectionsComponent implements OnInit {
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue
-    this.GetAllCollections();
+    this.GetAllCollections(this.formatDate(new Date()), this.formatDate(new Date()));
     this.updateChartData();
     this.GetAllClients();
+    this.getLast7DaysCollections();
 
     //clientName, custodianName, commissionPercentage, commission, collectionType, denomination, agentName, cashAmount, onlineAmount, onlineType, accountName, mobileNumber, paymentStatus, paymentAccountName, paymentAccountNumber, paymentIFSC, paymentAmount, paymentImage, transferToAgent, transferToMerchant, fromAgent,
 
@@ -298,54 +316,60 @@ export class CollectionsComponent implements OnInit {
     this.dialog.closeAll();
   }
 
-  createTransactionBarChart() {
+  createTransactionPieChart() {
     const canvas = document.getElementById('transactionsBarChart') as HTMLCanvasElement;
     if (!canvas) return;
-
+  
     if (this.transactionChart) {
       this.transactionChart.destroy();
     }
-
-    const dataValues = [1200, 1900, 800, 1500, 1000, 500, 700]; // ₹ values
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const colors = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8E44AD'];
-
+  
+    const totalsByClient = new Map<string, number>();
+    this.collections.forEach(c => {
+      const key = c.clientName || 'Unknown';
+      const total = Number(c.totalAmount || 0);
+      totalsByClient.set(key, (totalsByClient.get(key) || 0) + total);
+    });
+  
+    const labels = [...totalsByClient.keys()];
+    const data = [...totalsByClient.values()];
+  
     this.transactionChart = new Chart(canvas, {
-      type: 'bar',
+      type: 'pie',
       data: {
         labels,
         datasets: [{
-          label: 'Transactions',
-          data: dataValues,
-          backgroundColor: colors,
+          label: 'Total Collections',
+          data,
+          backgroundColor: this.getColorPalette(labels.length)
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: value => `₹${value}`
-            },
-            title: {
-              display: true,
-              text: 'Amount (₹)'
-            }
-          }
-        },
         plugins: {
-          legend: { display: false },
           tooltip: {
             callbacks: {
-              label: context => `₹${context.raw}`
+              label: context => `${context.label}: ₹${context.raw}`
             }
+          },
+          legend: {
+            position: 'bottom'
           }
         }
       }
     });
   }
+
+  getColorPalette(count: number): string[] {
+    const palette = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8E44AD', '#C9CBCF'];
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+      colors.push(palette[i % palette.length]);
+    }
+    return colors;
+  }
+  
 
   saveCollection() {  
     let denomination = ''
@@ -387,6 +411,7 @@ export class CollectionsComponent implements OnInit {
     obj.denomination = denomination,
     // obj.commission = this.collectionGrop.controls['commission'].value,
     obj.agentName = this.currentUser.name,
+    obj.merchantid = this.collectionGrop.controls['merchantid'].value,
     obj.accountName = this.collectionGrop.controls['accountName'].value,
     obj.mobileNumber = this.collectionGrop.controls['mobileNumber'].value,
     obj.date = new Date(),
@@ -417,9 +442,10 @@ export class CollectionsComponent implements OnInit {
       if(res){
         this.toast.success('Collection created successfully')
         // this.collections = res;
-        this.GetAllCollections();
+        this.GetAllCollections(this.formatDate(new Date()), this.formatDate(new Date()));
         this.getTotalCollections();
         this.updateChartData();
+        this.createTransactionPieChart();
       }
       else{
         this.toast.error('Something went wrong')
@@ -432,6 +458,33 @@ export class CollectionsComponent implements OnInit {
 
     this.closeDialog();
     this.updateChartData();
+  }
+
+  formatDate(date: Date): string {
+    return formatDate(date, 'yyyy-MM-dd', 'en-US');
+  }
+
+  getLast7DaysCollections() {
+    const today = new Date();
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - 6); // 6 days ago + today = 7 days
+  
+    const formattedStart = this.formatDate(startDate);
+    const formattedEnd = this.formatDate(today);
+  
+    this.controllers.GetCollectionsByDate(formattedStart, formattedEnd).subscribe({
+      next: (res: any[]) => {
+        this.last7daysCollections = res;
+        // this.groupedCollections = this.groupByClient(res);
+        // this.getTotalCollections();        
+        // this.updateChartData();
+        // this.createTransactionPieChart();
+        this.createLast7DaysCollectionChart(res);
+      },
+      error: (err: any) => {
+        console.error(err);
+      }
+    });
   }
 
   // Remove showForm, closeForm, and onSubmit methods as they're no longer needed
@@ -589,13 +642,14 @@ export class CollectionsComponent implements OnInit {
     })
   }
 
-  GetAllCollections() {
-    this.controllers.getAllCollections().subscribe({
+  GetAllCollections(startDate: string, endDate: string) {
+    this.controllers.GetCollectionsByDate(startDate, endDate).subscribe({
       next: (res: any[]) => {
         this.collections = res;
         this.groupedCollections = this.groupByClient(res);
         this.getTotalCollections();        
         this.updateChartData();
+        this.createTransactionPieChart();
       },
       error: (err: any) => {
         console.error(err);
@@ -609,7 +663,7 @@ export class CollectionsComponent implements OnInit {
 
   groupByClient(collections: any[]): { [key: string]: any[] } {
     return collections.reduce((grouped: any, collection: any) => {
-      const client = collection.clientName || 'Unknown Client';
+      const client = collection.agentName || 'Unknown Client';
       if (!grouped[client]) {
         grouped[client] = [];
       }
@@ -617,6 +671,129 @@ export class CollectionsComponent implements OnInit {
       return grouped;
     }, {});
   }
+
+  onDateRangeChange(range: string) {
+    const today = new Date();
+    let startDate: string, endDate: string;
+  
+    switch (range) {
+      case 'today':
+        startDate = endDate = this.formatDate(today);
+        break;
+  
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        startDate = endDate = this.formatDate(yesterday);
+        break;
+  
+      case 'lastweek':
+        const lastWeekStart = new Date(today);
+        lastWeekStart.setDate(today.getDate() - 7);
+        startDate = this.formatDate(lastWeekStart);
+        endDate = this.formatDate(today);
+        break;
+  
+      case 'lastmonth':
+        const lastMonthStart = new Date(today);
+        lastMonthStart.setMonth(today.getMonth() - 1);
+        startDate = this.formatDate(lastMonthStart);
+        endDate = this.formatDate(today);
+        break;
+  
+      case 'custom':
+        return; // Wait for user to apply custom range
+  
+      default:
+        return;
+    }
+  
+    this.GetAllCollections(startDate, endDate);
+  }
+
+  applyCustomRange() {
+    if (this.customStartDate && this.customEndDate) {
+      const startDate = this.formatDate(this.customStartDate);
+      const endDate = this.formatDate(this.customEndDate);
+      this.GetAllCollections(startDate, endDate);
+    }
+  }
+
+  createLast7DaysCollectionChart(collections: any[]) {
+    const canvas = document.getElementById('last7DaysCollectionChart') as HTMLCanvasElement;
+    if (!canvas) return;
+  
+    if (this.last7DaysCollectionChart) {
+      this.last7DaysCollectionChart.destroy();
+    }
+  
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const last7DaysMap: { [date: string]: number } = {};
+  
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const key = date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+      last7DaysMap[key] = 0;
+    }
+  
+    collections.forEach(col => {
+      const rawDate = col.created_at?.split(' ')[0];
+      if (last7DaysMap.hasOwnProperty(rawDate)) {
+        last7DaysMap[rawDate] += Number(col.totalAmount || 0);
+      }
+    });
+  
+    const labels = Object.keys(last7DaysMap).map(dateStr => {
+      const date = new Date(dateStr);
+      return dayNames[date.getDay()];
+    });
+  
+    const values = Object.values(last7DaysMap);
+    const colors = this.generateUniqueColors(labels.length);
+  
+    this.last7DaysCollectionChart = new Chart(canvas, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Total Collections',
+          data: values,
+          backgroundColor: colors,
+          borderColor: '#fff',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const value = ctx.raw as number;
+                return `${ctx.label}: ₹${value.toLocaleString('en-IN')}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  generateUniqueColors(count: number): string[] {
+    const colors: string[] = [];
+    const step = Math.floor(360 / count);
+    for (let i = 0; i < count; i++) {
+      const hue = (i * step) % 360;
+      colors.push(`hsl(${hue}, 70%, 60%)`);
+    }
+    return colors;
+  }
+  
+  
+  
+  
   
 
 

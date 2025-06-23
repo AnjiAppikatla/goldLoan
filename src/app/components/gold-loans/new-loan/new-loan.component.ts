@@ -371,15 +371,15 @@ export class NewLoanComponent implements OnInit {
         Validators.required,
         Validators.pattern(/^[2-9]{1}[0-9]{11}$/)
       ]],
-      issuedDate: [new Date().toISOString(), Validators.required],
+      issuedDate: [this.formatDate(new Date()), Validators.required],
       maturityDate: ['', Validators.required],
       loanProgress: [0],
       paymentType: ['Online'],
       cashAmount: [0],
       onlineAmount: [0],
       onlinePaymentType: ['Bank Transfer'],
-      paymentDate: [new Date().toISOString()],
-      ReceivedDate: [new Date().toISOString()],
+      paymentDate: [this.formatDate(new Date())],
+      ReceivedDate: [this.formatDate(new Date())],
       paymentReference: [''],
       agentId: [{
         value: this.currentUser?.id || '',
@@ -640,6 +640,7 @@ export class NewLoanComponent implements OnInit {
       if (this.isEdit) {
         loanData.id = this.editLoan.Id;
         loanData.city = this.loanForm.value.city.name;
+        loanData.issuedDate = this.formatDate(loanData.issuedDate);
 
         if(this.editLoan.commissionPercentage == null){
           const selectedLender = this.lenders.find(l => l.lenderName === loanData.lender);
@@ -719,6 +720,18 @@ export class NewLoanComponent implements OnInit {
 
       
     }
+  }
+
+  // formatDate(date: Date): string {
+  //   return new Intl.DateTimeFormat('en-CA').format(date); // "YYYY-MM-DD"
+  // }
+
+  private formatDate(date: Date): string {
+    // Format as YYYY-MM-DD in local timezone (no timezone shift)
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
   }
 
 

@@ -34,9 +34,54 @@
           </div>
         </div>
       </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-semibold text-gray-600">Fino Wallet </div>
+                <div class="text-xl mt-2 text-green-500 font-bold">₹ {{totalCollections}}</div>
+              </div>
+              <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-semibold text-gray-600">Office Wallet</div>
+                <div class="text-xl mt-2 text-red-500 font-bold">₹ {{totalPayments}}</div>
+              </div>
+              <div class="col-span-2">
+                <div *ngIf="loggedInUserRole === 'admin'" class="mb-3 flex gap-4">
+                  <mat-radio-group
+                  *ngIf="loggedInUserRole === 'admin'"
+                  [(ngModel)]="selectedView"
+                  (change)="onViewChange(selectedView)"
+                  class="flex flex-row gap-6 mb-4 text-sm"
+                >
+                  <mat-radio-button value="client">Client Wise</mat-radio-button>
+                  <mat-radio-button value="agent">Agent Wise</mat-radio-button>
+                </mat-radio-group>
+                </div>
+
+                <div *ngIf="selectedView === 'agent'">
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Filter by Agent</mat-label>
+                    <mat-select [(value)]="selectedAgentId" (selectionChange)="onAgentSelect($event.value)">
+                      <mat-option *ngFor="let agent of agents" [value]="agent.userId">{{ agent.name }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                
+                <div *ngIf="selectedView === 'client'">
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Filter by Client</mat-label>
+                    <mat-select [(value)]="selectedClientId" (selectionChange)="onClientSelect($event.value)">
+                      <mat-option *ngFor="let client of clients" [value]="client.id">{{ client.clientName }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                
+
+              </div>
+            </div>
   
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-lg shadow p-4">
           <div class="text-sm font-semibold text-gray-600">Total Collection</div>
           <div class="text-xl mt-2 text-green-500 font-bold">₹ {{totalCollections}}</div>
@@ -53,37 +98,25 @@
           <div class="text-sm font-semibold text-gray-600">Net Balance</div>
           <div class="text-xl mt-2 text-green-500 font-bold">₹ {{netBalance}}</div>
         </div>
-      </div>
+      </div> -->
   
       <!-- Charts Section -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div class="bg-white rounded-lg shadow p-4">
           <h2 class="font-bold mb-4">Transactions (Last 7 Days)</h2>
-          <div class="h-[300px] bg-gray-100 rounded-lg">
-            <canvas id="transactionsBarChart" class="w-full h-[300px]"></canvas>
+          <div class="h-[400px]">
+            <canvas id="transactionsBarChart" class=""></canvas>
           </div>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
-          <h2 class="font-bold mb-4 flex justify-evenly">Transaction Types 
-            <div *ngIf="loggedInUserRole === 'admin'" class="mb-3 flex gap-4">
-            <mat-radio-group
-            *ngIf="loggedInUserRole === 'admin'"
-            [(ngModel)]="selectedView"
-            (change)="onViewChange(selectedView)"
-            class="flex flex-row gap-6 mb-4 text-sm"
-          >
-            <mat-radio-button value="client">Client Wise</mat-radio-button>
-            <mat-radio-button value="agent">Agent Wise</mat-radio-button>
-          </mat-radio-group>
-          </div>
-        </h2>
+          <h2 class="font-bold mb-4 flex justify-evenly">Transaction Types</h2>
           
           
           <div *ngIf="loggedInUserRole === 'agent'" class="text-sm text-gray-600 mb-2">
             Client Wise
           </div>
           
-          <div class=" h-[300px]">
+          <div class=" h-[400px]">
             <canvas id="transactionTypesBarChart"></canvas>
           </div>
         </div>

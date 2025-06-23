@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 // import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -17,6 +17,8 @@ import { Chart, ChartConfiguration, ChartData } from 'chart.js';
 import { ControllersService } from '../../../services/controllers.service';
 import { AuthService } from '../../../services/auth.service';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { ToastService } from '../../../services/toastr.service';
 // import { BaseChartDirective, NgChartsModule } from 'ng2-charts';
 
 export interface Transaction {
@@ -67,7 +69,8 @@ interface Agent {
     MatExpansionModule,
     // NgChartsModule,
     ReactiveFormsModule,
-    MatRadioModule
+    MatRadioModule,
+    MatDatepickerModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './transactions.component.html',
@@ -88,18 +91,38 @@ export class TransactionsComponent {
     { id: 6, name: 'client 6' }
   ]
 
+  dateRanges = [
+    { label: 'Today', value: 'today' },
+    { label: 'Yesterday', value: 'yesterday' },
+    { label: 'Last Week', value: 'lastweek' },
+    { label: 'Last Month', value: 'lastmonth' },
+    { label: 'Custom Range', value: 'custom' }
+  ];
+
+  selectedRange = 'today';
+  customStartDate!: Date;
+  customEndDate!: Date;
+
+  receiptBase64: string = '';
+
+  receiptFile: File | null = null;
+  receiptPreview: string | ArrayBuffer | null = null;
+
+  last7DaysChartCanvas: Chart| null = null
+
   currentUser: any;
   agents: any = []
   transactions: any = [];
 
   showForm = false;
+  last7daysCollections: any = [];
   closeForm() {
     this.showForm = false;
   }
 
   onViewChange(view: 'agent' | 'client') {
     this.selectedView = view;
-    this.prepareViewBasedChart();
+    setTimeout(() => this.prepareViewBasedChart(), 0); // Ensure canvas is ready
   }
 
   transactionTypes = [
@@ -133,6 +156,8 @@ export class TransactionsComponent {
   paymentForm!: FormGroup;
   transferForm!: FormGroup;
 
+  transferObject: any = {}
+  paymentObject: any = {}
 
   bankNames = ['SBI', 'HDFC', 'ICICI', 'AXIS'];
 
@@ -166,7 +191,8 @@ export class TransactionsComponent {
     private dialog: MatDialog,
     private fb: FormBuilder,
     private controllers: ControllersService,
-    private auth: AuthService
+    private auth: AuthService,
+    private toast: ToastService
   ) {
     this.transactionForm = this.fb.group({
       agent: ['', Validators.required],
@@ -218,13 +244,6 @@ export class TransactionsComponent {
     return denomination * count;
   }
 
-
-
-
-
-
-
-
   getAgentTotal(transactions: AgentTransaction[]): number {
     return transactions.reduce((sum, trans) => sum + trans.amount, 0);
   }
@@ -238,18 +257,66 @@ export class TransactionsComponent {
   ngOnInit() {
     // this.updateChartData();
     this.currentUser = this.auth.currentUserValue
-    this.GetAllPendingPayments();
+    this.GetPendingCollectionsByDate(this.formatDateForController(new Date()), this.formatDateForController(new Date()));
     this.initForm();
     this.prepareViewBasedChart();
     this.GetAllAgents();
     this.GetAllMerchants();
     this.prepareViewBasedChart();
+    this.getLast7DaysCollections()
     // ... rest of existing ngOnInit code ...
   }
 
   closeDialog() {
     this.dialog.closeAll();
     this.resetForm();
+  }
+
+  onDateRangeChange(range: string) {
+    const today = new Date();
+    let startDate: string, endDate: string;
+  
+    switch (range) {
+      case 'today':
+        startDate = endDate = this.formatDateForController(today);
+        break;
+  
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        startDate = endDate = this.formatDateForController(yesterday);
+        break;
+  
+      case 'lastweek':
+        const lastWeekStart = new Date(today);
+        lastWeekStart.setDate(today.getDate() - 7);
+        startDate = this.formatDateForController(lastWeekStart);
+        endDate = this.formatDateForController(today);
+        break;
+  
+      case 'lastmonth':
+        const lastMonthStart = new Date(today);
+        lastMonthStart.setMonth(today.getMonth() - 1);
+        startDate = this.formatDateForController(lastMonthStart);
+        endDate = this.formatDateForController(today);
+        break;
+  
+      case 'custom':
+        return; // Wait for user to apply custom range
+  
+      default:
+        return;
+    }
+  
+    this.GetPendingCollectionsByDate(startDate, endDate);
+  }
+
+  applyCustomRange() {
+    if (this.customStartDate && this.customEndDate) {
+      const startDate = this.formatDateForController(this.customStartDate);
+      const endDate = this.formatDateForController(this.customEndDate);
+      this.GetPendingCollectionsByDate(startDate, endDate);
+    }
   }
 
   GetAllAgents(){
@@ -263,78 +330,89 @@ export class TransactionsComponent {
   GetAllMerchants(){
     this.controllers.GetAllMerchants().subscribe((res:any)=>{
       if(res){
-        this.clientsData = res;
+        this.merchantsData = res;
       }
     })
   }
 
-  prepareLast7DaysPaymentsChart() {
-    const days = this.getLastNDates(7);
-    const dailyTotals = new Map<string, number>();
-    days.forEach(d => dailyTotals.set(d, 0));
-
-    this.transactions.forEach((t: any) => {
-      const dateStr = this.formatDate(t.date);
-      if (dailyTotals.has(dateStr)) {
-        dailyTotals.set(dateStr, dailyTotals.get(dateStr)! + t.amount);
+  getLast7DaysCollections() {
+    const today = new Date();
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - 6); // 6 days ago + today = 7 days
+  
+    const formattedStart = this.formatDateForController(startDate);
+    const formattedEnd = this.formatDateForController(today);
+  
+    this.controllers.GetCollectionsByDate(formattedStart, formattedEnd).subscribe({
+      next: (res: any[]) => {
+        this.last7daysCollections = res;
+        // this.groupedCollections = this.groupByClient(res);
+        // this.getTotalCollections();        
+        // this.updateChartData();
+        // this.createTransactionPieChart();
+        this.createLast7DaysCollectionChart(res);
+      },
+      error: (err: any) => {
+        console.error(err);
       }
     });
-
-    this.renderBarChart('last7DaysChartCanvas', [...dailyTotals.keys()], [...dailyTotals.values()], 'Last 7 Days Payments');
   }
 
-  prepareAgentWisePaymentsChart() {
-    const map = new Map<string, number>();
-    this.transactions.forEach((t: any) => {
-      const key = t.agentName || 'Unknown';
-      map.set(key, (map.get(key) || 0) + t.amount);
+  createLast7DaysCollectionChart(collections: any[]) {
+    const canvas = document.getElementById('last7DaysChartCanvas') as HTMLCanvasElement;
+    if (!canvas) return;
+  
+    if (this.last7DaysChartCanvas) {
+      this.last7DaysChartCanvas.destroy();
+    }
+  
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const last7DaysMap: { [date: string]: number } = {};
+  
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const key = date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+      last7DaysMap[key] = 0;
+    }
+  
+    collections.forEach(col => {
+      const rawDate = col.created_at?.split(' ')[0];
+      if (last7DaysMap.hasOwnProperty(rawDate)) {
+        last7DaysMap[rawDate] += Number(col.totalAmount || 0);
+      }
     });
-    this.renderBarChart('agentWiseChartCanvas', [...map.keys()], [...map.values()], 'Agent-wise Payments');
-  }
-
-  prepareClientWisePaymentsChart() {
-    const map = new Map<string, number>();
-    this.transactions.forEach((t: any) => {
-      const key = t.clinetName || 'Unknown';
-      map.set(key, (map.get(key) || 0) + t.amount);
+  
+    const labels = Object.keys(last7DaysMap).map(dateStr => {
+      const date = new Date(dateStr);
+      return dayNames[date.getDay()];
     });
-    this.renderBarChart('clientWiseChartCanvas', [...map.keys()], [...map.values()], 'Client-wise Payments');
-  }
-
-
-  renderBarChart(canvasId: string, labels: string[], data: number[], label: string) {
-    const existingChart = Chart.getChart(canvasId);
-    if (existingChart) existingChart.destroy();
-
-    const ctx = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!ctx) return;
-
-    new Chart(ctx, {
-      type: 'bar',
+  
+    const values = Object.values(last7DaysMap);
+    const colors = this.generateUniqueColors(labels.length);
+  
+    this.last7DaysChartCanvas = new Chart(canvas, {
+      type: 'pie',
       data: {
         labels,
         datasets: [{
-          label,
-          data,
-          backgroundColor: labels.map(() => this.getRandomColor()),
-          barThickness: 30,
-          maxBarThickness: 35
+          label: 'Total Collections',
+          data: values,
+          backgroundColor: colors,
+          borderColor: '#fff',
+          borderWidth: 1
         }]
       },
       options: {
         responsive: true,
         plugins: {
+          legend: { position: 'bottom' },
           tooltip: {
             callbacks: {
-              label: ctx => `₹${ctx.raw}`
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: val => `₹${val}`
+              label: (ctx) => {
+                const value = ctx.raw as number;
+                return `${ctx.label}: ₹${value.toLocaleString('en-IN')}`;
+              }
             }
           }
         }
@@ -342,9 +420,109 @@ export class TransactionsComponent {
     });
   }
 
-  getRandomColor(): string {
-    const colors = ['#4F46E5', '#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF'];
-    return colors[Math.floor(Math.random() * colors.length)];
+  generateUniqueColors(count: number): string[] {
+    const colors: string[] = [];
+    const step = Math.floor(360 / count);
+    for (let i = 0; i < count; i++) {
+      const hue = (i * step) % 360;
+      colors.push(`hsl(${hue}, 70%, 60%)`);
+    }
+    return colors;
+  }
+
+  // prepareLast7DaysPaymentsChart() {
+  //   const days = this.getLastNDates(7); // ['2025-06-12', ..., '2025-06-18']
+  //   const dailyTotals = new Map<string, number>();
+  //   days.forEach(d => dailyTotals.set(d, 0));
+  
+  //   this.transactions.forEach((t: any) => {
+  //     const rawDate = t.created_at || t.date;
+  //     if (!rawDate) return;
+  
+  //     const parsedDate = new Date(rawDate); // ← parse properly
+  //     const dateStr = this.formatDate(parsedDate); // ← format to 'YYYY-MM-DD'
+  
+  //     if (dailyTotals.has(dateStr)) {
+  //       const current = dailyTotals.get(dateStr)!;
+  //       dailyTotals.set(dateStr, current + Number(t.totalAmount || 0));
+  //     }
+  //   });
+  
+  //   this.renderBarChart(
+  //     'last7DaysChartCanvas',
+  //     [...dailyTotals.keys()],
+  //     [...dailyTotals.values()],
+  //     'Last 7 Days Commissions'
+  //   );
+  // }
+  
+  
+  
+  prepareAgentWisePaymentsChart() {
+    const map = new Map<string, number>();
+    this.transactions.forEach((t: any) => {
+      const key = t.custodianName || 'Unknown'; // Assuming agent = custodianName
+      map.set(key, (map.get(key) || 0) + Number(t.totalAmount || 0));
+    });
+    this.renderBarChart('agentWiseChartCanvas', [...map.keys()], [...map.values()], 'Agent-wise Commissions');
+  }
+  
+  prepareClientWisePaymentsChart() {
+    const map = new Map<string, number>();
+    this.transactions.forEach((t: any) => {
+      const key = t.clientName || 'Unknown';
+      map.set(key, (map.get(key) || 0) + Number(t.totalAmount || 0));
+    });
+    this.renderBarChart('clientWiseChartCanvas', [...map.keys()], [...map.values()], 'Client-wise Commissions');
+  }
+
+
+  renderBarChart(canvasId: string, labels: string[], data: number[], label: string) {
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) existingChart.destroy();
+  
+    const ctx = document.getElementById(canvasId) as HTMLCanvasElement;
+    if (!ctx) return;
+  
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          label,
+          data,
+          backgroundColor: this.getColorPalette(labels.length),
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: context => `${context.label}: ₹${context.raw}`
+            }
+          }
+        }
+      }
+    });
+  }
+
+
+  getColorPalette(count: number): string[] {
+    const palette = [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#C9CBCF', '#00A5A8', '#5C6BC0', '#8E24AA',
+      '#43A047', '#FB8C00', '#D32F2F', '#1976D2', '#388E3C',
+    ];
+  
+    const colors: string[] = [];
+    for (let i = 0; i < count; i++) {
+      colors.push(palette[i % palette.length]);
+    }
+    return colors;
   }
 
   getLastNDates(n: number): string[] {
@@ -355,6 +533,10 @@ export class TransactionsComponent {
       dates.push(this.formatDate(d));
     }
     return dates;
+  }
+
+  formatDateForController(date: Date): string {
+    return formatDate(date, 'yyyy-MM-dd', 'en-US');
   }
 
   formatDate(date: Date): string {
@@ -404,9 +586,6 @@ export class TransactionsComponent {
     if (this.transactionForm.valid) {
       const formValue = this.transactionForm.value;
       console.log(formValue)
-
-
-
       // Create new transaction
       const newTransaction: AgentTransaction = {
         date: new Date(),
@@ -459,14 +638,15 @@ export class TransactionsComponent {
     });
   }
 
-  GetAllPendingPayments() {
-    this.controllers.getPendingCollection().subscribe((res: any) => {
+  GetPendingCollectionsByDate(startDate: string, endDate: string) {
+    // this.controllers.GetPendingCollectionsByDate(startDate, endDate).subscribe((res: any) => {
+    this.controllers.GetCollectionsByDate(startDate, endDate).subscribe((res: any) => {
       if (res) {
         this.transactions = res;
         this.groupedCollections = this.groupByClient(res);
         this.groupedCollections = this.groupByClient(res);
 
-        this.prepareLast7DaysPaymentsChart();
+        // this.prepareLast7DaysPaymentsChart();
         this.prepareViewBasedChart();
       }
     })
@@ -489,7 +669,7 @@ export class TransactionsComponent {
 
   groupByClient(collections: any[]): { [key: string]: any[] } {
     return collections.reduce((grouped: any, collection: any) => {
-      const client = collection.clientName || 'Unknown Client';
+      const client = collection.agentName || 'Unknown Client';
       if (!grouped[client]) {
         grouped[client] = [];
       }
@@ -498,23 +678,112 @@ export class TransactionsComponent {
     }, {});
   }
 
-  showMakePayment() {
+  showMakePayment(transaction:any) {
     this.paymentForm.reset();
+    this.paymentObject = transaction;
     this.dialog.open(this.PaymentDialog, {
-      width: '800px'
+      width: '800px',
+      data: transaction
     });
+    this.dialog.afterAllClosed.subscribe(() => {
+      this.MakePayment();
+    })
   }
 
-  showTransfer() {
+  showTransfer(transaction:any) {
     this.transferForm.reset();
+    this.transferObject = transaction;
     this.dialog.open(this.transferDialog, {
-      width: '800px'
+      width: '800px',
+      data: transaction
     });
   }
 
-  MakePayment(){
+  SaveTransfer() {
+    this.transferObject.transferToAgent = this.transferForm.value.transferToAgent;
+    this.transferObject.transferToMerchant = this.transferForm.value.transferToMerchant;
+    this.transferObject.fromAgent = this.transferForm.value.fromAgent;
+    this.transferObject.transfer_amount = this.transferObject.totalAmount;
+    this.transferObject.paymentStatus = 'transferred';
 
+    // this.dialog.afterAllClosed.subscribe(() => {
+      this.controllers.updateCollection(Number(this.transferObject.id),this.transferObject).subscribe((res:any)=>{
+        if(res){
+          this.toast.success('Transfer updated successfully');
+          this.GetPendingCollectionsByDate(this.formatDateForController(new Date()), this.formatDateForController(new Date()));
+        }
+      })
+    // })
   }
+
+
+  MakePayment() {
+    // if (this.paymentForm.invalid) {
+    //   this.toast.error('Please fill all payment details');
+    //   return;
+    // }
+  
+    this.paymentObject.paymentAccountName = this.paymentForm.value.paymentAccountName;
+    this.paymentObject.paymentAccountNumber = this.paymentForm.value.paymentAccountNumber;
+    this.paymentObject.paymentIFSC = this.paymentForm.value.paymentIFSC;
+    this.paymentObject.paymentAmount = this.paymentForm.value.paymentAmount;
+    this.paymentObject.paymentStatus = "Completed";
+  
+    if (this.receiptBase64) {
+      this.paymentObject.paymentImage = this.receiptBase64; // ✅ Assign base64 string
+    }
+
+    this.controllers.updateCollection(Number(this.paymentObject.id), this.paymentObject).subscribe((res: any) => {
+      if (res) {
+        this.toast.success('Payment successful');
+        this.GetPendingCollectionsByDate(this.formatDateForController(new Date()), this.formatDateForController(new Date()));
+        this.dialog.closeAll();
+      }
+    })
+  }
+  
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+  
+    const file = input.files[0];
+    const reader = new FileReader();
+  
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const scale = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scale;
+  
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+  
+        canvas.toBlob(blob => {
+          if (blob) {
+            const previewReader = new FileReader();
+            previewReader.onload = () => {
+              this.receiptBase64 = previewReader.result as string; // ✅ Store base64 string
+              this.receiptPreview = previewReader.result;
+            };
+            previewReader.readAsDataURL(blob);
+          }
+        }, 'image/jpeg', 0.7);
+      };
+  
+      img.src = e.target.result;
+    };
+  
+    reader.readAsDataURL(file);
+  }
+  
+  
+  
+  
+  
 
 
 

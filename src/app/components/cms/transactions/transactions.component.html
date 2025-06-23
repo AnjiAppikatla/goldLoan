@@ -3,31 +3,58 @@
     <!-- Add Transaction Button -->
     <div class="mb-6 flex items-center justify-between">
       <h2>Payments</h2>
-      <button mat-raised-button color="primary" (click)="showNewTransactionForm()">
+      <div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Filter by Date</mat-label>
+          <mat-select [(value)]="selectedRange" (selectionChange)="onDateRangeChange($event.value)">
+            <mat-option *ngFor="let range of dateRanges" [value]="range.value">{{ range.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Custom range datepickers -->
+        <div *ngIf="selectedRange === 'custom'" class="custom-range">
+          <mat-form-field>
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="picker1" [(ngModel)]="customStartDate">
+            <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+            <mat-datepicker #picker1></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="picker2" [(ngModel)]="customEndDate">
+            <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+            <mat-datepicker #picker2></mat-datepicker>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" (click)="applyCustomRange()">Apply</button>
+        </div>
+      </div>
+      <!-- <button mat-raised-button color="primary" (click)="showNewTransactionForm()">
         <i class="fa fa-plus mr-3"></i> New Payment
-      </button>
+      </button> -->
     </div>
 
     <!-- Charts Section -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <!-- Bar Chart -->
-      <mat-card class="card-shadow">
+      <mat-card class="cm-shadow">
         <mat-card-header>
-          <mat-card-title class="text-base md:text-lg">Payments in Last 7 Days</mat-card-title>
+          <h2 class="text-base md:text-lg">Payments in Last 7 Days</h2>
         </mat-card-header>
-        <mat-card-content class="h-[250px] md:h-[300px]">
-          <div>
+        <mat-card-content>
+          <div class="h-[400px]">
             <canvas id="last7DaysChartCanvas"></canvas>
           </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Pie Chart -->
-      <mat-card class="card-shadow">
+      <mat-card class="cm-shadow">
         <mat-card-header>
         </mat-card-header>
-        <mat-card-content class="h-[250px] md:h-[300px]">
-          <h2 class="text-base md:text-lg flex justify-around">Agent-wise Collections
+        <mat-card-content>
+          <h2 class="text-base md:text-lg flex justify-around">Agent-wise Payments
             <div *ngIf="currentUser.role === 'admin'" class="mb-3 flex gap-4">
               <mat-radio-group [(ngModel)]="selectedView" (change)="onViewChange($event.value)">
                 <mat-radio-button value="agent">Agent View</mat-radio-button>
@@ -35,11 +62,14 @@
               </mat-radio-group>
             </div>
           </h2>
-          <!-- Agent Wise -->
-          <canvas *ngIf="selectedView === 'agent'" id="agentWiseChartCanvas"></canvas>
+          <div class="h-[400px]">
+            <!-- Agent Wise -->
+            <canvas *ngIf="selectedView === 'agent'" id="agentWiseChartCanvas"></canvas>
 
-          <!-- Client Wise -->
-          <canvas *ngIf="selectedView === 'client'" id="clientWiseChartCanvas"></canvas>
+            <!-- Client Wise -->
+            <canvas *ngIf="selectedView === 'client'" id="clientWiseChartCanvas"></canvas>
+          </div>
+
         </mat-card-content>
       </mat-card>
     </div>
@@ -98,20 +128,20 @@
             <mat-panel-title>
               {{transaction.custodianName}}
             </mat-panel-title>
-            <span *ngIf="transaction.paymentStatus === 'completed'"
+            <span *ngIf="transaction.paymentStatus === 'Completed'"
               class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-3">
               <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
               Completed
             </span>
-            <span *ngIf="transaction.paymentStatus === 'transfered'"
+            <span *ngIf="transaction.paymentStatus === 'transferred'"
               class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm mr-3">
               <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
-              Approved
+              Transferred
             </span>
             <span *ngIf="transaction.paymentStatus === 'pending'"
               class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm mr-3">
               <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
-              Processing...
+              Pending...
             </span>
           </mat-expansion-panel-header>
 
@@ -137,9 +167,16 @@
                 <p><span class="font-bold"> Cash Amount : </span><span>{{transaction.cashAmount}}</span></p>
                 <p><span class="font-bold"> Online Amount : </span><span>{{transaction.onlineAmount}}</span></p>
               </div>
+              <!-- Show receipt image if payment is completed -->
+<div *ngIf="transaction.paymentStatus === 'Completed' && transaction.paymentImage" class="mt-4">
+  <p class="font-bold mb-2">Payment Receipt:</p>
+  <img [src]="transaction.paymentImage" alt="Payment Receipt" class="max-h-64 rounded shadow border border-gray-300">
+</div>
               <div class="flex flex-col gap-2">
-                <button mat-raised-button class="bg-amber-400" (click)="showTransfer()">Transfer</button>
-                <button mat-raised-button color="primary" (click)="showMakePayment()">Make Payment</button>
+                <button mat-raised-button class="bg-amber-400" [disabled]="transaction.paymentStatus !== 'pending'"
+                  (click)="showTransfer(transaction)">Transfer</button>
+                <button mat-raised-button color="primary" [disabled]="transaction.paymentStatus !== 'pending'"
+                  (click)="showMakePayment(transaction)">Make Payment</button>
               </div>
             </div>
           </div>
@@ -241,10 +278,13 @@
         <mat-label>Payment Amount</mat-label>
         <input matInput type="number" formControlName="paymentAmount">
       </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Payment Receipt</mat-label>
-        <input matInput type="image" formControlName="paymentImage">
-      </mat-form-field>
+      <div class="md:col-span-2">
+        <label class="block font-medium mb-1">Upload Payment Receipt</label>
+        <input type="file" (change)="onFileSelected($event)" accept="image/*">
+        <div *ngIf="receiptPreview" class="mt-2">
+          <img [src]="receiptPreview" alt="Receipt Preview" class="max-h-48 rounded shadow">
+        </div>
+      </div>
     </form>
   </mat-dialog-content>
 
@@ -257,17 +297,17 @@
 </ng-template>
 
 <ng-template #transferDialog>
-  <h2 mat-dialog-title>New Payment</h2>
+  <h2 mat-dialog-title>Transfer Amount</h2>
   <mat-dialog-content>
     <form [formGroup]="transferForm">
 
-       <!-- Transfer Type Selection -->
-       <mat-radio-group formControlName="transferType" class="mb-4 flex flex-col md:flex-row gap-4">
+      <!-- Transfer Type Selection -->
+      <mat-radio-group formControlName="transferType" class="mb-4 flex flex-col md:flex-row gap-4">
         <mat-radio-button value="agent">Transfer to Agent</mat-radio-button>
         <mat-radio-button value="merchant">Transfer to Merchant</mat-radio-button>
       </mat-radio-group>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <!-- Agent Dropdown -->
         <mat-form-field appearance="outline" *ngIf="transferForm.get('transferType')?.value === 'agent'" class="w-full">
@@ -278,10 +318,12 @@
         </mat-form-field>
 
         <!-- Merchant Dropdown -->
-        <mat-form-field appearance="outline" *ngIf="transferForm.get('transferType')?.value === 'merchant'" class="w-full">
+        <mat-form-field appearance="outline" *ngIf="transferForm.get('transferType')?.value === 'merchant'"
+          class="w-full">
           <mat-label>Select Merchant</mat-label>
           <mat-select formControlName="transferToMerchant">
-            <mat-option *ngFor="let merchant of merchantsData" [value]="merchant.merchantName">{{ merchant.merchantName }}</mat-option>
+            <mat-option *ngFor="let merchant of merchantsData" [value]="merchant.merchantid">{{ merchant.merchantName
+              }}</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -304,7 +346,7 @@
 
   <mat-dialog-actions align="center">
     <button mat-raised-button color="white" (click)="closeDialog()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="saveTransaction()">
+    <button mat-raised-button color="warn" (click)="SaveTransfer()">
       Save
     </button>
   </mat-dialog-actions>

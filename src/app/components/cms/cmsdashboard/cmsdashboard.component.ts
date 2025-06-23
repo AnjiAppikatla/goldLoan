@@ -119,6 +119,11 @@ selectedView: 'client' | 'agent' = 'client';
       lastTransaction: new Date()
     }
   ];
+  agents: any = [];
+  clients: any = [];
+
+  selectedAgentId: string = '';
+selectedClientId: string = '';
 
 
 
@@ -129,6 +134,8 @@ selectedView: 'client' | 'agent' = 'client';
   ) { }
 
   ngOnInit() {
+    this.GetAllAgents();
+    this.GetAllClients();
     this.loadCollections(this.formatDate(new Date()), this.formatDate(new Date()));
     this.LoadLast7DaysCollections();
   }
@@ -157,72 +164,58 @@ selectedView: 'client' | 'agent' = 'client';
       this.transactionChart.destroy();
     }
   
-    // Generate last 7 days' labels and date keys
-    const last7DaysLabels: string[] = [];
     const last7DaysMap: { [date: string]: number } = {};
+    const dayLabels: string[] = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
+    // ✅ Initialize last 7 days with 0 values
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-  
-      const key = date.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+      const key = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
       last7DaysMap[key] = 0;
-  
-      last7DaysLabels.push(dayNames[date.getDay()]);
+      dayLabels.push(dayNames[date.getDay()]);
     }
   
-    // Add data to corresponding date
+    // ✅ Sum commissions per date
     transactions.forEach(tx => {
       const rawDate = tx.created_at || tx.date;
       if (!rawDate) return;
-  
       const txDate = new Date(rawDate);
       if (isNaN(txDate.getTime())) return;
-  
       const dateKey = txDate.toLocaleDateString('en-CA');
       if (last7DaysMap.hasOwnProperty(dateKey)) {
         last7DaysMap[dateKey] += Number(tx.commission || 0);
       }
     });
   
-    const values = Object.values(last7DaysMap);
+    const data = Object.values(last7DaysMap); // maintains the order
+    const colors = this.generateUniqueColors(7); // optional: generate unique colors
   
     this.transactionChart = new Chart(canvas, {
-      type: 'bar',
+      type: 'pie',
       data: {
-        labels: last7DaysLabels,
+        labels: dayLabels, // always Mon-Sun, or latest 7 days in order
         datasets: [{
           label: 'Daily Commissions',
-          data: values,
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-            '#C9CBCF'
-          ]
+          data,
+          backgroundColor: colors
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: { position: 'bottom' },
           tooltip: {
             callbacks: {
-              label: context => `₹${context.raw}`
+              label: (context: any) => `${context.label}: ₹${context.raw}`
             }
           }
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: value => `₹${value}`
-            }
-          }
+        animation: {
+          duration: 1000,
+          easing: 'easeOutQuart'
         }
       }
     });
@@ -253,39 +246,27 @@ selectedView: 'client' | 'agent' = 'client';
   
     const labels = Object.keys(grouped);
     const values = Object.values(grouped);
-  
     const backgroundColors = labels.map((_, i) =>
       ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'][i % 7]
     );
   
-    const maxBarThickness = labels.length === 1 ? 60 : labels.length > 5 ? 30 : 50;
-  
     this.merchantChart = new Chart(canvas, {
-      type: 'bar',
+      type: 'pie',
       data: {
         labels,
         datasets: [{
           label: viewType === 'client' ? 'Client Wise Commissions' : 'Agent Wise Commissions',
           data: values,
-          backgroundColor: backgroundColors,
-          maxBarThickness
+          backgroundColor: backgroundColors
         }]
       },
       options: {
         responsive: true,
         plugins: {
-          legend: { display: false },
+          legend: { position: 'bottom' },
           tooltip: {
             callbacks: {
-              label: context => `₹${context.raw}`
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: value => `₹${value}`
+              label: context => `${context.label}: ₹${context.raw}`
             }
           }
         }
@@ -331,6 +312,20 @@ selectedView: 'client' | 'agent' = 'client';
   
     this.loadCollections(startDate, endDate);
   }
+
+  generateUniqueColors(count: number): string[] {
+    const colors: string[] = [];
+    const saturation = 70;
+    const lightness = 55;
+  
+    for (let i = 0; i < count; i++) {
+      const hue = Math.floor((360 / count) * i); // Evenly spaced hue
+      colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+    }
+  
+    return colors;
+  }
+  
   
   applyCustomRange() {
     if (this.customStartDate && this.customEndDate) {
@@ -384,6 +379,44 @@ selectedView: 'client' | 'agent' = 'client';
       }
     });
   }
+
+  
+  GetAllAgents(){
+    this.agents = [];
+    this.controllers.GetAllAgents().subscribe((res:any) => {
+      if(res){
+        this.agents = res;
+      }else{
+        this.agents = [];
+      }
+    });
+  }
+
+  GetAllClients(){
+    this.clients = [];
+    this.controllers.getAllClients().subscribe((res:any) => {
+      if(res){
+        this.clients = res;
+      }else{
+        this.clients = [];
+      }
+    });
+  }
+
+  onAgentSelect(agentId: string) {
+    this.selectedAgentId = agentId;
+    // Filter or load data based on selected agent
+    this.collections = this.collections.filter((c:any) => c.userId === agentId);
+    this.createTransactionTypesBarChart(this.collections, this.selectedView);
+  }
+  
+  onClientSelect(clientId: string) {
+    this.selectedClientId = clientId;
+    // Filter or load data based on selected client
+    this.collections = this.collections.filter((c:any) => c.id === clientId);
+    this.createTransactionTypesBarChart(this.collections, this.selectedView);
+  }
+  
   
   
   

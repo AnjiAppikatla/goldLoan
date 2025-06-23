@@ -1,16 +1,43 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Chart } from 'chart.js/auto';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule, formatDate } from '@angular/common';
 import { ControllersService } from '../../../services/controllers.service';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'app-wallet',
   standalone: true,
-  imports: [FormsModule, CommonModule,MatExpansionModule,MatCardModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatIconModule,
+    MatDialogModule,
+    MatExpansionModule,
+    // NgChartsModule,
+    ReactiveFormsModule,
+    MatRadioModule,
+    MatDatepickerModule
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './wallet.component.html',
   styleUrl: './wallet.component.scss'
 })
@@ -20,14 +47,26 @@ export class WalletComponent implements OnInit {
   agentWalletTotal: number = 0;
   finoWalletTotal: number = 0;
 
+  dateRanges = [
+    { label: 'Today', value: 'today' },
+    { label: 'Yesterday', value: 'yesterday' },
+    { label: 'Last Week', value: 'lastweek' },
+    { label: 'Last Month', value: 'lastmonth' },
+    { label: 'Custom Range', value: 'custom' }
+  ];
+
+  selectedRange = 'today';
+  customStartDate!: Date;
+  customEndDate!: Date;
+
   constructor(private controllers: ControllersService) {}
 
   ngOnInit() {
-    this.GetAllCollections();
+    this.GetAllCollections(this.formatDate(new Date()), this.formatDate(new Date()));
   }
 
-  GetAllCollections() {
-    this.controllers.getAllCollections().subscribe({
+  GetAllCollections(startDate: string, endDate: string) {
+    this.controllers.GetCollectionsByDate(startDate, endDate).subscribe({
       next: (res) => {
         this.transfers = res;
         this.prepareCharts();
@@ -83,17 +122,14 @@ processWalletData(collections: any[]) {
 }
 
 
-  prepareCharts() {
-    if (this.userRole === 'admin') {
-      this.prepareFinoWalletChart();
-      this.prepareAgentWalletChart();
-    } else {
-      const agentName = 'Agent A'; // Replace with actual session/token logic
-      const ownTransfers = this.transfers.filter(t => t.fromAgent === agentName);
-      const total = ownTransfers.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
-      this.renderBarChart('agentOwnWalletChart', [agentName], [total], 'My Wallet (₹)');
-    }
-  }
+prepareCharts() {
+    this.prepareFinoWalletChart();
+    this.prepareAgentWalletChart();
+    const agentName = 'Agent A'; // Replace with actual session/token logic
+    const ownTransfers = this.transfers.filter(t => t.fromAgent === agentName);
+    const total = ownTransfers.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
+    this.renderBarChart('agentOwnWalletChart', [agentName], [total], 'My Wallet (₹)');
+}
 
   prepareFinoWalletChart() {
     const clientWise = new Map<string, number>();
@@ -138,42 +174,124 @@ processWalletData(collections: any[]) {
       console.warn(`Canvas with ID ${canvasId} not found`);
       return;
     }
-
+  
+    // Destroy existing chart if any
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+  
+    // Use a unique color palette
+    const backgroundColors = this.getUniqueColorPalette(labels.length);
+  
     new Chart(canvas, {
-      type: 'bar',
+      type: 'pie',
       data: {
         labels,
         datasets: [{
           label,
           data,
-          backgroundColor: labels.map(() => this.getRandomColor()),
-          barThickness: 30, // 👈 controls bar width (you can make it smaller like 10 or 15)
-        maxBarThickness: 35 // 👈 max allowed width
+          backgroundColor: backgroundColors
         }]
       },
       options: {
         responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: (val) => `₹${val}`
-            }
-          }
-        },
         plugins: {
+          legend: {
+            position: 'bottom'
+          },
           tooltip: {
             callbacks: {
-              label: context => `₹${context.raw}`
+              label: context => `${context.label}: ₹${context.raw}`
             }
           }
         }
       }
     });
   }
+  
 
   getRandomColor(): string {
     const colors = ['#4F46E5', '#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF'];
     return colors[Math.floor(Math.random() * colors.length)];
   }
+
+  getUniqueColorPalette(count: number): string[] {
+    const baseColors = [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+      '#9966FF', '#FF9F40', '#8E44AD', '#2ECC71',
+      '#E67E22', '#1ABC9C', '#C0392B', '#7F8C8D',
+      '#3498DB', '#F1C40F', '#9B59B6', '#D35400'
+    ];
+  
+    if (count <= baseColors.length) {
+      return baseColors.slice(0, count);
+    }
+  
+    // If more colors are needed, generate random but distinct colors
+    const extraColors = [];
+    for (let i = 0; i < count - baseColors.length; i++) {
+      extraColors.push(this.getRandomColor());
+    }
+  
+    return baseColors.concat(extraColors);
+  }
+  
+
+  formatDate(date: Date): string {
+    return formatDate(date, 'yyyy-MM-dd', 'en-US');
+  }
+
+  onDateRangeChange(range: string) {
+    const today = new Date();
+    let startDate: string, endDate: string;
+  
+    switch (range) {
+      case 'today':
+        startDate = endDate = this.formatDate(today);
+        break;
+  
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        startDate = endDate = this.formatDate(yesterday);
+        break;
+  
+      case 'lastweek':
+        const lastWeekStart = new Date(today);
+        lastWeekStart.setDate(today.getDate() - 7);
+        startDate = this.formatDate(lastWeekStart);
+        endDate = this.formatDate(today);
+        break;
+  
+      case 'lastmonth':
+        const lastMonthStart = new Date(today);
+        lastMonthStart.setMonth(today.getMonth() - 1);
+        startDate = this.formatDate(lastMonthStart);
+        endDate = this.formatDate(today);
+        break;
+  
+      case 'custom':
+        return; // Wait for user to apply custom range
+  
+      default:
+        return;
+    }
+  
+    this.GetAllCollections(startDate, endDate);
+  }
+
+  applyCustomRange() {
+    if (this.customStartDate && this.customEndDate) {
+      const startDate = this.formatDate(this.customStartDate);
+      const endDate = this.formatDate(this.customEndDate);
+      this.GetAllCollections(startDate, endDate);
+    }
+  }
+
+
+
+
+
+
 }

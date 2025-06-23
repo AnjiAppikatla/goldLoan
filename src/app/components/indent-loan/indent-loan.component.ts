@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +18,7 @@ import { NewLoanComponent } from '../gold-loans/new-loan/new-loan.component';
 import { AuthService } from '../../services/auth.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { take } from 'rxjs';
+import { Chart } from 'chart.js';
 
 @Component({
   selector: 'app-indent-loan',
@@ -48,6 +49,12 @@ export class IndentLoanComponent implements OnInit {
   @ViewChild('Account_add') Account_add!: TemplateRef<any>;
   @ViewChild('Transfer') Transfer!: TemplateRef<any>;
 
+  @ViewChild('agentChartCanvas') agentChartCanvas!: ElementRef<HTMLCanvasElement>;
+@ViewChild('statusChartCanvas') statusChartCanvas!: ElementRef<HTMLCanvasElement>;
+
+agentLoanChart: Chart | null = null;
+statusLoanChart: Chart | null = null;
+
   constructor(
     private dialog: MatDialog,
     private toast: ToastrService,
@@ -66,6 +73,8 @@ export class IndentLoanComponent implements OnInit {
       if(res){
         this.indentLoans = res;
         this.filterIndentLoans();
+        this.createAgentLoanChart();
+        this.createStatusLoanChart();
       }else{
         this.toast.warning("Error found");
       }
@@ -255,4 +264,168 @@ export class IndentLoanComponent implements OnInit {
           }
       });
   }
+
+  createAgentLoanChart() {
+    // Destroy previous chart instance if it exists
+    if (this.agentLoanChart) {
+      this.agentLoanChart.destroy();
+    }
+  
+    // Get the chart canvas context
+    const ctx = this.agentChartCanvas?.nativeElement?.getContext('2d');
+    if (!ctx) return;
+  
+    // Calculate total amount and count per agent
+    const agentMap: { [agent: string]: number } = {};
+    const agentCountMap: { [agent: string]: number } = {};
+  
+    this.indentLoans.forEach((loan: any) => {
+      const agent = loan.agent || 'Unknown';
+      const amount = Number(loan.amount) || 0;
+      agentMap[agent] = (agentMap[agent] || 0) + amount;
+      agentCountMap[agent] = (agentCountMap[agent] || 0) + 1;
+    });
+  
+    // Prepare labels like: "AgentName (3)"
+    const labels = Object.keys(agentMap).map(
+      agent => `${agent} (${agentCountMap[agent]})`
+    );
+  
+    const data = Object.values(agentMap);
+    const colors = this.generateUniqueColors(labels.length);
+  
+    // Create the pie chart
+    this.agentLoanChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderColor: '#fff',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 1000,
+          easing: 'easeOutBounce',
+          animateRotate: true,
+          animateScale: true
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: { size: 12 },
+              color: '#333'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx: any) => {
+                const rawValue = Number(ctx.raw) || 0;
+                return `${ctx.label}: ₹${rawValue.toLocaleString('en-IN')}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  
+  createStatusLoanChart() {
+    if (this.statusLoanChart) {
+      this.statusLoanChart.destroy();
+    }
+  
+    const ctx = this.statusChartCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+  
+    let approved = 0, pending = 0, completed = 0;
+    let approvedCount = 0, pendingCount = 0, completedCount = 0;
+  
+    this.indentLoans.forEach((loan: any) => {
+      const amount = Number(loan.amount) || 0;
+      const status = loan.indentloan_status?.toLowerCase();
+  
+      if (status === 'approved') {
+        approved += amount;
+        approvedCount++;
+      } else if (status === 'pending') {
+        pending += amount;
+        pendingCount++;
+      } else if (status === 'completed') {
+        completed += amount;
+        completedCount++;
+      }
+    });
+  
+    const totalByStatus = approved + pending + completed;
+    const totalByAgent = this.indentLoans.reduce((sum, loan) => sum + (Number(loan.amount) || 0), 0);
+  
+    if (totalByStatus !== totalByAgent) {
+      console.warn('Mismatch: Status totals do not match agent totals');
+    }
+  
+    const labels = [
+      `Approved (${approvedCount})`,
+      `Pending (${pendingCount})`,
+      `Completed (${completedCount})`
+    ];
+    const data = [approved, pending, completed];
+    const colors = ['#007bff', '#ffc107','#16a34a'];
+  
+    this.statusLoanChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderColor: '#fff',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const rawValue = ctx.raw as number;
+                return `${ctx.label}: ₹${rawValue.toLocaleString('en-IN')}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  
+  
+
+  generateUniqueColors(count: number): string[] {
+    const colors: string[] = [];
+    while (colors.length < count) {
+      const color = `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`;
+      if (!colors.includes(color)) {
+        colors.push(color);
+      }
+    }
+    return colors;
+  }
+  
+  
+
+
+
+
+
+
 }

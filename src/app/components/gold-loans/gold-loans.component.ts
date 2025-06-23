@@ -1546,6 +1546,7 @@ export class GoldLoansComponent {
               groups[agent].push(loan);
               return groups;
             }, {});
+            this.createChart();
           } else {
             // For agents, only show their own loans
             this.loans = this.loans.filter(loan => loan.AgentName === this.currentUser.name);
@@ -1566,6 +1567,7 @@ export class GoldLoansComponent {
         console.error(err);
       }
     });
+     this.createChart();
   }
 
 

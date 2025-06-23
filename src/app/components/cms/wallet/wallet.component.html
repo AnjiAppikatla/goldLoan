@@ -1,23 +1,49 @@
 <div *ngIf="userRole === 'admin'">
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <h2 class="text-xl font-bold mb-4">Wallet Overview</h2>
       </div>
+
       <div>
-        <mat-card class="card-shadow bg-amber-100">
-          <mat-card-content>
+        <div class="shadow-md bg-amber-100 p-4 rounded-md">
             <div class="text-lg font-semibold mb-2">Agent Wallet</div>
             <div class="text-xl font-bold text-blue-600">{{agentWalletTotal}}</div>
-          </mat-card-content>
-        </mat-card>
+        </div>
       </div>
       <div>
-        <mat-card class="card-shadow bg-blue-100">
-          <mat-card-content>
+        <div class="shadow-md bg-blue-100 p-4 rounded-md">
             <div class="text-lg font-semibold mb-2">Fino Wallet</div>
             <div class="text-xl font-bold text-blue-600">{{finoWalletTotal}}</div>
-          </mat-card-content>
-        </mat-card>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Filter by Date</mat-label>
+        <mat-select [(value)]="selectedRange" (selectionChange)="onDateRangeChange($event.value)">
+          <mat-option *ngFor="let range of dateRanges" [value]="range.value">{{ range.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <!-- Custom range datepickers -->
+      <div *ngIf="selectedRange === 'custom'" class="custom-range">
+        <mat-form-field>
+          <mat-label>Start Date</mat-label>
+          <input matInput [matDatepicker]="picker1" [(ngModel)]="customStartDate">
+          <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+      
+        <mat-form-field>
+          <mat-label>End Date</mat-label>
+          <input matInput [matDatepicker]="picker2" [(ngModel)]="customEndDate">
+          <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+      
+        <button mat-raised-button color="primary" (click)="applyCustomRange()">Apply</button>
       </div>
     </div>
 
@@ -25,13 +51,17 @@
       <!-- Chart for Fino Wallet -->
       <div class="p-4 border rounded shadow">
         <h3 class="text-lg font-semibold mb-2">Fino Wallet Transfers</h3>
-        <canvas id="finoWalletChart" width="400" height="200"></canvas>
+        <div class="h-[400px]">
+          <canvas id="finoWalletChart"></canvas>
+        </div>
       </div>
   
       <!-- Agent-wise Wallet Collections -->
       <div class="p-4 border rounded shadow">
         <h3 class="text-lg font-semibold mb-2">Agent-wise Wallet Collection</h3>
-        <canvas id="agentWalletChart" width="400" height="200"></canvas>
+        <div class="h-[400px]">
+          <canvas id="agentWalletChart"></canvas>
+        </div>
       </div>
     </div>
   </div>

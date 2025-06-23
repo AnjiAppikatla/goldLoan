@@ -1,81 +1,125 @@
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-  <!-- Chart (2 columns span on md) -->
-  <div class="md:col-span-2">
-    <mat-card class="card-shadow">
-      <mat-card-content>
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold">Collections Overview</h2>
-          <mat-form-field appearance="outline" class="w-32">
-            <mat-select [formControl]="selectedTypeFc" (selectionChange)="onTypeChange($event.value)">
-              <mat-option *ngFor="let type of collectionTypes" [value]="type">{{type}}</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-
-        <!-- Chart Canvas -->
-        <div class="h-[300px] w-full">
-          <canvas id="transactionsBarChart"></canvas>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
   <!-- Summary Cards -->
   <div>
-    <div class="flex justify-end mb-4">
-      <button mat-raised-button color="primary" (click)="showNewCollectionForm()">New Collection</button>
-    </div>
+ 
 
-    <div class="grid grid-cols-1 gap-4">
-      <mat-card *ngFor="let type of collectionTypesTotal" class="card-shadow">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <h2>Collections</h2>
+        <div class="text-2xl font-bold text-green-600">Total: $ {{collectionTotalAmount}}</div>
+      </div>
+      <mat-card *ngFor="let type of collectionTypesTotal" class="card-shadow bg-amber-100">
         <mat-card-content>
           <div class="text-lg font-semibold mb-2">{{type.name}}</div>
           <div class="text-xl font-bold text-blue-600">${{type.value | number}}</div>
         </mat-card-content>
       </mat-card>
 
-      <div class="text-2xl font-bold text-green-600">Total: $ {{collectionTotalAmount}}</div>
+      
     </div>
   </div>
+  <div class="flex justify-end mb-4 mt-4">
+    <button mat-raised-button color="primary" class="w-full" (click)="showNewCollectionForm()">New Collection</button>
+  </div>
+  <div>
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Filter by Date</mat-label>
+      <mat-select [(value)]="selectedRange" (selectionChange)="onDateRangeChange($event.value)">
+        <mat-option *ngFor="let range of dateRanges" [value]="range.value">{{ range.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    
+    <!-- Custom range datepickers -->
+    <div *ngIf="selectedRange === 'custom'" class="custom-range">
+      <mat-form-field>
+        <mat-label>Start Date</mat-label>
+        <input matInput [matDatepicker]="picker1" [(ngModel)]="customStartDate">
+        <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+        <mat-datepicker #picker1></mat-datepicker>
+      </mat-form-field>
+    
+      <mat-form-field>
+        <mat-label>End Date</mat-label>
+        <input matInput [matDatepicker]="picker2" [(ngModel)]="customEndDate">
+        <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+        <mat-datepicker #picker2></mat-datepicker>
+      </mat-form-field>
+    
+      <button mat-raised-button color="primary" (click)="applyCustomRange()">Apply</button>
+    </div>
+  </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">  
+  <mat-card class="card-shadow">
+    <mat-card-content>
+      <h2 class="text-xl font-semibold mb-4">Last 7 Days Total Collections</h2>
+      <div class="h-[400px]">
+        <canvas id="last7DaysCollectionChart"></canvas>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="card-shadow">
+    <mat-card-content>
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Collections Overview</h2>
+        <!-- <mat-form-field appearance="outline" class="w-32">
+          <mat-select [formControl]="selectedTypeFc" (selectionChange)="onTypeChange($event.value)">
+            <mat-option *ngFor="let type of collectionTypes" [value]="type">{{type}}</mat-option>
+          </mat-select>
+        </mat-form-field> -->
+      </div>
+
+
+
+      <!-- Chart Canvas -->
+      <div class="h-[400px]">
+        <canvas id="transactionsBarChart"></canvas>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>
 
 <div class="mt-6">
-  <mat-accordion class="w-full app-accordion-bg">
-    <mat-expansion-panel *ngFor="let client of groupedCollections | keyvalue" class="mb-2">
-      <mat-expansion-panel-header class="bg-purple-300">
-        <mat-panel-title class="font-semibold">{{client.key}}</mat-panel-title>
-        <!-- <mat-panel-description class="justify-end text-blue-600 font-bold">
-          ${{}}
-        </mat-panel-description> -->
-      </mat-expansion-panel-header>
-
-      <div class="overflow-x-auto mt-4">
-        <table class="w-full table-auto">
-          <thead>
-            <tr class="text-left bg-gray-100">
-              <th class="px-4 py-2">Date</th>
-              <th class="px-4 py-2">Cash</th>
-              <th class="px-4 py-2">Online</th>
-              <th class="px-4 py-2">Client</th>
-              <th class="px-4 py-2">Agent Name</th>
-              <th class="px-4 py-2">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let collection of client.value" class="border-b hover:bg-gray-50">
-              <td class="px-4 py-2">{{collection.date | date:'mediumDate'}}</td>
-              <td class="px-4 py-2">{{collection.cashAmount}}</td>
-              <td class="px-4 py-2">{{collection.onlineAmount}}</td>
-              <td class="px-4 py-2">{{collection.clientName}}</td>
-              <td class="px-4 py-2">{{collection.agentName}}</td>
-              <td class="px-4 py-2 font-bold">${{collection.totalAmount | number}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </mat-expansion-panel>
-  </mat-accordion>
+  <div *ngFor="let client of groupedCollections | keyvalue">
+    <h2>{{client.key}}</h2>
+    <mat-accordion class="w-full app-accordion-bg">
+      <mat-expansion-panel class="mb-2" *ngFor="let collection of client.value">
+        <mat-expansion-panel-header class="bg-purple-300">
+          <mat-panel-title class="font-semibold flex justify-between">
+            <div class="text-left w-50">{{collection.clientName}}</div> 
+            <div class="text-right">{{collection.created_at | date:'mediumDate'}}</div>
+          </mat-panel-title>
+          <!-- <mat-panel-description class="justify-end text-blue-600 font-bold">
+            ${{}}
+          </mat-panel-description> -->
+        </mat-expansion-panel-header>
+  
+        <div class="overflow-x-auto mt-4">
+          <table class="w-full table-auto">
+            <thead>
+              <tr class="text-left bg-gray-100">
+                <th class="px-4 py-2">Date</th>
+                <th class="px-4 py-2">Cash</th>
+                <th class="px-4 py-2">Online</th>
+                <th class="px-4 py-2">Client</th>
+                <th class="px-4 py-2">Agent Name</th>
+                <th class="px-4 py-2">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2"></td>
+                <td class="px-4 py-2">{{collection.cashAmount}}</td>
+                <td class="px-4 py-2">{{collection.onlineAmount}}</td>
+                <td class="px-4 py-2"></td>
+                <td class="px-4 py-2">{{collection.agentName}}</td>
+                <td class="px-4 py-2 font-bold">${{collection.totalAmount | number}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
 </div>
 
     <!-- Dialog Template -->
@@ -106,7 +150,7 @@
 
             <!-- Client Name -->
             <mat-form-field>
-              <mat-label>Custodian Name</mat-label>
+              <mat-label>Merchant</mat-label>
               <mat-select formControlName="merchantid" required>
                 <mat-option *ngFor="let merchant of merchants" [value]="merchant.merchantid">
                   {{ merchant.merchantName }}

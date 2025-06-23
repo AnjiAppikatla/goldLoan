@@ -421,6 +421,15 @@ export class ControllersService {
       .pipe(catchError(this.handleError));
   }
 
+  GetPendingCollectionsByDate(startDate: string, endDate: string): Observable<any> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+
+    return this.http.get(`${this.baseUrl}/collections/GetPendingCollectionsByDate`, { params, headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
+  }
+
   createCollection(body: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/collections/CreateCollection`, body, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
