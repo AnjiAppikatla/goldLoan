@@ -129,7 +129,7 @@ export class IndentLoanDialogComponent implements OnInit {
     this.indentForm = this.fb.group({
       name: ['', Validators.required],
       amount: ['', [Validators.required, Validators.min(0)]],
-      date: [new Date(), Validators.required],
+      date: [this.formatDate(new Date()), Validators.required],
       agent: ['', Validators.required],
       merchantid: ['', Validators.required],
       lender: ['', Validators.required],
@@ -187,6 +187,14 @@ export class IndentLoanDialogComponent implements OnInit {
         // }
   }
 
+  private formatDate(date: Date): string {
+    // Format as YYYY-MM-DD in local timezone (no timezone shift)
+    const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+  }
+
   GetAllAgents(){
     this.ControllersService.GetAllAgents().subscribe((res:any) => {
       if(res){
@@ -230,6 +238,7 @@ export class IndentLoanDialogComponent implements OnInit {
   onSubmit() {
     if (this.indentForm.valid) {
       const formData = this.indentForm.value;
+      formData.date = this.formatDate(formData.date)
       formData.agent = this.indentForm.get('agent')?.value;
       formData.account_status = 'Pending';
       formData.transfer_status = 'Pending';

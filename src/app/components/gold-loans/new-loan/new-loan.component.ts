@@ -670,9 +670,9 @@ export class NewLoanComponent implements OnInit {
 
         // Format dates
         formData.createdAt = new Date().toISOString();
-        formData.issuedDate = new Date(formData.issuedDate).toISOString();
-        formData.maturityDate = new Date(formData.maturityDate).toISOString();
-        formData.paymentDate = new Date(formData.paymentDate).toISOString();
+        formData.issuedDate = this.formatDate(formData.issuedDate);
+        formData.maturityDate = this.formatDate(formData.maturityDate);
+        formData.paymentDate = this.formatDate(formData.paymentDate);
         formData.city = formData.city.name;
         if(formData.agentId == null){
           formData.agentId = this.loanForm.get('agentId')?.value;
@@ -728,11 +728,17 @@ export class NewLoanComponent implements OnInit {
 
   private formatDate(date: Date): string {
     // Format as YYYY-MM-DD in local timezone (no timezone shift)
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const day = ('0' + date.getDate()).slice(-2);
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+
+//   private formatDate(date: Date): string {
+//   return date.toISOString().split('T')[0]; // returns "YYYY-MM-DD"
+// }
 
 
 

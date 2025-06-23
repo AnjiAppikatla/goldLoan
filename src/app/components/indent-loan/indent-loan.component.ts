@@ -406,9 +406,6 @@ statusLoanChart: Chart | null = null;
       }
     });
   }
-  
-  
-  
 
   generateUniqueColors(count: number): string[] {
     const colors: string[] = [];
