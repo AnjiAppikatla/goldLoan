@@ -187,12 +187,17 @@ export class IndentLoanDialogComponent implements OnInit {
         // }
   }
 
-  private formatDate(date: Date): string {
-    // Format as YYYY-MM-DD in local timezone (no timezone shift)
-    const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  private formatDate(date: any): string {
+    if (!date || isNaN(new Date(date).getTime())) {
+      console.warn('Invalid date passed to formatDate:', date);
+      return '';
+    }
+  
+    const d = new Date(date); // ensure it's a valid Date object
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   GetAllAgents(){
