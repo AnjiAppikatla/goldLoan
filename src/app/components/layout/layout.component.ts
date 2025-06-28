@@ -88,23 +88,36 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if (localStorage.getItem('currentUser') == null) {
+    if (!localStorage.getItem('currentUser')) {
       this.router.navigate(['/login']);
+      return;
     }
-
+  
     this.currentUser = this.authService.currentUserValue;
-
-    const createdAt = new Date(this.currentUser.token_created_at).getTime(); // milliseconds
-    const now = Date.now(); // current time in milliseconds
-
-    const expiresInMs = (this.currentUser.expires_in ? Number(this.currentUser.expires_in - 60) : 840) * 1000; // Convert to ms
-    const elapsed = now - createdAt; // time passed since token creation
-    const remaining = expiresInMs - elapsed; // time left
-
-    // Ensure not negative
-    this.sessionTimeout = Math.max(remaining, 0);
-    this.remainingTime = this.sessionTimeout;
-
+  
+    const expiryTimeStr = localStorage.getItem('token_expiry_time');
+    if (expiryTimeStr) {
+      const expiryTime = Number(expiryTimeStr);
+      const now = Date.now();
+      const remaining = expiryTime - now;
+  
+      this.sessionTimeout = Math.max(remaining, 0); // total session duration remaining
+      this.remainingTime = this.sessionTimeout;
+  
+      // 🟡 Set timeout to show warning dialog 1 minute before expiry
+      if (remaining > 60 * 1000) {
+        setTimeout(() => this.openSessionTimeoutDialog(), remaining - 60 * 1000);
+      } else {
+        this.openSessionTimeoutDialog(); // Already under 1 min
+      }
+  
+      // 🔴 Set timeout to logout after full expiry
+      setTimeout(() => {
+        this.handleSessionTimeout();
+      }, this.sessionTimeout);
+    }
+  
+    // Init default screen
     if (this.currentUser?.role === 'admin') {
       this.isDashboard = true;
       this.activeClass = 'dashboard';
@@ -114,10 +127,25 @@ export class LayoutComponent implements OnInit, OnDestroy {
       this.activeClass = 'goldLoans';
       this.onScreenChange('goldLoans');
     }
-
+  
     this.resetSessionTimer();
     this.startSessionTimer();
   }
+  
+
+  private handleSessionTimeout(): void {
+    this.controllers
+      .LogoutAgent(this.currentUser, Number(this.currentUser.userId))
+      .subscribe({
+        next: () => {
+          localStorage.removeItem('currentUser');
+          this.authService.currentUserSubject.next(null);
+          this.router.navigate(['/login']);
+        },
+        error: (err) => console.error('Session timeout logout error:', err),
+      });
+  }
+
 
   ngOnDestroy(): void {
     this.clearSessionTimer();
@@ -238,14 +266,17 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   private openSessionTimeoutDialog() {
     if (this.dialog.openDialogs.length > 0) return;
-
+  
     const dialogRef = this.dialog.open(SessionTimeoutDialog, {
       width: '400px',
       disableClose: true,
     });
-
+  
     dialogRef.afterClosed().subscribe((result) => {
       if (result === 'continue') {
+        const newExpiry = Date.now() + 15 * 60 * 1000;
+        localStorage.setItem('token_expiry_time', newExpiry.toString());
+  
         this.resetSessionTimer();
         this.startSessionTimer();
       } else {
@@ -262,6 +293,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       }
     });
   }
+  
 
   // @HostListener('window:mousemove')
   // @HostListener('window:keypress')

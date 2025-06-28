@@ -109,6 +109,7 @@ export class GoldLoansComponent {
 
   @ViewChild('editLoanDialog') editLoanDialog!: TemplateRef<any>;
   lenders: any = [];
+  filtertypeallData: any = [];
 
   constructor(
     private dialog: MatDialog,
@@ -219,6 +220,47 @@ export class GoldLoansComponent {
     this.createChart();
 
     this.cdr.detectChanges();
+  }
+
+  loadLoansforAllFilter() {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // e.g., 6 for June
+    const currentYear = today.getFullYear();  // e.g., 2025
+    // this.controllers.GetAllLoans().subscribe((res: any) => {
+    this.controllers.GetLoansByMonth(currentMonth, currentYear).subscribe((res: any) => {
+      if (res) {
+        this.loans = res;
+
+        this.loans = this.loans.map(loan => ({
+          ...loan,
+          ReceivedDate: loan.ReceivedDate == '0000-00-00 00:00:00' ? '' : loan.ReceivedDate,
+          images: []
+        }));
+
+        if (this.currentUser?.role === 'admin') {
+          // Group loans by agent
+          this.groupedLoans = this.loans.reduce((groups: { [key: string]: any[] }, loan: any) => {
+            const agent = loan.AgentName || 'Unassigned';
+            if (!groups[agent]) {
+              groups[agent] = [];
+            }
+            groups[agent].push(loan);
+            return groups;
+          }, {});
+        } else {
+          // For agents, only show their own loans
+          this.loans = this.loans.filter(loan => loan.AgentName === this.currentUser.name);
+        }
+        this.filteredLoans = [...this.loans];
+        // this.applyFilters();
+        this.createChart();
+        this.cdr.detectChanges();
+        this.filteredLoans.map(loan => {
+          this.CalculateCommission(loan);
+        });
+
+      }
+    });
   }
 
   loadLoans() {
@@ -392,6 +434,26 @@ export class GoldLoansComponent {
       : (this.selectedLender
         ? this.loans.filter((loan: any) => this.lenders.find((lender: any) => lender.lenderName === loan.Lender)?.id === this.selectedLender)
         : this.loans);
+
+        console.log(filteredLoans)
+
+    // ✅ Step 2: Filter where IssuedDate's day is between 1 and 30 (ignore month/year)
+    filteredLoans = filteredLoans.filter((loan: any) => {
+      if (!loan.IssuedDate) return false;
+  
+      const date = new Date(loan.IssuedDate);
+      if (isNaN(date.getTime())) return false;
+  
+      const day = date.getDate();
+      return day >= 1 && day <= 30;
+    });
+  
+    // ✅ Step 3: Sort by full IssuedDate (earlier months first)
+    filteredLoans.sort((a: any, b: any) => {
+      return new Date(a.IssuedDate).getTime() - new Date(b.IssuedDate).getTime();
+    });
+
+  console.log('after filter :',filteredLoans)
 
     if (format === 'excel') {
       this.exportToExcel(filteredLoans);
@@ -689,7 +751,7 @@ export class GoldLoansComponent {
     if (this.selectedDateFilter) {
       switch (this.selectedDateFilter) {
         case 'all':
-          this.loadLoans();
+          this.loadLoansforAllFilter();
           break;
         case 'today':
           startDate = this.formatDate(today);
@@ -1525,6 +1587,7 @@ export class GoldLoansComponent {
       next: (response) => {
         if (response) {
           this.loans = response;
+          this.filtertypeallData = response;
   
           this.loans = this.loans.map(loan => ({
             ...loan,

@@ -46,6 +46,7 @@ export class WalletComponent implements OnInit {
   transfers: any[] = [];
   agentWalletTotal: number = 0;
   finoWalletTotal: number = 0;
+  agentWalletChart: Chart | null = null;
 
   dateRanges = [
     { label: 'Today', value: 'today' },

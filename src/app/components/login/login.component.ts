@@ -79,6 +79,8 @@ export class LoginComponent implements OnInit {
             localStorage.setItem('currentUser', JSON.stringify(data));
             localStorage.setItem('token', data.token);
             localStorage.setItem('token_expiry', data.token_created_at.split(' ')[1]);
+            const expiryTimestamp = new Date().getTime() + (15 * 60 * 1000); // 15 mins
+            localStorage.setItem('token_expiry_time', expiryTimestamp.toString());
             this.router.navigate(['/layout']);
           } else {
             this.toast.error('Invalid credentials');

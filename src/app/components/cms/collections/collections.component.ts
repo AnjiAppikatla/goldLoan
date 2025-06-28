@@ -162,6 +162,7 @@ export class CollectionsComponent implements OnInit {
 
     this.collectionGrop = new FormGroup({
       collectionType: new FormControl('', Validators.required),
+      collectionDate: new FormControl('', Validators.required),
       clientName: new FormControl('', Validators.required),
       custodianName: new FormControl('', Validators.required),
       merchantid: new FormControl('', Validators.required),
@@ -414,8 +415,9 @@ export class CollectionsComponent implements OnInit {
     obj.merchantid = this.collectionGrop.controls['merchantid'].value,
     obj.accountName = this.collectionGrop.controls['accountName'].value,
     obj.mobileNumber = this.collectionGrop.controls['mobileNumber'].value,
-    obj.date = new Date(),
-    obj.time = new Date().toLocaleTimeString();
+    obj.collectionDate = this.formatDate(this.collectionGrop.controls['collectionDate'].value),
+    // obj.date = new Date(),
+    // obj.time = new Date().toLocaleTimeString();
     obj.commission = this.collectionGrop.controls['totalAmount'].value * this.clients.find((x:any) => x.clientName == this.collectionGrop.controls['clientName'].value).percentage
 
     if (this.collectionGrop.controls['collectionType'].value == 'Cash') {      
@@ -435,7 +437,8 @@ export class CollectionsComponent implements OnInit {
         obj.onlineAmount = this.collectionGrop.controls['onlineAmount'].value,
         obj.onlineType = this.collectionGrop.controls['onlineType'].value,
         obj.accountName = this.collectionGrop.controls['accountName'].value,
-        obj.mobileNumber = this.collectionGrop.controls['mobileNumber'].value
+        obj.mobileNumber = this.collectionGrop.controls['mobileNumber'].value,
+        obj.commission = this.collectionGrop.controls['onlineAmount'].value * this.clients.find((x:any) => x.clientName == this.collectionGrop.controls['clientName'].value).percentage
     }
 
     this.controllers.createCollection(obj).subscribe((res:any) => {
@@ -446,6 +449,7 @@ export class CollectionsComponent implements OnInit {
         this.getTotalCollections();
         this.updateChartData();
         this.createTransactionPieChart();
+        this.getLast7DaysCollections();
       }
       else{
         this.toast.error('Something went wrong')

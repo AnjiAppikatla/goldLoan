@@ -47,20 +47,20 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
       <!-- Chart for Fino Wallet -->
-      <div class="p-4 border rounded shadow">
+      <div class="p-4 border">
         <h3 class="text-lg font-semibold mb-2">Fino Wallet Transfers</h3>
-        <div class="h-[400px]">
+        <div class="h-[400px] cm-shadow flex justify-center p-3 rounded-md">
           <canvas id="finoWalletChart"></canvas>
         </div>
       </div>
   
       <!-- Agent-wise Wallet Collections -->
-      <div class="p-4 border rounded shadow">
+      <div class="p-4 border">
         <h3 class="text-lg font-semibold mb-2">Agent-wise Wallet Collection</h3>
-        <div class="h-[400px]">
-          <canvas id="agentWalletChart"></canvas>
+        <div class="h-[400px] cm-shadow flex justify-center p-3 rounded-md">
+          <canvas id="agentWalletChart" #agentWalletChart></canvas>
         </div>
       </div>
     </div>
@@ -68,7 +68,7 @@
   
   <div *ngIf="userRole === 'agent'">
     <h2 class="text-xl font-bold mb-4">My Wallet Overview</h2>
-    <div class="p-4 border rounded shadow">
+    <div class="p-4 border rounded cm-shadow flex justify-center">
         <canvas id="agentOwnWalletChart" width="400" height="200"></canvas>
     </div>
   </div>

@@ -5,12 +5,12 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <h2>Collections</h2>
-        <div class="text-2xl font-bold text-green-600">Total: $ {{collectionTotalAmount}}</div>
+        <div class="text-2xl font-bold text-green-600">Total: ₹ {{collectionTotalAmount}}</div>
       </div>
       <mat-card *ngFor="let type of collectionTypesTotal" class="card-shadow bg-amber-100">
         <mat-card-content>
           <div class="text-lg font-semibold mb-2">{{type.name}}</div>
-          <div class="text-xl font-bold text-blue-600">${{type.value | number}}</div>
+          <div class="text-xl font-bold text-blue-600">₹ {{type.value | number}}</div>
         </mat-card-content>
       </mat-card>
 
@@ -30,14 +30,14 @@
     
     <!-- Custom range datepickers -->
     <div *ngIf="selectedRange === 'custom'" class="custom-range">
-      <mat-form-field>
+      <mat-form-field  appearance="outline">
         <mat-label>Start Date</mat-label>
         <input matInput [matDatepicker]="picker1" [(ngModel)]="customStartDate">
         <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
         <mat-datepicker #picker1></mat-datepicker>
       </mat-form-field>
     
-      <mat-form-field>
+      <mat-form-field  appearance="outline">
         <mat-label>End Date</mat-label>
         <input matInput [matDatepicker]="picker2" [(ngModel)]="customEndDate">
         <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
@@ -47,35 +47,31 @@
       <button mat-raised-button color="primary" (click)="applyCustomRange()">Apply</button>
     </div>
   </div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">  
-  <mat-card class="card-shadow">
-    <mat-card-content>
-      <h2 class="text-xl font-semibold mb-4">Last 7 Days Total Collections</h2>
-      <div class="h-[400px]">
-        <canvas id="last7DaysCollectionChart"></canvas>
-      </div>
-    </mat-card-content>
-  </mat-card>
-  <mat-card class="card-shadow">
-    <mat-card-content>
-      <!-- Header -->
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold">Collections Overview</h2>
-        <!-- <mat-form-field appearance="outline" class="w-32">
-          <mat-select [formControl]="selectedTypeFc" (selectionChange)="onTypeChange($event.value)">
-            <mat-option *ngFor="let type of collectionTypes" [value]="type">{{type}}</mat-option>
-          </mat-select>
-        </mat-form-field> -->
-      </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2">  
+  <div>
+    <h2 class="text-xl font-semibold mb-4">Last 7 Days Total Collections</h2>
+    <div class="h-[400px] flex justify-center rounded-md p-4 cm-shadow">
+      <canvas id="last7DaysCollectionChart"></canvas>
+    </div>
+  </div>
+  <div>
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-semibold">Collections Overview</h2>
+      <!-- <mat-form-field appearance="outline" class="w-32">
+        <mat-select [formControl]="selectedTypeFc" (selectionChange)="onTypeChange($event.value)">
+          <mat-option *ngFor="let type of collectionTypes" [value]="type">{{type}}</mat-option>
+        </mat-select>
+      </mat-form-field> -->
+    </div>
 
 
 
-      <!-- Chart Canvas -->
-      <div class="h-[400px]">
-        <canvas id="transactionsBarChart"></canvas>
-      </div>
-    </mat-card-content>
-  </mat-card>
+    <!-- Chart Canvas -->
+    <div class="h-[400px] flex justify-center p-3 rounded-md cm-shadow">
+      <canvas id="transactionsBarChart"></canvas>
+    </div>
+  </div>
 </div>
 
 <div class="mt-6">
@@ -86,36 +82,46 @@
         <mat-expansion-panel-header class="bg-purple-300">
           <mat-panel-title class="font-semibold flex justify-between">
             <div class="text-left w-50">{{collection.clientName}}</div> 
-            <div class="text-right">{{collection.created_at | date:'mediumDate'}}</div>
+            <div class="text-right">{{collection.collectionDate | date:'mediumDate'}}</div>
           </mat-panel-title>
           <!-- <mat-panel-description class="justify-end text-blue-600 font-bold">
             ${{}}
           </mat-panel-description> -->
         </mat-expansion-panel-header>
   
-        <div class="overflow-x-auto mt-4">
-          <table class="w-full table-auto">
-            <thead>
-              <tr class="text-left bg-gray-100">
-                <th class="px-4 py-2">Date</th>
-                <th class="px-4 py-2">Cash</th>
-                <th class="px-4 py-2">Online</th>
-                <th class="px-4 py-2">Client</th>
-                <th class="px-4 py-2">Agent Name</th>
-                <th class="px-4 py-2">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="border-b hover:bg-gray-50">
-                <td class="px-4 py-2"></td>
-                <td class="px-4 py-2">{{collection.cashAmount}}</td>
-                <td class="px-4 py-2">{{collection.onlineAmount}}</td>
-                <td class="px-4 py-2"></td>
-                <td class="px-4 py-2">{{collection.agentName}}</td>
-                <td class="px-4 py-2 font-bold">${{collection.totalAmount | number}}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 p-4">
+          <div class="flex gap-4">
+            <span class="font-bold">Client Name :</span>
+            <span>{{collection.clientName}}</span>
+          </div>
+          <div class="flex gap-4">
+            <span class="font-bold">Custodian Name :</span>
+            <span>{{collection.custodianName}}</span>
+          </div>
+          <div class="flex gap-4">
+            <span class="font-bold">Agent Name :</span>
+            <span>{{collection.agentName}}</span>
+          </div>
+          <div class="flex gap-4">
+            <span class="font-bold">Collection Type :</span>
+            <span>{{collection.collectionType === 'cash&online' ? 'Cash & Online' : collection.collectionType}}</span>
+          </div>
+          <div class="flex gap-4">
+            <span class="font-bold">Total Amount :</span>
+            <span>{{collection.totalAmount}}</span>
+          </div>
+          <div class="flex gap-4" *ngIf="collection.collectionType !== 'Online'">
+            <span class="font-bold">Cash Amount :</span>
+            <span>{{collection.cashAmount}}</span>
+          </div>
+          <div class="flex gap-4" *ngIf="collection.collectionType !== 'Cash'">
+            <span class="font-bold">Online Amount :</span>
+            <span>{{collection.onlineAmount}}</span>
+          </div>
+          <div class="flex gap-4">
+            <span class="font-bold">Collected At :</span>
+            <span>{{ collection.collectionDate | date:'dd/MM/yyyy' }}</span>
+          </div>
         </div>
       </mat-expansion-panel>
     </mat-accordion>
@@ -129,7 +135,7 @@
         <form [formGroup]="collectionGrop" class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
            <!-- Client Name -->
-           <mat-form-field>
+           <mat-form-field  appearance="outline">
             <mat-label>Client Name</mat-label>
             <mat-select formControlName="clientName" required>
               <mat-option *ngFor="let client of clients" [value]="client.clientName">
@@ -139,7 +145,7 @@
           </mat-form-field>
 
            <!-- Client Name -->
-           <mat-form-field>
+           <mat-form-field  appearance="outline">
             <mat-label>Custodian Name</mat-label>
             <mat-select formControlName="custodianName" required>
               <mat-option *ngFor="let custo of custodians" [value]="custo.custodianName">
@@ -149,7 +155,7 @@
           </mat-form-field>
 
             <!-- Client Name -->
-            <mat-form-field>
+            <mat-form-field  appearance="outline">
               <mat-label>Merchant</mat-label>
               <mat-select formControlName="merchantid" required>
                 <mat-option *ngFor="let merchant of merchants" [value]="merchant.merchantid">
@@ -157,9 +163,16 @@
                 </mat-option>
               </mat-select>
             </mat-form-field>
+
+          <mat-form-field  appearance="outline">
+            <mat-label>Collection Date</mat-label>
+            <input matInput [matDatepicker]="collectionDatePicker" formControlName="collectionDate">
+            <mat-datepicker-toggle matSuffix [for]="collectionDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #collectionDatePicker></mat-datepicker>
+          </mat-form-field>
     
           <!-- Collection Type -->
-          <mat-form-field>
+          <mat-form-field  appearance="outline">
             <mat-label>Collection Type</mat-label>
             <mat-select formControlName="collectionType" required (selectionChange)="collectionTypeChange($event)">
               <mat-option value="Cash">Cash Only</mat-option>
@@ -222,47 +235,47 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     
 
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹500 Notes</mat-label>
                 <input matInput type="number" formControlName="denomination500" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹200 Notes</mat-label>
                 <input matInput type="number" formControlName="denomination200" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹100 Notes</mat-label>
                 <input matInput type="number" formControlName="denomination100" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹50 Notes</mat-label>
                 <input matInput type="number" formControlName="denomination50" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹20 Notes</mat-label>
                 <input matInput type="number" formControlName="denomination20" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹10 Coins</mat-label>
                 <input matInput type="number" formControlName="denomination10" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹5 Coins</mat-label>
                 <input matInput type="number" formControlName="denomination5" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹2 Coins</mat-label>
                 <input matInput type="number" formControlName="denomination2" (input)="updateCashAmount()">
               </mat-form-field>
     
-              <mat-form-field>
+              <mat-form-field  appearance="outline">
                 <mat-label>₹1 Coins</mat-label>
                 <input matInput type="number" formControlName="denomination1" (input)="updateCashAmount()">
               </mat-form-field>

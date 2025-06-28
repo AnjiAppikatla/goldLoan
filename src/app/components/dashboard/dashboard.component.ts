@@ -352,6 +352,22 @@ private initializeCharts() {
             : this.recentLoans;
     }
 
+    // ✅ Step 2: Filter where IssuedDate's day is between 1 and 30 (ignore month/year)
+    filteredLoans = filteredLoans.filter((loan: any) => {
+      if (!loan.IssuedDate) return false;
+  
+      const date = new Date(loan.IssuedDate);
+      if (isNaN(date.getTime())) return false;
+  
+      const day = date.getDate();
+      return day >= 1 && day <= 30;
+    });
+  
+    // ✅ Step 3: Sort by full IssuedDate (earlier months first)
+    filteredLoans.sort((a: any, b: any) => {
+      return new Date(a.IssuedDate).getTime() - new Date(b.IssuedDate).getTime();
+    });
+
     if (type === 'excel') {
         this.exportToExcel(filteredLoans);
     } else {

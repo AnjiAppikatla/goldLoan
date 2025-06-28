@@ -40,7 +40,7 @@
     </p>
 
     <ng-container>
-      <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'cmsdashboard'"
+      <a *ngIf="currentUser?.role === 'admin'" class="text-left flex items-center mt-0" [class.active]="activeClass === 'cmsdashboard'"
       (click)="changeScreen('cmsdashboard')">
       <mat-icon>dashboard</mat-icon>
       <span>CMS Dashboard</span>
@@ -52,7 +52,7 @@
     </a>
     <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'cmspayments'"
       (click)="changeScreen('cmspayments')">
-      <mat-icon>attach_money</mat-icon>
+      <span class="text-2xl pr-2">&#8377;</span>
       <span>Payments</span>
     </a>
     <a class="text-left flex items-center mt-0" [class.active]="activeClass === 'wallet'"

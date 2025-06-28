@@ -68,6 +68,10 @@ export class SessionTimeoutDialog implements OnInit, OnDestroy {
       next: (data) => {
         if (data) {
           localStorage.setItem('token', data.token);
+          const currentTime = new Date().getTime(); // current time in milliseconds
+          const expiryTime = currentTime + (15 * 60 * 1000); // add 15 minutes in ms
+
+          localStorage.setItem('token_expiry_time', expiryTime.toString());
           // this.clearTimer();
           this.dialogRef.close('continue');
         }

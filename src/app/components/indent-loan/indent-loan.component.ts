@@ -54,6 +54,7 @@ export class IndentLoanComponent implements OnInit {
 
 agentLoanChart: Chart | null = null;
 statusLoanChart: Chart | null = null;
+  merchantsData: any = [];
 
   constructor(
     private dialog: MatDialog,
@@ -65,6 +66,7 @@ statusLoanChart: Chart | null = null;
   }
 
   ngOnInit() {
+    this.GetAllMerchants();
     this.loadIndentLoans();
   }
 
@@ -279,12 +281,24 @@ statusLoanChart: Chart | null = null;
     const agentMap: { [agent: string]: number } = {};
     const agentCountMap: { [agent: string]: number } = {};
   
+   if (this.currentUser.role === 'admin') {
     this.indentLoans.forEach((loan: any) => {
       const agent = loan.agent || 'Unknown';
       const amount = Number(loan.amount) || 0;
       agentMap[agent] = (agentMap[agent] || 0) + amount;
       agentCountMap[agent] = (agentCountMap[agent] || 0) + 1;
     });
+    
+   }
+   else{
+    this.filteredIndentLoans[0].loans.forEach((loan: any) => {
+      const merchantObj = this.merchantsData.find((x: any) => x.merchantid == loan.merchantid);
+      const merchant = merchantObj?.merchantName || 'Unknown';
+      const amount = Number(loan.amount) || 0;
+      agentMap[merchant] = (agentMap[merchant] || 0) + amount;
+      agentCountMap[merchant] = (agentCountMap[merchant] || 0) + 1;
+    });
+   }
   
     // Prepare labels like: "AgentName (3)"
     const labels = Object.keys(agentMap).map(
@@ -334,8 +348,7 @@ statusLoanChart: Chart | null = null;
         }
       }
     });
-  }
-  
+  } 
   
   createStatusLoanChart() {
     if (this.statusLoanChart) {
@@ -348,21 +361,40 @@ statusLoanChart: Chart | null = null;
     let approved = 0, pending = 0, completed = 0;
     let approvedCount = 0, pendingCount = 0, completedCount = 0;
   
-    this.indentLoans.forEach((loan: any) => {
-      const amount = Number(loan.amount) || 0;
-      const status = loan.indentloan_status?.toLowerCase();
-  
-      if (status === 'approved') {
-        approved += amount;
-        approvedCount++;
-      } else if (status === 'pending') {
-        pending += amount;
-        pendingCount++;
-      } else if (status === 'completed') {
-        completed += amount;
-        completedCount++;
-      }
-    });
+    if (this.currentUser.role === 'admin') {
+      this.indentLoans.forEach((loan: any) => {
+        const amount = Number(loan.amount) || 0;
+        const status = loan.indentloan_status?.toLowerCase();
+    
+        if (status === 'approved') {
+          approved += amount;
+          approvedCount++;
+        } else if (status === 'pending') {
+          pending += amount;
+          pendingCount++;
+        } else if (status === 'completed') {
+          completed += amount;
+          completedCount++;
+        }
+      });
+    }
+    else{
+      this.filteredIndentLoans[0].loans.forEach((loan: any) => {
+        const amount = Number(loan.amount) || 0;
+        const status = loan.indentloan_status?.toLowerCase();
+    
+        if (status === 'approved') {
+          approved += amount;
+          approvedCount++;
+        } else if (status === 'pending') {
+          pending += amount;
+          pendingCount++;
+        } else if (status === 'completed') {
+          completed += amount;
+          completedCount++;
+        }
+      })
+    }
   
     const totalByStatus = approved + pending + completed;
     const totalByAgent = this.indentLoans.reduce((sum, loan) => sum + (Number(loan.amount) || 0), 0);
@@ -409,13 +441,26 @@ statusLoanChart: Chart | null = null;
 
   generateUniqueColors(count: number): string[] {
     const colors: string[] = [];
-    while (colors.length < count) {
-      const color = `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`;
-      if (!colors.includes(color)) {
-        colors.push(color);
-      }
+    const saturation = 70;
+    const lightness = 60;
+  
+    for (let i = 0; i < count; i++) {
+      const hue = Math.round((360 / count) * i); // evenly spaced
+      colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
     }
+  
     return colors;
+  }
+  
+
+  GetAllMerchants(){
+    this.controllerService.GetAllMerchants().subscribe((res:any) => {
+      if(res){
+        this.merchantsData = res;
+      }else{
+        this.toast.warning("Error found");
+      }
+    });
   }
   
   

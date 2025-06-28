@@ -1,6 +1,6 @@
 <div class="">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-    <h2 class="mb-0">Indent loans By Agents</h2>
+    <h2 class="mb-0">Indent loans By {{this.currentUser.role === 'admin' ? 'Agents' : 'Merchants'}}</h2>
     <h2 class="mb-0">Indent loans Status</h2>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">    
@@ -60,22 +60,27 @@
       <mat-expansion-panel *ngFor="let loan of agentGroup.loans" class="cm-shadow mb-2 rounded-md">
       <mat-expansion-panel-header class="bg-gray-200">
         <mat-panel-title class="flex items-center justify-between w-full">
-            <span class="truncate w-60">{{loan.name}}</span>
+            <div class="flex flex-col">
+              <span class="truncate w-60">{{loan.name}}</span>
+              <span class="truncate w-60 text-amber-400">{{loan.city}}</span>
+            </div>
+           <div>
             <span *ngIf="loan.indentloan_status === 'Completed'" 
-                  class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-1">
-                <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
-                Completed
-            </span>
-            <span *ngIf="loan.indentloan_status === 'Approved'" 
-                  class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm mr-1">
-                  <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
-                Approved
-            </span>
-            <span *ngIf="loan.indentloan_status === 'Pending'" 
-                  class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm mr-1">
-                  <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
-                Processing...
-            </span>
+            class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-1">
+          <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
+          Completed
+      </span>
+      <span *ngIf="loan.indentloan_status === 'Approved'" 
+            class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm mr-1">
+            <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
+          Approved
+      </span>
+      <span *ngIf="loan.indentloan_status === 'Pending'" 
+            class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm mr-1">
+            <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
+          Processing...
+      </span>
+           </div>
         </mat-panel-title>
     </mat-expansion-panel-header>
 

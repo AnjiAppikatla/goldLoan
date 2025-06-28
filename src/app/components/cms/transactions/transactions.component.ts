@@ -214,6 +214,7 @@ export class TransactionsComponent {
     this.paymentForm = this.fb.group({
       paymentAccountName: ['', Validators.required],
       paymentAccountNumber: ['', Validators.required],
+      paymentDate: ['', Validators.required],
       paymentIFSC: ['', Validators.required],
       paymentAmount: ['', Validators.required],
       paymentImage: ['', Validators.required],
@@ -222,6 +223,7 @@ export class TransactionsComponent {
     this.transferForm = this.fb.group({
       transferType: ['agent'], // default selected option
       transferToAgent: [''],
+      transferDate: [''],
       transferToMerchant: [''],
       fromAgent: [''],
       transfer_amount: ['']
@@ -362,9 +364,15 @@ export class TransactionsComponent {
     const canvas = document.getElementById('last7DaysChartCanvas') as HTMLCanvasElement;
     if (!canvas) return;
   
+    // Proper destroy
     if (this.last7DaysChartCanvas) {
       this.last7DaysChartCanvas.destroy();
+      this.last7DaysChartCanvas = null;
     }
+  
+    // Optional: Clear canvas
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const last7DaysMap: { [date: string]: number } = {};
@@ -372,7 +380,7 @@ export class TransactionsComponent {
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const key = date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+      const key = date.toISOString().split('T')[0];
       last7DaysMap[key] = 0;
     }
   
@@ -405,6 +413,7 @@ export class TransactionsComponent {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false, // Add this to prevent stretching
         plugins: {
           legend: { position: 'bottom' },
           tooltip: {
@@ -419,6 +428,7 @@ export class TransactionsComponent {
       }
     });
   }
+  
 
   generateUniqueColors(count: number): string[] {
     const colors: string[] = [];
@@ -496,6 +506,7 @@ export class TransactionsComponent {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             position: 'bottom'
@@ -705,6 +716,7 @@ export class TransactionsComponent {
     this.transferObject.fromAgent = this.transferForm.value.fromAgent;
     this.transferObject.transfer_amount = this.transferObject.totalAmount;
     this.transferObject.paymentStatus = 'transferred';
+    this.transferObject.transferDate = this.formatDate(this.transferForm.value.transferDate);
 
     // this.dialog.afterAllClosed.subscribe(() => {
       this.controllers.updateCollection(Number(this.transferObject.id),this.transferObject).subscribe((res:any)=>{
@@ -728,6 +740,7 @@ export class TransactionsComponent {
     this.paymentObject.paymentIFSC = this.paymentForm.value.paymentIFSC;
     this.paymentObject.paymentAmount = this.paymentForm.value.paymentAmount;
     this.paymentObject.paymentStatus = "Completed";
+    this.paymentObject.paymentDate = this.formatDate(this.paymentForm.value.paymentDate);
   
     if (this.receiptBase64) {
       this.paymentObject.paymentImage = this.receiptBase64; // ✅ Assign base64 string

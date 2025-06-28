@@ -1,8 +1,14 @@
-<div class="min-h-screen">
+<div class="overflow-x-hidden">
   <div class="mx-auto">
     <!-- Add Transaction Button -->
     <div class="mb-6 flex items-center justify-between">
       <h2>Payments</h2>
+      <div *ngIf="currentUser.role === 'admin'" class="mb-3 flex gap-4 justify-center">
+        <mat-radio-group [(ngModel)]="selectedView" (change)="onViewChange($event.value)">
+          <mat-radio-button value="agent">Agent View</mat-radio-button>
+          <mat-radio-button value="client">Client View</mat-radio-button>
+        </mat-radio-group>
+      </div>
       <div>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Filter by Date</mat-label>
@@ -13,14 +19,14 @@
 
         <!-- Custom range datepickers -->
         <div *ngIf="selectedRange === 'custom'" class="custom-range">
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>Start Date</mat-label>
             <input matInput [matDatepicker]="picker1" [(ngModel)]="customStartDate">
             <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
             <mat-datepicker #picker1></mat-datepicker>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label>End Date</mat-label>
             <input matInput [matDatepicker]="picker2" [(ngModel)]="customEndDate">
             <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
@@ -36,43 +42,27 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-6 items-stretch">
       <!-- Bar Chart -->
-      <mat-card class="cm-shadow">
-        <mat-card-header>
-          <h2 class="text-base md:text-lg">Payments in Last 7 Days</h2>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="h-[400px]">
-            <canvas id="last7DaysChartCanvas"></canvas>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
+      <div>
+        <h2 class="text-base md:text-lg text-center">Payments in Last 7 Days</h2>
+        <div class="h-[400px] flex justify-center p-3 rounded-md cm-shadow">
+          <canvas id="last7DaysChartCanvas" #last7DaysChartCanvas></canvas>
+        </div>
+      </div>
+    
       <!-- Pie Chart -->
-      <mat-card class="cm-shadow">
-        <mat-card-header>
-        </mat-card-header>
-        <mat-card-content>
-          <h2 class="text-base md:text-lg flex justify-around">Agent-wise Payments
-            <div *ngIf="currentUser.role === 'admin'" class="mb-3 flex gap-4">
-              <mat-radio-group [(ngModel)]="selectedView" (change)="onViewChange($event.value)">
-                <mat-radio-button value="agent">Agent View</mat-radio-button>
-                <mat-radio-button value="client">Client View</mat-radio-button>
-              </mat-radio-group>
-            </div>
-          </h2>
-          <div class="h-[400px]">
-            <!-- Agent Wise -->
-            <canvas *ngIf="selectedView === 'agent'" id="agentWiseChartCanvas"></canvas>
-
-            <!-- Client Wise -->
-            <canvas *ngIf="selectedView === 'client'" id="clientWiseChartCanvas"></canvas>
-          </div>
-
-        </mat-card-content>
-      </mat-card>
+      <div>
+        <h2 class="text-base md:text-lg text-center ">Agent-wise Payments </h2>
+       
+  
+        <div class="h-[400px] flex justify-center p-3 rounded-md cm-shadow">
+          <canvas *ngIf="selectedView === 'agent'" id="agentWiseChartCanvas"></canvas>
+          <canvas *ngIf="selectedView === 'client'" id="clientWiseChartCanvas"></canvas>
+        </div>
+      </div>
     </div>
+    
 
     <!-- Transaction Form -->
     <!-- <mat-card *ngIf="showForm" class="mb-6">
@@ -270,6 +260,14 @@
         <mat-label>Payment Account Number</mat-label>
         <input matInput type="number" formControlName="paymentAccountNumber">
       </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Payment Date</mat-label>
+        <input matInput [matDatepicker]="collectionDatePicker" formControlName="paymentDate">
+        <mat-datepicker-toggle matSuffix [for]="collectionDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #collectionDatePicker></mat-datepicker>
+      </mat-form-field>
+
       <mat-form-field appearance="outline">
         <mat-label>Payment IFSC</mat-label>
         <input matInput type="text" formControlName="paymentIFSC">
@@ -308,6 +306,13 @@
       </mat-radio-group>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <mat-form-field appearance="outline">
+          <mat-label>Transfer Date</mat-label>
+          <input matInput [matDatepicker]="collectionDatePicker" formControlName="transferDate">
+          <mat-datepicker-toggle matSuffix [for]="collectionDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #collectionDatePicker></mat-datepicker>
+        </mat-form-field>
 
         <!-- Agent Dropdown -->
         <mat-form-field appearance="outline" *ngIf="transferForm.get('transferType')?.value === 'agent'" class="w-full">
