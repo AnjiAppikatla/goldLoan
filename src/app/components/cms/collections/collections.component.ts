@@ -666,7 +666,12 @@ export class CollectionsComponent implements OnInit {
   }
 
   groupByClient(collections: any[]): { [key: string]: any[] } {
-    return collections.reduce((grouped: any, collection: any) => {
+    // First filter collections if user is an agent
+    const filteredCollections = this.currentUser?.role === 'agent' 
+      ? collections.filter(collection => collection.agentName === this.currentUser.name)
+      : collections;
+  
+    return filteredCollections.reduce((grouped: any, collection: any) => {
       const client = collection.agentName || 'Unknown Client';
       if (!grouped[client]) {
         grouped[client] = [];
@@ -742,7 +747,7 @@ export class CollectionsComponent implements OnInit {
     }
   
     collections.forEach(col => {
-      const rawDate = col.created_at?.split(' ')[0];
+      const rawDate = col.collectionDate?.split(' ')[0];
       if (last7DaysMap.hasOwnProperty(rawDate)) {
         last7DaysMap[rawDate] += Number(col.totalAmount || 0);
       }

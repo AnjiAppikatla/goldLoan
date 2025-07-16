@@ -15,6 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { ControllersService } from '../../../services/controllers.service';
 import { ToastService } from '../../../services/toastr.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-cmsdashboard',
@@ -55,6 +56,8 @@ export class CmsdashboardComponent {
   totalPayments = 0;
   totalTransfer = 0;
   netBalance = 0;
+  currentUser: any;
+  groupedCollections: { [key: string]: any[] } = {};
   
   selectedRange = 'today';
   customStartDate!: Date;
@@ -130,10 +133,12 @@ selectedClientId: string = '';
 
   constructor(
     private controllers: ControllersService,
-    private toast: ToastService
+    private toast: ToastService,
+    private auth: AuthService
   ) { }
 
   ngOnInit() {
+    this.currentUser = this.auth.currentUserValue
     this.GetAllAgents();
     this.GetAllClients();
     this.loadCollections(this.formatDate(new Date()), this.formatDate(new Date()));
@@ -179,7 +184,7 @@ selectedClientId: string = '';
   
     // ✅ Sum commissions per date
     transactions.forEach(tx => {
-      const rawDate = tx.created_at || tx.date;
+      const rawDate = tx.collectionDate || tx.date;
       if (!rawDate) return;
       const txDate = new Date(rawDate);
       if (isNaN(txDate.getTime())) return;
@@ -343,6 +348,7 @@ selectedClientId: string = '';
     this.controllers.GetCollectionsByDate(startDate, endDate).subscribe({
       next: (res) => {
         this.collections = res;
+        this.groupedCollections = this.groupByClient(res);
         setTimeout(() => {
           this.createTransactionTypesBarChart(res,this.selectedView);
         },500)
@@ -357,6 +363,22 @@ selectedClientId: string = '';
         console.error('Error loading collections', err);
       }
     });
+  }
+
+  groupByClient(collections: any[]): { [key: string]: any[] } {
+    // First filter collections if user is an agent
+    const filteredCollections = this.currentUser?.role === 'agent' 
+      ? collections.filter(collection => collection.agentName === this.currentUser.name)
+      : collections;
+  
+    return filteredCollections.reduce((grouped: any, collection: any) => {
+      const client = collection.agentName || 'Unknown Client';
+      if (!grouped[client]) {
+        grouped[client] = [];
+      }
+      grouped[client].push(collection);
+      return grouped;
+    }, {});
   }
 
   LoadLast7DaysCollections() {

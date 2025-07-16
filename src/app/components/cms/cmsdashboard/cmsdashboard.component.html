@@ -123,65 +123,52 @@
       </div>
   
       <!-- Agent Summary -->
-      <div class="mt-6">
-        <h2 class="text-xl font-bold mb-3">Summary</h2>
+      <div class="mt-6" *ngFor="let client of groupedCollections | keyvalue">
+        <h2 class="text-xl font-bold mb-3">{{client.key}}</h2>
         <mat-accordion class="space-y-3 app-accordion-bg">
-          <mat-expansion-panel *ngFor="let agent of collections">
-            <mat-expansion-panel-header>
-              <mat-panel-title class="flex justify-between items-center w-full">
-                <div class="flex items-center gap-2">
-                  <i class="fas fa-user-circle text-gray-600"></i>
-                  <span class="font-semibold">{{ agent.agentName }}</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-3 text-sm">
-                  <span class="text-gray-600">
-                    <i class="fas fa-exchange-alt mr-1"></i>
-                    {{ agent.transactions }}
-                  </span>
-                  <span [ngClass]="{
-                      'text-green-600': agent.balance > 0,
-                      'text-red-600': agent.balance < 0
-                    }">
-                    <i class="fas fa-wallet mr-1"></i>
-                    ${{ agent.balance }}
-                  </span>
-                </div>
+          <mat-expansion-panel *ngFor="let collection of client.value">
+            <mat-expansion-panel-header class="bg-purple-300">
+              <mat-panel-title class="font-semibold flex justify-between">
+                <div class="text-left w-50">{{collection.clientName}}</div> 
+                <div class="text-right">{{collection.collectionDate | date:'mediumDate'}}</div>
               </mat-panel-title>
+              <!-- <mat-panel-description class="justify-end text-blue-600 font-bold">
+                ${{}}
+              </mat-panel-description> -->
             </mat-expansion-panel-header>
-  
-            <div class="pt-3">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Contact Info -->
-                <div class="bg-gray-50 p-4 rounded-lg">
-                  <h4 class="font-semibold mb-3 flex items-center">
-                    <i class="fas fa-info-circle mr-2 text-blue-500"></i>
-                    Contact Information
-                  </h4>
-                  <div class="space-y-2">
-                    <p class="flex items-center">
-                      <i class="fas fa-envelope mr-2 text-gray-500"></i>
-                      {{ agent.email }}
-                    </p>
-                    <p class="flex items-center">
-                      <i class="fas fa-phone mr-2 text-gray-500"></i>
-                      <!-- {{ agent.phone || 'N/A' }} -->
-                    </p>
-                  </div>
-                </div>
-  
-                <!-- Recent Activity -->
-                <div class="bg-gray-50 p-4 rounded-lg">
-                  <h4 class="font-semibold mb-3 flex items-center">
-                    <i class="fas fa-history mr-2 text-blue-500"></i>
-                    Recent Activity
-                  </h4>
-                  <div class="space-y-2">
-                    <p class="flex items-center">
-                      <i class="fas fa-calendar-alt mr-2 text-gray-500"></i>
-                      Last active: {{ agent.lastTransaction | date: 'medium' }}
-                    </p>
-                  </div>
-                </div>
+      
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 p-4">
+              <div class="flex gap-4">
+                <span class="font-bold">Client Name :</span>
+                <span>{{collection.clientName}}</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="font-bold">Custodian Name :</span>
+                <span>{{collection.custodianName}}</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="font-bold">Agent Name :</span>
+                <span>{{collection.agentName}}</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="font-bold">Collection Type :</span>
+                <span>{{collection.collectionType === 'cash&online' ? 'Cash & Online' : collection.collectionType}}</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="font-bold">Total Amount :</span>
+                <span>{{collection.totalAmount}}</span>
+              </div>
+              <div class="flex gap-4" *ngIf="collection.collectionType !== 'Online'">
+                <span class="font-bold">Cash Amount :</span>
+                <span>{{collection.cashAmount}}</span>
+              </div>
+              <div class="flex gap-4" *ngIf="collection.collectionType !== 'Cash'">
+                <span class="font-bold">Online Amount :</span>
+                <span>{{collection.onlineAmount}}</span>
+              </div>
+              <div class="flex gap-4">
+                <span class="font-bold">Collected At :</span>
+                <span>{{ collection.collectionDate | date:'dd/MM/yyyy' }}</span>
               </div>
             </div>
           </mat-expansion-panel>

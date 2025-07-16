@@ -385,7 +385,7 @@ export class TransactionsComponent {
     }
   
     collections.forEach(col => {
-      const rawDate = col.created_at?.split(' ')[0];
+      const rawDate = col.collectionDate?.split(' ')[0];
       if (last7DaysMap.hasOwnProperty(rawDate)) {
         last7DaysMap[rawDate] += Number(col.totalAmount || 0);
       }
@@ -679,7 +679,12 @@ export class TransactionsComponent {
   }
 
   groupByClient(collections: any[]): { [key: string]: any[] } {
-    return collections.reduce((grouped: any, collection: any) => {
+    // First filter collections if user is an agent
+    const filteredCollections = this.currentUser?.role === 'agent' 
+      ? collections.filter(collection => collection.agentName === this.currentUser.name)
+      : collections;
+  
+    return filteredCollections.reduce((grouped: any, collection: any) => {
       const client = collection.agentName || 'Unknown Client';
       if (!grouped[client]) {
         grouped[client] = [];
@@ -691,22 +696,44 @@ export class TransactionsComponent {
 
   showMakePayment(transaction:any) {
     this.paymentForm.reset();
+    this.paymentForm.patchValue({
+      paymentAmount: transaction.cashAmount
+    });
     this.paymentObject = transaction;
-    this.dialog.open(this.PaymentDialog, {
+    const dialogRef = this.dialog.open(this.PaymentDialog, {
       width: '800px',
       data: transaction
     });
-    this.dialog.afterAllClosed.subscribe(() => {
-      this.MakePayment();
-    })
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'save') { // Only if Save button clicked
+        this.MakePayment();
+        this.selectedRange = 'today';
+      }
+    });
   }
 
   showTransfer(transaction:any) {
     this.transferForm.reset();
+    this.transferForm.patchValue({
+      transfer_amount: transaction.cashAmount
+    });
+    if(this.currentUser.role === 'agent'){
+      this.transferForm.patchValue({
+        fromAgent: this.currentUser.name
+      });
+    }
     this.transferObject = transaction;
-    this.dialog.open(this.transferDialog, {
+    const dialogRef = this.dialog.open(this.transferDialog, {
       width: '800px',
       data: transaction
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'save') { // Only if Save button clicked
+        this.SaveTransfer();
+        this.selectedRange = 'today';
+      }
     });
   }
 
@@ -716,43 +743,43 @@ export class TransactionsComponent {
     this.transferObject.fromAgent = this.transferForm.value.fromAgent;
     this.transferObject.transfer_amount = this.transferObject.totalAmount;
     this.transferObject.paymentStatus = 'transferred';
-    this.transferObject.transferDate = this.formatDate(this.transferForm.value.transferDate);
-
-    // this.dialog.afterAllClosed.subscribe(() => {
-      this.controllers.updateCollection(Number(this.transferObject.id),this.transferObject).subscribe((res:any)=>{
-        if(res){
-          this.toast.success('Transfer updated successfully');
-          this.GetPendingCollectionsByDate(this.formatDateForController(new Date()), this.formatDateForController(new Date()));
-        }
-      })
-    // })
+    this.transferObject.transferDate = this.formatDateForController(this.transferForm.value.transferDate);
+  
+    this.controllers.updateCollection(Number(this.transferObject.id), this.transferObject).subscribe((res: any) => {
+      if (res) {
+        this.toast.success('Transfer updated successfully');
+        this.GetPendingCollectionsByDate(
+          this.formatDateForController(new Date()),
+          this.formatDateForController(new Date())
+        );
+        this.dialog.closeAll(); // 👈 Close dialog after save
+      }
+    });
   }
 
 
   MakePayment() {
-    // if (this.paymentForm.invalid) {
-    //   this.toast.error('Please fill all payment details');
-    //   return;
-    // }
-  
     this.paymentObject.paymentAccountName = this.paymentForm.value.paymentAccountName;
     this.paymentObject.paymentAccountNumber = this.paymentForm.value.paymentAccountNumber;
     this.paymentObject.paymentIFSC = this.paymentForm.value.paymentIFSC;
     this.paymentObject.paymentAmount = this.paymentForm.value.paymentAmount;
     this.paymentObject.paymentStatus = "Completed";
-    this.paymentObject.paymentDate = this.formatDate(this.paymentForm.value.paymentDate);
+    this.paymentObject.paymentDate = this.formatDateForController(this.paymentForm.value.paymentDate);
   
     if (this.receiptBase64) {
       this.paymentObject.paymentImage = this.receiptBase64; // ✅ Assign base64 string
     }
-
+  
     this.controllers.updateCollection(Number(this.paymentObject.id), this.paymentObject).subscribe((res: any) => {
       if (res) {
         this.toast.success('Payment successful');
-        this.GetPendingCollectionsByDate(this.formatDateForController(new Date()), this.formatDateForController(new Date()));
-        this.dialog.closeAll();
+        this.GetPendingCollectionsByDate(
+          this.formatDateForController(new Date()),
+          this.formatDateForController(new Date())
+        );
+        this.dialog.closeAll(); // 👈 Close dialog after save
       }
-    })
+    });
   }
   
 

@@ -47,6 +47,19 @@ export class WalletComponent implements OnInit {
   agentWalletTotal: number = 0;
   finoWalletTotal: number = 0;
   agentWalletChart: Chart | null = null;
+  showAgentWalletDetails = false;
+  showFinoWalletDetails = false;
+  agentWalletDetails: any[] = [];
+  finoWalletDetails: any[] = [];
+
+    selectedWalletType: 'agent' | 'fino' | null = null;
+  walletDetails: any[] = [];
+
+  selectedAgentWalletItem: any = null;
+  selectedFinoWalletItem: any = null;
+
+  agentTransfers: any[] = [];
+  transferTotal: number = 0;
 
   dateRanges = [
     { label: 'Today', value: 'today' },
@@ -79,48 +92,104 @@ export class WalletComponent implements OnInit {
     });
   }
 
+  processTransfers(collections: any[]) {
+    this.transferTotal = 0;
+    this.agentTransfers = collections.filter(item => {
+      return item.transferToMerchant && item.transferToAgent && 
+             item.transfer_amount && item.paymentStatus === 'Completed';
+    });
+
+    this.agentTransfers.forEach(transfer => {
+      this.transferTotal += parseFloat(transfer.transfer_amount || 0);
+    });
+  }
+
+  // processWalletData(collections: any[]) {
+  //   this.agentWalletTotal = 0;
+  //   this.finoWalletTotal = 0;
+  //   this.agentWalletDetails = [];
+  //   this.finoWalletDetails = [];
+
+  //   collections.forEach(item => {
+  //     const type = item.collectionType;
+  //     const cashAmount = parseFloat(item.cashAmount || 0);
+  //     const onlineAmount = parseFloat(item.onlineAmount || 0);
+
+  //     switch (type) {
+  //       case 'Cash':
+  //         item.cashWalletTotal = this.agentWalletTotal;
+  //         this.agentWalletTotal += cashAmount;
+  //         if (cashAmount > 0) {
+  //           this.agentWalletDetails.push(item);
+  //         }
+  //         break;
+  //       case 'Online':
+  //         item.onlineWalletTotal = this.finoWalletTotal;
+  //         this.finoWalletTotal += onlineAmount;
+  //         if (onlineAmount > 0) {
+  //           this.finoWalletDetails.push(item);
+  //         }
+  //         break;
+  //       case 'cash&online':
+  //         item.cashWalletTotal = this.agentWalletTotal;
+  //         item.onlineWalletTotal = this.finoWalletTotal;
+  //         this.agentWalletTotal += cashAmount;
+  //         this.finoWalletTotal += onlineAmount;
+  //         if (cashAmount > 0) {
+  //           this.agentWalletDetails.push({...item, amount: cashAmount});
+  //         }
+  //         if (onlineAmount > 0) {
+  //           this.finoWalletDetails.push({...item, amount: onlineAmount});
+  //         }
+  //         break;
+  //       default:
+  //         console.warn(`Unknown collection type: ${type}`);
+  //     }
+  //   });
+  // }
 
 
-processWalletData(collections: any[]) {
-  this.agentWalletTotal = 0;
-  this.finoWalletTotal = 0;
 
-  collections.forEach(item => {
-    const type = item.collectionType;
-    // const amount = parseFloat(item.amount || 0);
+// processWalletData(collections: any[]) {
+//   this.agentWalletTotal = 0;
+//   this.finoWalletTotal = 0;
 
-    const cashAmount = parseFloat(item.cashAmount || 0);
-    const onlineAmount = parseFloat(item.onlineAmount || 0);
+//   collections.forEach(item => {
+//     const type = item.collectionType;
+//     // const amount = parseFloat(item.amount || 0);
 
-    switch (type) {
-      case 'Cash':
-        item.cashWalletTotal = this.agentWalletTotal;
-        this.agentWalletTotal += cashAmount;
-        break;
-      case 'Online':
-        item.onlineWalletTotal = this.finoWalletTotal;
-        this.finoWalletTotal += onlineAmount;
-        break;
-      case 'cash&online':
-        // const half = amount / 2;
-        item.cashWalletTotal = this.agentWalletTotal;
-        item.onlineWalletTotal = this.finoWalletTotal;
-        this.agentWalletTotal += cashAmount;
-        this.finoWalletTotal += onlineAmount;
-        break;
-      // case 'transfer':
+//     const cashAmount = parseFloat(item.cashAmount || 0);
+//     const onlineAmount = parseFloat(item.onlineAmount || 0);
+
+//     switch (type) {
+//       case 'Cash':
+//         item.cashWalletTotal = this.agentWalletTotal;
+//         this.agentWalletTotal += cashAmount;
+//         break;
+//       case 'Online':
+//         item.onlineWalletTotal = this.finoWalletTotal;
+//         this.finoWalletTotal += onlineAmount;
+//         break;
+//       case 'cash&online':
+//         // const half = amount / 2;
+//         item.cashWalletTotal = this.agentWalletTotal;
+//         item.onlineWalletTotal = this.finoWalletTotal;
+//         this.agentWalletTotal += cashAmount;
+//         this.finoWalletTotal += onlineAmount;
+//         break;
+//       // case 'transfer':
         
-      // case 'complete':
-      //   // Skip or subtract if you're tracking net movement
-      //   break;
-      default:
-        console.warn(`Unknown collection type: ${type}`);
-    }
-  });
-  this.transfers = collections; 
+//       // case 'complete':
+//       //   // Skip or subtract if you're tracking net movement
+//       //   break;
+//       default:
+//         console.warn(`Unknown collection type: ${type}`);
+//     }
+//   });
+//   this.transfers = collections; 
 
 
-}
+// }
 
 
 prepareCharts() {
@@ -288,6 +357,59 @@ prepareCharts() {
       const endDate = this.formatDate(this.customEndDate);
       this.GetAllCollections(startDate, endDate);
     }
+  }
+
+  processWalletData(collections: any[]) {
+    this.agentWalletTotal = 0;
+    this.finoWalletTotal = 0;
+    this.agentWalletDetails = [];
+    this.finoWalletDetails = [];
+
+    collections.forEach(item => {
+      const type = item.collectionType;
+      const cashAmount = parseFloat(item.cashAmount || 0);
+      const onlineAmount = parseFloat(item.onlineAmount || 0);
+
+      switch (type) {
+        case 'Cash':
+          item.cashWalletTotal = this.agentWalletTotal;
+          this.agentWalletTotal += cashAmount;
+          if (cashAmount > 0) {
+            this.agentWalletDetails.push(item);
+          }
+          break;
+        case 'Online':
+          item.onlineWalletTotal = this.finoWalletTotal;
+          this.finoWalletTotal += onlineAmount;
+          if (onlineAmount > 0) {
+            this.finoWalletDetails.push(item);
+          }
+          break;
+        case 'cash&online':
+          item.cashWalletTotal = this.agentWalletTotal;
+          item.onlineWalletTotal = this.finoWalletTotal;
+          this.agentWalletTotal += cashAmount;
+          this.finoWalletTotal += onlineAmount;
+          if (cashAmount > 0) {
+            this.agentWalletDetails.push({...item, amount: cashAmount});
+          }
+          if (onlineAmount > 0) {
+            this.finoWalletDetails.push({...item, amount: onlineAmount});
+          }
+          break;
+        default:
+          console.warn(`Unknown collection type: ${type}`);
+      }
+    });
+    this.transfers = collections;
+  }
+
+  toggleAgentWalletDetails() {
+    this.showAgentWalletDetails = !this.showAgentWalletDetails;
+  }
+
+  toggleFinoWalletDetails() {
+    this.showFinoWalletDetails = !this.showFinoWalletDetails;
   }
 
 

@@ -118,21 +118,30 @@
             <mat-panel-title>
               {{transaction.custodianName}}
             </mat-panel-title>
+           <span *ngIf="transaction.collectionType !== 'Online'">
             <span *ngIf="transaction.paymentStatus === 'Completed'"
-              class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-3">
-              <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
-              Completed
-            </span>
-            <span *ngIf="transaction.paymentStatus === 'transferred'"
-              class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm mr-3">
-              <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
-              Transferred
-            </span>
-            <span *ngIf="transaction.paymentStatus === 'pending'"
-              class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm mr-3">
-              <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
-              Pending...
-            </span>
+            class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-3">
+            <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
+            Completed
+          </span>
+          <span *ngIf="transaction.paymentStatus === 'transferred'"
+            class="flex items-center bg-blue-300 text-blue-800 px-2 py-1 rounded-full text-sm mr-3">
+            <mat-icon class="mr-1 text-sm" color="primary">thumb_up</mat-icon>
+            Transferred
+          </span>
+          <span *ngIf="transaction.paymentStatus === 'pending'"
+            class="flex items-center bg-amber-100 text-amber-600 px-2 py-1 rounded-full text-sm mr-3">
+            <mat-icon class="text-amber-600 mr-3">schedule</mat-icon>
+            Pending...
+          </span>
+           </span>
+           <span *ngIf="transaction.collectionType === 'Online'">
+            <span
+            class="flex items-center bg-green-300 text-green-800 px-2 py-1 rounded-full text-sm mr-3">
+            <mat-icon class="text-green-600 text-sm mr-1">check_circle</mat-icon>
+            Fino Wallet Updated
+          </span>
+           </span>
           </mat-expansion-panel-header>
 
           <div class="mt-4">
@@ -154,15 +163,17 @@
               <div>
                 <p><span class="font-bold">Total Amount : </span><span>{{transaction.totalAmount |
                     number:'1.2-2'}}</span></p>
-                <p><span class="font-bold"> Cash Amount : </span><span>{{transaction.cashAmount}}</span></p>
-                <p><span class="font-bold"> Online Amount : </span><span>{{transaction.onlineAmount}}</span></p>
+                <p *ngIf="transaction.collectionType !=='Online'"><span class="font-bold"> Cash Amount : </span><span>{{transaction.cashAmount |
+                  number:'1.2-2'}}</span></p>
+                <p *ngIf="transaction.collectionType !=='Cash'"><span class="font-bold"> Online Amount : </span><span>{{transaction.onlineAmount |
+                  number:'1.2-2'}}</span></p>
               </div>
               <!-- Show receipt image if payment is completed -->
 <div *ngIf="transaction.paymentStatus === 'Completed' && transaction.paymentImage" class="mt-4">
   <p class="font-bold mb-2">Payment Receipt:</p>
   <img [src]="transaction.paymentImage" alt="Payment Receipt" class="max-h-64 rounded shadow border border-gray-300">
 </div>
-              <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-2" *ngIf="transaction.collectionType !=='Online'">
                 <button mat-raised-button class="bg-amber-400" [disabled]="transaction.paymentStatus !== 'pending'"
                   (click)="showTransfer(transaction)">Transfer</button>
                 <button mat-raised-button color="primary" [disabled]="transaction.paymentStatus !== 'pending'"
